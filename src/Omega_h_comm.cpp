@@ -540,7 +540,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   CALL(MPI_Waitall(reqs.size(), reqs.data(), MPI_STATUSES_IGNORE));
   auto recvbuf_dev = Read<T>(recvbuf.write());
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev, width);
-#else   // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#else   // (!defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_HIP)) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   Write<T> recvbuf_dev_w(nrecvd);
   OMEGA_H_CHECK(recvbuf_dev_w.size() == rdispls.last() * width);
   auto reqs = Neighbor_ialltoallv(host_srcs_, host_dsts_, width,
