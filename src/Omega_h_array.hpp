@@ -87,7 +87,7 @@ class Write {
   OMEGA_H_INLINE bool exists() const noexcept {
 #if defined(OMEGA_H_USE_KOKKOS)
     return view().data() != nullptr
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__)) && (!defined(__HIP_DEVICE_COMPILE__))
            /* deprecated Kokkos behavior: zero-span views have data()==nullptr
             */
            || view().use_count() != 0
