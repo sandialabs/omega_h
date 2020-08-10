@@ -34,7 +34,7 @@
 #include <new>
 #include <type_traits>
 
-#ifdef R3D_USE_CUDA
+#if defined(R3D_USE_CUDA) || defined(R3D_USE_HIP)
 #define R3D_INLINE __device__ __host__ inline
 #else
 #define R3D_INLINE inline

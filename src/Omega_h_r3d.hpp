@@ -3,8 +3,10 @@
 
 #include <Omega_h_vector.hpp>
 
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA)
 #define R3D_USE_CUDA
+#elif defined(OMEGA_H_USE_HIP)
+#define R3D_USE_HIP
 #endif
 
 #include <r3d.hpp>
