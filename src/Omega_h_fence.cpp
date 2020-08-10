@@ -5,6 +5,10 @@
 #include <Omega_h_kokkos.hpp>
 #endif
 
+#if defined(OMEGA_H_USE_HIP)
+#include "hip/hip_runtime_api.h"
+#endif
+
 namespace Omega_h {
 
 void fence() {
