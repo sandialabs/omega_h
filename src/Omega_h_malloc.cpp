@@ -8,7 +8,7 @@ namespace Omega_h {
 
 void* device_malloc(std::size_t size) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   void* tmp_ptr;
   auto cuda_malloc_size = size;
   if (cuda_malloc_size < 1) cuda_malloc_size = 1;
@@ -23,7 +23,7 @@ void* device_malloc(std::size_t size) {
 
 void device_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   auto const err = hipFree(ptr);
   OMEGA_H_CHECK(err == hipSuccess);
 #else
@@ -33,7 +33,7 @@ void device_free(void* ptr, std::size_t) {
 
 void* host_malloc(std::size_t size) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   void* tmp_ptr;
   auto cuda_malloc_size = size;
   if (cuda_malloc_size < 1) cuda_malloc_size = 1;
@@ -48,7 +48,7 @@ void* host_malloc(std::size_t size) {
 
 void host_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   auto const err = hipHostFree(ptr);
   OMEGA_H_CHECK(err == hipSuccess);
 #else

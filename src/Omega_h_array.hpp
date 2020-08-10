@@ -200,7 +200,7 @@ class HostRead {
 #endif
     return mirror_(i);
 #else
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
@@ -240,7 +240,7 @@ class HostWrite {
 #endif
     return mirror_(i);
 #else
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());

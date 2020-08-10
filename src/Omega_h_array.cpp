@@ -91,7 +91,7 @@ std::string const& Write<T>::name() const {
 template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   hipMemcpy(data() + i, &value, sizeof(T), hipMemcpyHostToDevice);
 #else
   operator[](i) = value;
@@ -101,7 +101,7 @@ void Write<T>::set(LO i, T value) const {
 template <typename T>
 T Write<T>::get(LO i) const {
   ScopedTimer timer("single device to host");
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   T value;
   hipMemcpy(&value, data() + i, sizeof(T), hipMemcpyDeviceToHost);
   return value;

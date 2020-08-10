@@ -843,7 +843,7 @@ LOs nodes_on_closure(
   return collect_marked(nodes_are_on);
 }
 
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 __host__
 #endif
     void
