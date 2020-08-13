@@ -27,7 +27,7 @@ OMEGA_H_DEVICE int atomic_fetch_add(int* const dest, const int val) {
 #pragma GCC diagnostic pop
 #endif
   return oldval;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   return atomicAdd(dest, val);
 #else
   int oldval = *dest;
@@ -37,7 +37,7 @@ OMEGA_H_DEVICE int atomic_fetch_add(int* const dest, const int val) {
 }
 
 OMEGA_H_DEVICE void atomic_increment(int* const dest) {
-#if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   atomic_fetch_add(dest, 1);
 #else
   ++(*dest);
@@ -45,7 +45,7 @@ OMEGA_H_DEVICE void atomic_increment(int* const dest) {
 }
 
 OMEGA_H_DEVICE void atomic_add(int* const dest, const int val) {
-#if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   atomic_fetch_add(dest, val);
 #else
   *dest += val;

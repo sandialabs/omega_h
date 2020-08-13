@@ -2,6 +2,9 @@
 #define OMEGA_H_MACROS_H
 
 #include <Omega_h_config.h>
+#if defined(OMEGA_H_USE_HIP)
+#include "hip/hip_runtime.h"
+#endif
 
 #define OMEGA_H_STRINGIFY(s) #s
 /* apparently you need two macros to make a string */
@@ -36,7 +39,7 @@
 #define OMEGA_H_NODISCARD __attribute__((warn_unused_result))
 #endif
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #define OMEGA_H_INLINE __host__ __device__ inline
 #define OMEGA_H_INLINE_BIG OMEGA_H_INLINE
 #define OMEGA_H_DEVICE __device__ inline

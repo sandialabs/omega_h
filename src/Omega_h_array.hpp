@@ -41,6 +41,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Write(Kokkos::View<T*> view_in);
 #endif
+  OMEGA_H_INLINE Write(const Write<T>&) {}
   Write(LO size_in, std::string const& name = "");
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
@@ -87,7 +88,7 @@ class Write {
   OMEGA_H_INLINE bool exists() const noexcept {
 #if defined(OMEGA_H_USE_KOKKOS)
     return view().data() != nullptr
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__)) && (!defined(__HIP_DEVICE_COMPILE__))
            /* deprecated Kokkos behavior: zero-span views have data()==nullptr
             */
            || view().use_count() != 0
@@ -112,6 +113,7 @@ class Read {
 
  public:
   OMEGA_H_INLINE Read() {}
+  OMEGA_H_INLINE Read(const Read<T>&) {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
   Read(LO size, T offset, T stride, std::string const& name = "");
@@ -185,7 +187,7 @@ class HostRead {
   Read<T> read_;
 #if defined(OMEGA_H_USE_KOKKOS)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
@@ -200,7 +202,7 @@ class HostRead {
 #endif
     return mirror_(i);
 #else
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
@@ -221,7 +223,7 @@ class HostWrite {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
@@ -240,7 +242,7 @@ class HostWrite {
 #endif
     return mirror_(i);
 #else
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());

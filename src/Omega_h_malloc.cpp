@@ -8,13 +8,13 @@ namespace Omega_h {
 
 void* device_malloc(std::size_t size) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   void* tmp_ptr;
   auto cuda_malloc_size = size;
   if (cuda_malloc_size < 1) cuda_malloc_size = 1;
-  auto const err = cudaMalloc(&tmp_ptr, cuda_malloc_size);
-  if (err == cudaErrorMemoryAllocation) return nullptr;
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMalloc(&tmp_ptr, cuda_malloc_size);
+  if (err == hipErrorOutOfMemory) return nullptr;
+  OMEGA_H_CHECK(err == hipSuccess);
   return tmp_ptr;
 #else
   return ::std::malloc(size);
@@ -23,9 +23,9 @@ void* device_malloc(std::size_t size) {
 
 void device_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
-  auto const err = cudaFree(ptr);
-  OMEGA_H_CHECK(err == cudaSuccess);
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
+  auto const err = hipFree(ptr);
+  OMEGA_H_CHECK(err == hipSuccess);
 #else
   ::std::free(ptr);
 #endif
@@ -33,13 +33,13 @@ void device_free(void* ptr, std::size_t) {
 
 void* host_malloc(std::size_t size) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   void* tmp_ptr;
   auto cuda_malloc_size = size;
   if (cuda_malloc_size < 1) cuda_malloc_size = 1;
-  auto const err = cudaMallocHost(&tmp_ptr, cuda_malloc_size);
-  if (err == cudaErrorMemoryAllocation) return nullptr;
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipHostMalloc(&tmp_ptr, cuda_malloc_size);
+  if (err == hipErrorOutOfMemory) return nullptr;
+  OMEGA_H_CHECK(err == hipSuccess);
   return tmp_ptr;
 #else
   return ::std::malloc(size);
@@ -48,9 +48,9 @@ void* host_malloc(std::size_t size) {
 
 void host_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_CUDA
-  auto const err = cudaFreeHost(ptr);
-  OMEGA_H_CHECK(err == cudaSuccess);
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
+  auto const err = hipHostFree(ptr);
+  OMEGA_H_CHECK(err == hipSuccess);
 #else
   ::std::free(ptr);
 #endif

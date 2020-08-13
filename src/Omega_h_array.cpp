@@ -91,8 +91,8 @@ std::string const& Write<T>::name() const {
 template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
-#ifdef OMEGA_H_USE_CUDA
-  cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
+  hipMemcpy(data() + i, &value, sizeof(T), hipMemcpyHostToDevice);
 #else
   operator[](i) = value;
 #endif
@@ -101,9 +101,9 @@ void Write<T>::set(LO i, T value) const {
 template <typename T>
 T Write<T>::get(LO i) const {
   ScopedTimer timer("single device to host");
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   T value;
-  cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
+  hipMemcpy(&value, data() + i, sizeof(T), hipMemcpyDeviceToHost);
   return value;
 #else
   return operator[](i);
@@ -230,7 +230,7 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
       mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
-#if (!defined(OMEGA_H_USE_KOKKOS)) && defined(OMEGA_H_USE_CUDA)
+#if (!defined(OMEGA_H_USE_KOKKOS)) && (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP))
   mirror_.reset(new T[std::size_t(write_.size())]);
 #endif
 }
@@ -250,11 +250,11 @@ HostWrite<T>::HostWrite(Write<T> write_in)
 {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(mirror_, write_.view());
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   mirror_.reset(new T[std::size_t(write_.size())]);
-  auto const err = cudaMemcpy(mirror_.get(), write_.data(),
-      std::size_t(write_.size()) * sizeof(T), cudaMemcpyDeviceToHost);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMemcpy(mirror_.get(), write_.data(),
+      std::size_t(write_.size()) * sizeof(T), hipMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
 }
 
@@ -271,10 +271,10 @@ Write<T> HostWrite<T>::write() const {
   ScopedTimer timer("array host to device");
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(write_.view(), mirror_);
-#elif defined(OMEGA_H_USE_CUDA)
-  auto const err = cudaMemcpy(write_.data(), mirror_.get(),
-      std::size_t(size()) * sizeof(T), cudaMemcpyHostToDevice);
-  OMEGA_H_CHECK(err == cudaSuccess);
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
+  auto const err = hipMemcpy(write_.data(), mirror_.get(),
+      std::size_t(size()) * sizeof(T), hipMemcpyHostToDevice);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
   return write_;
 }
@@ -288,7 +288,7 @@ template <typename T>
 T* HostWrite<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOS
   return mirror_.data();
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   return mirror_.get();
 #else
   return write_.data();
@@ -299,7 +299,7 @@ template <typename T>
 void HostWrite<T>::set(LO i, T value) {
 #ifdef OMEGA_H_USE_KOKKOS
   mirror_[i] = value;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   mirror_[std::size_t(i)] = value;
 #else
   write_[i] = value;
@@ -310,7 +310,7 @@ template <typename T>
 T HostWrite<T>::get(LO i) const {
 #ifdef OMEGA_H_USE_KOKKOS
   return mirror_[i];
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   return mirror_[std::size_t(i)];
 #else
   return write_[i];
@@ -325,11 +325,11 @@ HostRead<T>::HostRead(Read<T> read) : read_(read) {
   Kokkos::View<const T*, Kokkos::HostSpace> h_view =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
   mirror_ = h_view;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   mirror_.reset(new T[std::size_t(read_.size())]);
-  auto const err = cudaMemcpy(mirror_.get(), read_.data(),
-      std::size_t(size()) * sizeof(T), cudaMemcpyDeviceToHost);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMemcpy(mirror_.get(), read_.data(),
+      std::size_t(size()) * sizeof(T), hipMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
 }
 
@@ -342,7 +342,7 @@ template <typename T>
 T const* HostRead<T>::data() const {
 #if defined(OMEGA_H_USE_KOKKOS)
   return mirror_.data();
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   return mirror_.get();
 #else
   return read_.data();

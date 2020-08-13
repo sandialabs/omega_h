@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 #if defined(__clang__)
 template <class... Args>
@@ -42,7 +42,7 @@ namespace Omega_h {
 template <typename T, typename Comp>
 static void parallel_sort(T* b, T* e, Comp c) {
   begin_code("parallel_sort");
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
   thrust::stable_sort(bptr, eptr, c);

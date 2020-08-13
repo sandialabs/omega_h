@@ -31,9 +31,9 @@ void fail(char const* format, ...);
 
 #define Omega_h_fail Omega_h::fail
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(__clang__)
 #define OMEGA_H_CHECK(cond) assert(cond)
-#elif defined(__CUDA_ARCH__)
+#elif defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
@@ -42,7 +42,7 @@ void fail(char const* format, ...);
                 "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
-#if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
+#if defined(__clang__) && !defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_HIP)
 #define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
 #else
 #define OMEGA_H_NORETURN(x)                                                    \

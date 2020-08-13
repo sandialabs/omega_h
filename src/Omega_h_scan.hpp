@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_SCAN_HPP
 #define OMEGA_H_SCAN_HPP
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
@@ -16,12 +16,14 @@
 
 #include <Omega_h_reduce.hpp>
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 #include <thrust/execution_policy.h>
 #include <thrust/transform_scan.h>
 #include <Omega_h_malloc.hpp>
+#if defined(OMEGA_H_USE_CUDA)
 #include <thrust/system/cuda/detail/cub/device/device_scan.cuh>
+#endif
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
@@ -45,23 +47,26 @@ void parallel_scan(LO n, T f, char const* name = "") {
 #endif
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 template <typename InputIterator, typename OutputIterator>
 OutputIterator inclusive_scan(
     InputIterator first, InputIterator last, OutputIterator result) {
+#if defined(OMEGA_H_USE_CUDA)
   std::size_t temp_storage_bytes;
   int const n = int(last - first);
   auto err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
       nullptr, temp_storage_bytes, first, result, (last - first));
-  OMEGA_H_CHECK(err == cudaSuccess);
+  OMEGA_H_CHECK(err == hipSuccess);
   void* d_temp_storage = maybe_pooled_device_malloc(temp_storage_bytes);
   err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
       d_temp_storage, temp_storage_bytes, first, result, n);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  OMEGA_H_CHECK(err == hipSuccess);
   maybe_pooled_device_free(d_temp_storage, temp_storage_bytes);
   return result + n;
-  // return thrust::inclusive_scan(thrust::device, first, last, result);
+#elif defined(OMEGA_H_USE_HIP)
+  return thrust::inclusive_scan(thrust::device, first, last, result);
+#endif
 }
 
 template <typename InputIterator, typename OutputIterator, typename BinaryOp,
@@ -220,7 +225,7 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 #endif
 }  // namespace Omega_h
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic pop
 #endif
 
