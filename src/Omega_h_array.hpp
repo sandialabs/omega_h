@@ -41,11 +41,11 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Write(Kokkos::View<T*> view_in);
 #endif
-  OMEGA_H_INLINE Write(const Write<T>&) {}
   Write(LO size_in, std::string const& name = "");
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(std::initializer_list<T> l, std::string const& name = "");
+  Write(const Write<T>&) {};
   Write(HostWrite<T> host_write);
   OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
@@ -113,7 +113,6 @@ class Read {
 
  public:
   OMEGA_H_INLINE Read() {}
-  OMEGA_H_INLINE Read(const Read<T>&) {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
   Read(LO size, T offset, T stride, std::string const& name = "");

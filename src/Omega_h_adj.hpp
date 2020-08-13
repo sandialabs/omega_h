@@ -16,7 +16,6 @@ struct Adj : public Graph {
       : Graph(a2ab_, ab2b_), codes(codes_) {}
   Adj(LOs a2ab_, LOs ab2b_) : Graph(a2ab_, ab2b_) {}
   Adj(Graph g) : Graph(g) {}
-  OMEGA_H_INLINE Adj(const Adj&) {}
   Read<I8> codes;
 };
 
