@@ -71,7 +71,7 @@ int classType(pEntity e) {
 }
 
 void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
-  (void)mesh;
+  //(void)mesh;
   pMesh m = PM_mesh(sm, 0);
   Int max_dim;
   if (M_numRegions(m)) {
@@ -387,6 +387,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     ent_class_ids[3].push_back(classId(rgn));
   }
   RIter_delete(regions);
+  printf("7.1\n");
+
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
@@ -401,6 +403,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     }
     auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
+  printf("7.2\n");
       build_from_elems_and_coords(
           mesh, family, max_dim, eqv2v, host_coords.write());
     }
@@ -429,6 +432,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
       host_owners[5] = 5;
       host_owners[6] = 0;
     }
+  printf("7.3\n");
     //
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
@@ -476,7 +480,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
 //Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
 //    CommPtr comm) {
 void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
-    CommPtr comm, Mesh *mesh) {
+    CommPtr comm, Mesh *mesh, int is_in) {
   printf("0\n");
   SimPartitionedMesh_start(NULL,NULL);
   printf("1\n");
@@ -487,16 +491,21 @@ void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   pNativeModel nm = NULL;
   printf("4\n");
   pProgress p = NULL;
-  printf("0\n");
+  printf("5\n");
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
-  printf("1\n");
+  printf("6\n");
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
-  printf("2\n");
-  mesh->set_comm(comm);
+  printf("7\n");
   //auto mesh = Mesh(comm->library());
-  meshsim::read_internal(sm, mesh, g);
+  //
+  if (is_in) {
+    mesh->set_comm(comm);
+    meshsim::read_internal(sm, mesh, g);
+  }
+  //meshsim::read_internal(sm, mesh, g);
   //meshsim::read_internal(sm, &mesh, g);
 
+  printf("8\n");
   M_release(sm);
   GM_release(g);
   SimModel_stop();

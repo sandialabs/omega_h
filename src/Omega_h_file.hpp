@@ -33,7 +33,7 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 #ifdef OMEGA_H_USE_SIMMODSUITE
 namespace meshsim {
 void read(filesystem::path const& mesh_fname, filesystem::path const& model,
-    CommPtr comm, Mesh *mesh);
+    CommPtr comm, Mesh *mesh, int is_in);
 //Mesh read(filesystem::path const& mesh, filesystem::path const& model,
 //    CommPtr comm);
 void call_print(LOs a);

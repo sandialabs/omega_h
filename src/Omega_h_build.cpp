@@ -80,11 +80,18 @@ void build_ents_from_elems2verts(
   }
 }
 
-void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family family,
+void build_from_elems2verts(Mesh* mesh, Omega_h_Family family,
     Int edim, LOs ev2v, Read<GO> vert_globals) {
-  mesh->set_comm(comm);
+//void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family family,
+    //Int edim, LOs ev2v, Read<GO> vert_globals) {
+  //mesh->set_comm(comm);//removed to accommodate mesh conV+splitting
+  printf("ok1, edim=%d\n", edim);
+  //comm set in meshsim::read
+  printf("ok2, edim=%d\n", edim);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+  printf("ok3, edim=%d\n", edim);
   mesh->set_family(family);
+  printf("ok4, edim=%d\n", edim);
   mesh->set_dim(edim);
   build_verts_from_globals(mesh, vert_globals);
   build_ents_from_elems2verts(mesh, ev2v, vert_globals);
@@ -94,12 +101,15 @@ void build_from_elems2verts(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts) {
   auto vert_globals = Read<GO>(nverts, 0, 1);
   build_from_elems2verts(
-      mesh, mesh->library()->self(), family, edim, ev2v, vert_globals);
+      mesh, family, edim, ev2v, vert_globals);
+  //build_from_elems2verts(
+      //mesh, mesh->library()->self(), family, edim, ev2v, vert_globals);
 }
 
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords) {
   auto nverts = coords.size() / edim;
+  printf("ok1\n");
   build_from_elems2verts(mesh, family, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }

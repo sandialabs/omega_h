@@ -15,8 +15,10 @@ void build_verts_from_globals(Mesh* mesh, GOs vert_globals);
 // called first
 void build_ents_from_elems2verts(
     Mesh* mesh, LOs ev2v, GOs vert_globals, GOs elem_globals = GOs());
-void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family, Int edim,
+void build_from_elems2verts(Mesh* mesh, Omega_h_Family, Int edim,
     LOs ev2v, Read<GO> vert_globals);
+//void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family, Int edim,
+//    LOs ev2v, Read<GO> vert_globals);
 void build_from_elems2verts(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts);
 void build_from_elems_and_coords(

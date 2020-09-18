@@ -35,19 +35,30 @@ int main(int argc, char** argv) {
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
 
-  if (is_in) {
+  //if (is_in) {//commented to get simpartitioned mesh start to work
   //if (!world->rank()) {
+  printf("nparts0out=%d\n", nparts_out);
+  Omega_h::meshsim::read(mesh_in, model_in, comm_in, &mesh, is_in);
   printf("nparts1out=%d\n", nparts_out);
-    Omega_h::meshsim::read(mesh_in, model_in, comm_in, &mesh);
     //auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm_in);
-  printf("nparts2out=%d\n", nparts_out);
+  if (is_in || is_out) mesh.set_comm(comm_out);
+    printf("nparts2out=%d\n", nparts_out);
+  if (is_out) {
+    if (nparts_out != nparts_in) mesh.balance();
     Omega_h::binary::write(mesh_out, &mesh);
-  printf("nparts3out=%d\n", nparts_out);
+    printf("nparts3out=%d\n", nparts_out);
     Omega_h::binary::write_model(model_out, &mesh);
-  printf("nparts4out=%d\n", nparts_out);
+    printf("nparts4out=%d\n", nparts_out);
   }
-  //if (is_in || is_out) mesh.set_comm(comm_out);
+/*
+  if (is_in) {//commented to get simpartitioned mesh start to work
+    Omega_h::binary::write(mesh_out, &mesh);
+    printf("nparts3out=%d\n", nparts_out);
+    Omega_h::binary::write_model(model_out, &mesh);
+    printf("nparts4out=%d\n", nparts_out);
+  }
   //then write mesh, as opposed to earlier
+*/
 
   return 0;
 }
