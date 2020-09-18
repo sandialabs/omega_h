@@ -29,9 +29,15 @@ int main(int argc, char** argv) {
   auto model_out = cmdline.get<std::string>("model-out");
 
   auto nparts_out = cmdline.get<int>("nparts_out");
-  if (!world->rank()) {
+  auto is_in = (world->rank() < nparts_in);
+  auto comm_in = world->split(int(is_in), 0);
+  auto is_out = (world->rank() < nparts_out);
+  auto comm_out = world->split(int(is_out), 0);
+
+  if (is_in) {
+  //if (!world->rank()) {
   printf("nparts1out=%d\n", nparts_out);
-    auto mesh = Omega_h::meshsim::read(mesh_in, model_in, world);
+    auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm_in);
   printf("nparts2out=%d\n", nparts_out);
     Omega_h::binary::write(mesh_out, &mesh);
   printf("nparts3out=%d\n", nparts_out);
