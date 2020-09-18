@@ -473,23 +473,36 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
 
 //}  // end anonymous namespace
 
-Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
-    CommPtr comm) {
+//Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+//    CommPtr comm) {
+void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+    CommPtr comm, Mesh *mesh) {
+  printf("0\n");
   SimPartitionedMesh_start(NULL,NULL);
+  printf("1\n");
   SimModel_start();
+  printf("2\n");
   Sim_readLicenseFile(NULL);
+  printf("3\n");
   pNativeModel nm = NULL;
+  printf("4\n");
   pProgress p = NULL;
+  printf("0\n");
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
+  printf("1\n");
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
-  auto mesh = Mesh(comm->library());
-  meshsim::read_internal(sm, &mesh, g);
+  printf("2\n");
+  mesh->set_comm(comm);
+  //auto mesh = Mesh(comm->library());
+  meshsim::read_internal(sm, mesh, g);
+  //meshsim::read_internal(sm, &mesh, g);
 
   M_release(sm);
   GM_release(g);
   SimModel_stop();
   SimPartitionedMesh_stop();
-  return mesh;
+  //return;
+  //return mesh;
 
 }
 
