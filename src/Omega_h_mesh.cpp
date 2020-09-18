@@ -922,9 +922,6 @@ void Mesh::balance(bool predictive) {
   owners2new.set_dest_globals(owner_globals);
   auto sorted_new2owners = owners2new.invert();
   migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
-  printf("post migration\n");
-  auto new_owners = this-> ask_owners(0);
-  Omega_h::meshsim::print_owners(new_owners, comm_->rank());
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {

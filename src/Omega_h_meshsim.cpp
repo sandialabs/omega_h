@@ -426,12 +426,14 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     }
     auto matches = Read<LO>(host_matches.write());
     auto match_classId = Read<LO>(host_match_classId.write());
-    // hard coded fix for bad owners
+/*
+    // hard coded fix for bad owners, mesh= plateX6elem
     if (ent_dim == 1) {
       host_owners[4] = 3;
       host_owners[5] = 5;
       host_owners[6] = 0;
     }
+*/
   printf("7.3\n");
     //
     auto owners = Read<LO>(host_owners.write());
