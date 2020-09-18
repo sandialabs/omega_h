@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   printf("osh2vtk ok2\n");
   auto dim = mesh.dim();
   if (argc == 4) dim = atoi(argv[2]);
-  printf("osh2vtk ok3\n");
+  printf("osh2vtk ok3 rank=%d\n", lib.world()->rank());
   Omega_h::vtk::write_parallel(argv[argc - 1], &mesh, dim);
-  printf("osh2vtk ok4\n");
+  printf("osh2vtk ok4 rank=%d\n", lib.world()->rank());
 }
