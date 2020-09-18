@@ -35,24 +35,28 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
-#ifdef OMEGA_H_USE_CUDA
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
+  a = __builtin_bswap32(a);
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
+  a = _byteswap_ulong(a);
+#else
   a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
       ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
-#else
-  a = __builtin_bswap32(a);
 #endif
   return a;
 }
 
 OMEGA_H_INLINE std::uint64_t bswap64(std::uint64_t a) {
-#ifdef OMEGA_H_USE_CUDA
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
+  a = __builtin_bswap64(a);
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
+  a = _byteswap_uint64(a);
+#else
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
       ((a & 0x0000000000FF0000ULL) << 24) | ((a & 0x00000000FF000000ULL) << 8) |
       ((a & 0x000000FF00000000ULL) >> 8) | ((a & 0x0000FF0000000000ULL) >> 24) |
       ((a & 0x00FF000000000000ULL) >> 40) | ((a & 0xFF00000000000000ULL) >> 56);
-#else
-  a = __builtin_bswap64(a);
 #endif
   return a;
 }
@@ -383,7 +387,8 @@ void write(std::ostream& stream, Mesh* mesh) {
     for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i), is_compressed, needs_swapping);
     }
-    if (mesh->comm()->size() > 1) {
+    if (mesh->comm()->size() > 0) {
+    //if (mesh->comm()->size() > 1) {//removed to write matched owners in serial
       auto owners = mesh->ask_owners(d);
       write_array(stream, owners.ranks, is_compressed, needs_swapping);
       write_array(stream, owners.idxs, is_compressed, needs_swapping);
@@ -400,6 +405,68 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   end_code();
+}
+
+void write_model(filesystem::path const& path, Mesh* mesh) {
+  begin_code("binary::write(path,Mesh)");
+  filesystem::create_directory(path);
+  mesh->comm()->barrier();
+  auto filepath = path;
+  filepath /= std::to_string(mesh->comm()->rank());
+  filepath += ".osh";
+  std::ofstream stream(filepath.c_str());
+  OMEGA_H_CHECK(stream.is_open());
+/*
+  stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
+*/
+#ifdef OMEGA_H_USE_ZLIB
+  I8 is_compressed = true;
+#else
+  I8 is_compressed = false;
+#endif
+  bool needs_swapping = !is_little_endian_cpu();
+  write_value(stream, is_compressed, needs_swapping);
+
+  for (Int d = 0; d < mesh->dim(); ++d) {
+    auto model_ents = mesh->ask_model_ents(d);
+    auto model_matches = mesh->ask_model_matches(d);
+    write_array(stream, model_ents, is_compressed, needs_swapping);
+    write_array(stream, model_matches, is_compressed, needs_swapping);
+  }
+  mesh->comm()->barrier();
+  end_code();
+}
+
+void read_model(filesystem::path const& path, Mesh* mesh) {
+  ScopedTimer timer("binary::read_model(path, mesh)");
+  auto filepath = path;
+  filepath /= std::to_string(mesh->comm()->rank());
+  filepath += ".osh";
+  std::ifstream stream(filepath.c_str(), std::ios::binary);
+  //puts(filepath.c_str());
+  OMEGA_H_CHECK(stream.is_open());
+/*
+  unsigned char magic_in[2];
+  stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
+  OMEGA_H_CHECK(magic_in[0] == magic[0]);
+  OMEGA_H_CHECK(magic_in[1] == magic[1]);
+*/
+  bool needs_swapping = !is_little_endian_cpu();
+  I8 is_compressed;
+  read_value(stream, is_compressed, needs_swapping);
+#ifndef OMEGA_H_USE_ZLIB
+  OMEGA_H_CHECK(!is_compressed);
+#endif
+
+  for (Int d = 0; d < mesh->dim(); ++d) {
+    //printf("ok %d\n", d);
+    LOs model_ents;
+    LOs model_matches;
+    read_array(stream, model_ents, is_compressed, needs_swapping);
+    read_array(stream, model_matches, is_compressed, needs_swapping);
+    mesh->set_model_ents(d, model_ents);
+    mesh->set_model_matches(d, model_matches);
+  }
 }
 
 void read(std::istream& stream, Mesh* mesh, I32 version) {
@@ -435,7 +502,8 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
     for (Int i = 0; i < ntags; ++i) {
       read_tag(stream, mesh, d, is_compressed, version, needs_swapping);
     }
-    if (mesh->comm()->size() > 1) {
+    if (mesh->comm()->size() > 0) {
+    //if (mesh->comm()->size() > 1) {//removed to read matched owners of serial mesh
       Remotes owners;
       read_array(stream, owners.ranks, is_compressed, needs_swapping);
       read_array(stream, owners.idxs, is_compressed, needs_swapping);
@@ -539,7 +607,7 @@ void read_in_comm(
   auto filepath = path;
   filepath /= std::to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";
-  std::ifstream file(filepath.c_str());
+  std::ifstream file(filepath.c_str(), std::ios::binary);
   OMEGA_H_CHECK(file.is_open());
   read(file, mesh, version);
 }
@@ -638,6 +706,7 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
 }
 
 Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
+//OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {//temp fix to get build working
   auto const extension = path.extension().string();
   if (extension == ".osh") {
     return binary::read(path, comm);

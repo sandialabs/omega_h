@@ -20,6 +20,8 @@ struct Rib;
 }
 
 struct ClassPair {
+  inline ClassPair() = default;
+  inline ClassPair(Int t_dim, LO t_id) : dim(t_dim), id(t_id) {}
   Int dim;
   LO id;
   OMEGA_H_INLINE bool operator<(ClassPair const& other) const {
@@ -168,8 +170,15 @@ class Mesh {
   ParentPtr parents_[DIMS];
   ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
+  //for model
+  LOs model_ents_[DIMS];
+  LOs model_matches_[DIMS-1];
 
  public:
+  void set_model_ents(Int ent_dim, LOs Ids); 
+  void set_model_matches(Int ent_dim, LOs matches); 
+  LOs ask_model_ents(Int ent_dim); 
+  LOs ask_model_matches(Int ent_dim); 
   void add_coords(Reals array);
   Reals coords() const;
   void set_coords(Reals const& array);

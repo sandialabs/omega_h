@@ -32,13 +32,13 @@ TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim) {
   get_all_dim_tags(mesh, cell_dim, &tags);
   tags[VERT].insert("local");
   tags[size_t(cell_dim)].insert("local");
-  if (mesh->comm()->size() > 1) {
+  //if (mesh->comm()->size() > 1) {//commented for writing matched owner tags in serial
     tags[VERT].insert("owner");
     tags[size_t(cell_dim)].insert("owner");
     if (mesh->parting() == OMEGA_H_GHOSTED) {
       tags[size_t(cell_dim)].insert("vtkGhostType");
     }
-  }
+  //}
   return tags;
 }
 
@@ -452,15 +452,21 @@ static void read_piece_start_tag(
 
 static void write_connectivity(
     std::ostream& stream, Mesh* mesh, Int cell_dim, bool compress) {
+  printf("vtk::write_connect 1\n");
   Read<I8> types(mesh->nents(cell_dim), vtk_type(mesh->family(), cell_dim));
   write_array(stream, "types", 1, types, compress);
+  printf("vtk::write_connect 2\n");
   LOs ev2v = mesh->ask_verts_of(cell_dim);
+  printf("vtk::write_connect 3\n");
   auto deg = element_degree(mesh->family(), cell_dim, VERT);
+  printf("vtk::write_connect 4\n");
   /* starts off already at the end of the first entity's adjacencies,
      increments by a constant value */
   LOs ends(mesh->nents(cell_dim), deg, deg);
+  printf("vtk::write_connect 5\n");
   write_array(stream, "connectivity", 1, ev2v, compress);
   write_array(stream, "offsets", 1, ends, compress);
+  printf("vtk::write_connect 6\n");
 }
 
 static void write_connectivity(
@@ -584,8 +590,11 @@ static void write_locals(
 
 static void write_owners(
     std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
-  if (mesh->comm()->size() == 1) return;
-  write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
+  //if (mesh->comm()->size() == 1) return;
+  write_array(stream, "owners", 1, mesh->ask_owners(ent_dim).idxs, compress);
+  printf("writing owners 2\n");
+  //write_array(stream, "owner_ranks", 1, mesh->ask_owners(ent_dim).ranks, compress);
+  //write_array(stream, "owner_ids", 1, mesh->ask_owners(ent_dim).idxs, compress);
 }
 
 static void write_vtk_ghost_types(
@@ -604,6 +613,7 @@ static void write_locals_and_owners(std::ostream& stream, Mesh* mesh,
     write_locals(stream, mesh, ent_dim, compress);
   }
   if (tags[size_t(ent_dim)].count("owner")) {
+    printf("writing owners 1\n");
     write_owners(stream, mesh, ent_dim, compress);
   }
 }
@@ -740,14 +750,19 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
   stream << "<Cells>\n";
+  printf("vtk::write_vtu 1\n");
   write_connectivity(stream, mesh, cell_dim, compress);
+  printf("vtk::write_vtu 2\n");
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords();
+  write_piece_start_tag(stream, mesh, cell_dim);
   write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
       compress);
   stream << "</Points>\n";
   stream << "<PointData>\n";
+  printf("vtk::write_vtu 3\n");
+  write_piece_start_tag(stream, mesh, cell_dim);
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
     write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
@@ -760,6 +775,8 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
       write_tag(stream, tag, mesh->dim(), compress);
     }
   }
+  printf("vtk::write_vtu 4\n");
+  write_piece_start_tag(stream, mesh, cell_dim);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
   /* globals go first so read_vtu() knows where to find them */
@@ -768,7 +785,11 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     write_tag(
         stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
+  printf("vtk::write_vtu 5\n");
+  write_piece_start_tag(stream, mesh, cell_dim);
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
+  printf("vtk::write_vtu 6\n");
+  write_piece_start_tag(stream, mesh, cell_dim);
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
   }
@@ -778,6 +799,8 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
       write_tag(stream, tag, mesh->dim(), compress);
     }
   }
+  printf("vtk::write_vtu 7\n");
+  write_piece_start_tag(stream, mesh, cell_dim);
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
@@ -1099,7 +1122,9 @@ void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
     auto const relative_piecepath = filesystem::path("pieces") / "piece";
     write_pvtu(pvtuname, mesh, cell_dim, relative_piecepath, tags);
   }
+  printf("vtk::writeparallel 1\n");
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags, compress);
+  printf("vtk::writeparallel 2\n");
 }
 
 void write_parallel(

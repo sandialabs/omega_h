@@ -18,6 +18,8 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 
+#include "Omega_h_file.hpp"
+
 namespace Omega_h {
 
 Mesh::Mesh() {
@@ -109,6 +111,30 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   auto deg = element_degree(family(), ent_dim, ent_dim - 1);
   nents_[ent_dim] = divide_no_remainder(hl2l.size(), deg);
   add_adj(ent_dim, ent_dim - 1, down);
+}
+
+void Mesh::set_model_ents(Int ent_dim, LOs Ids) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim(ent_dim);
+  model_ents_[ent_dim] = Ids;
+}
+
+void Mesh::set_model_matches(Int ent_dim, LOs matches) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim(ent_dim+1);
+  model_matches_[ent_dim] = matches;
+}
+
+LOs Mesh::ask_model_ents(Int ent_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim(ent_dim);
+  return model_ents_[ent_dim];
+}
+
+LOs Mesh::ask_model_matches(Int ent_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim(ent_dim);
+  return model_matches_[ent_dim];
 }
 
 void Mesh::set_ents(Topo_type high_type, Topo_type low_type, Adj h2l) {
@@ -799,6 +825,7 @@ Read<I8> Mesh::owned(Int ent_dim) {
 
 Dist Mesh::ask_dist(Int ent_dim) {
   if (!dists_[ent_dim]) {
+    printf("in askDist dist n.a.\n");
     auto owners = ask_owners(ent_dim);
     OMEGA_H_CHECK(owners.ranks.exists());
     OMEGA_H_CHECK(owners.idxs.exists());
@@ -895,6 +922,9 @@ void Mesh::balance(bool predictive) {
   owners2new.set_dest_globals(owner_globals);
   auto sorted_new2owners = owners2new.invert();
   migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
+  printf("post migration\n");
+  auto new_owners = this-> ask_owners(0);
+  Omega_h::meshsim::print_owners(new_owners, comm_->rank());
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {
