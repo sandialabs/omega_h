@@ -14,6 +14,8 @@
 
 #include <fstream>
 
+#include "Omega_h_array_ops.hpp"
+
 namespace Omega_h {
 
 namespace meshsim {
@@ -70,7 +72,7 @@ int classType(pEntity e) {
   return GEN_type(g);
 }
 
-void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
+void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   //(void)mesh;
   pMesh m = PM_mesh(sm, 0);
   Int max_dim;
@@ -261,11 +263,14 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
   pEdge edge;
   count_matched = 0;
   while (edge = (pEdge) EIter_next(edges)) {
-    printf("original edge %d hasverts\n", EN_id(edge));
+    printf("sim edge %d hasverts\n", EN_id(edge));
     for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge, j);
+      double xyz[3];
+      V_coord(vtx,xyz);
       ent_nodes[1].push_back(EN_id(vtx));
-      printf(" %d ", EN_id(vtx));
+      printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
+               j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
     printf("\n");
     ent_class_ids[1].push_back(classId(edge));
@@ -277,12 +282,13 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     while (match = (pEdge)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
 
+/*
         printf("original edge %d with verts\n", EN_id(edge));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(edge, j)));
         printf("\n  is matched to edge %d with verts ", EN_id(match));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(match, j)));
         printf("\n");
-
+*/
         ent_matches[1].push_back(EN_id(match));
         ent_match_classId[1].push_back(classId(match));
         ++count_matches;
@@ -389,6 +395,45 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
   RIter_delete(regions);
   printf("7.1\n");
 
+
+  //set the certain veriables before this as per the build APIs
+  auto vert_globals = Read<GO>(numVtx, 0, 1);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->set_family(family);
+  mesh->set_dim(max_dim);
+  mesh->set_verts(numVtx);
+  mesh->add_tag(0, "global", 1, vert_globals);
+  //add e2vrts
+  for (Int ent_dim = 1; ent_dim <= max_dim; ++ent_dim) {
+    Int neev = element_degree(family, ent_dim, VERT);
+    LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
+    HostWrite<LO> host_ev2v(ndim_ents * neev);
+    for (i = 0; i < ndim_ents; ++i) {
+      for (Int j = 0; j < neev; ++j) {
+        host_ev2v[i * neev + j] =
+          ent_nodes[ent_dim][static_cast<std::size_t>(i * neev + j)];
+      }
+    }
+    auto ev2v = Read<LO>(host_ev2v.write());
+    if (ent_dim == 1) {
+      mesh->set_ents(ent_dim, Adj(ev2v));
+    }
+    else {
+      auto ldim = ent_dim - 1;
+      auto lv2v = mesh->ask_verts_of(ldim);
+      auto v2l = mesh->ask_up(0, ldim);
+      auto down = reflect_down(ev2v, lv2v, v2l, mesh->family(), ent_dim, ldim);
+      mesh->set_ents(ent_dim, down);
+    }
+    mesh->add_tag(ent_dim, "global", 1, GOs(ndim_ents, 0, 1));
+  }
+  printf("7.2\n");
+  //
+  if (!comm->reduce_and(is_sorted(vert_globals)))
+    reorder_by_globals(mesh);
+  mesh->add_coords(host_coords.write());
+  //
+
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
@@ -401,18 +446,20 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
       }
       host_class_id[i] = ent_class_ids[ent_dim][static_cast<std::size_t>(i)];
     }
-    auto eqv2v = Read<LO>(host_ev2v.write());
+    //auto eqv2v = Read<LO>(host_ev2v.write());
+/*
     if (ent_dim == max_dim) {
-  printf("7.2\n");
       build_from_elems_and_coords(
           mesh, family, max_dim, eqv2v, host_coords.write());
     }
-    classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
+*/
+    classify_equal_order(mesh, ent_dim, host_ev2v.write(), host_class_id.write());
+    //classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
   finalize_classification(mesh);
 
   //add matches and owners info to mesh
-  for (Int ent_dim = 0; ent_dim < 3; ++ent_dim) {
+  for (Int ent_dim = 0; ent_dim < max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size())/neev;
     HostWrite<LO> host_matches(ndim_ents);
@@ -421,39 +468,35 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     for (i = 0; i < ndim_ents; ++i) {
       host_matches[i] = ent_matches[ent_dim][static_cast<std::size_t>(i)];
       host_match_classId[i] = ent_match_classId[ent_dim][static_cast<std::size_t>(i)];
-      //how to store when multiple matches on different parts in parallel?
       host_owners[i] = ent_owners[ent_dim][static_cast<std::size_t>(i)];
     }
     auto matches = Read<LO>(host_matches.write());
     auto match_classId = Read<LO>(host_match_classId.write());
+
 /*
     // hard coded fix for bad owners, mesh= plateX6elem
-    if (ent_dim == 1) {
+    if ((numFaces == 6) && (numEdges == 13) && (numVtx == 8) && (ent_dim == 1) && (max_dim == 2)) {
       host_owners[4] = 3;
       host_owners[5] = 5;
       host_owners[6] = 0;
     }
-*/
-  printf("7.3\n");
     //
+*/
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
     mesh->add_tag(ent_dim, "matches", 1, matches);
     mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
     mesh->set_owners(ent_dim, Remotes(ranks, owners));
   }
-  auto vert_matches = mesh->get_array<LO>(0, "matches");
-  auto edge_matches = mesh->get_array<LO>(1, "matches");
-  auto face_matches = mesh->get_array<LO>(2, "matches");
-  printf("\nv matches\n");
-  call_print(vert_matches);
-  printf("\ne matches\n");
-  call_print(edge_matches);
-  printf("\nf matches\n");
-  call_print(face_matches);
-  print_owners(mesh->ask_owners(0), 0);
-  print_owners(mesh->ask_owners(1), 0);
-  print_owners(mesh->ask_owners(2), 0);
+  for (Int d = 0; d < max_dim; ++d) {
+    auto d_matches = mesh->get_array<LO>(d, "matches");
+    printf("\nfor dim d=%d, matches= \n", d);
+    call_print(d_matches);
+    printf("owners=\n");
+    print_owners(mesh->ask_owners(d), comm->rank());
+    printf("ab2b=\n");
+    call_print((mesh->get_adj(d+1, d)).ab2b);
+  }
 
   //add model matches info to mesh
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {
@@ -472,7 +515,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g) {
     //printf("ent_dim=%d\n", ent_dim);
     //call_print(return_model_ents);
     //call_print(return_model_matches);
-    //mesh->balance();
   }
   //
 }
@@ -502,7 +544,7 @@ void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   //
   if (is_in) {
     mesh->set_comm(comm);
-    meshsim::read_internal(sm, mesh, g);
+    meshsim::read_internal(sm, mesh, g, comm);
   }
   //meshsim::read_internal(sm, mesh, g);
   //meshsim::read_internal(sm, &mesh, g);

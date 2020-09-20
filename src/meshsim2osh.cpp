@@ -50,17 +50,8 @@ int main(int argc, char** argv) {
     Omega_h::binary::write_model(model_out, &mesh);
     printf("nparts4out=%d\n", nparts_out);
   }
-  mesh.ask_down(mesh.dim(), 0);
-  printf("nparts5out=%d\n", nparts_out);
-/*
-  if (is_in) {//commented to get simpartitioned mesh start to work
-    Omega_h::binary::write(mesh_out, &mesh);
-    printf("nparts3out=%d\n", nparts_out);
-    Omega_h::binary::write_model(model_out, &mesh);
-    printf("nparts4out=%d\n", nparts_out);
-  }
-  //then write mesh, as opposed to earlier
-*/
+  //mesh.ask_down(mesh.dim(), 0);
+  printf("rank=%d\n", world->rank());
 
   return 0;
 }
