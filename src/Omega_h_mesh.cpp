@@ -75,6 +75,8 @@ void Mesh::set_comm(CommPtr const& new_comm) {
 
 void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
 
+void Mesh::set_periodic(bool is_periodic) { periodic_ = is_periodic; }
+
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
   OMEGA_H_CHECK(dim_in >= 1);
@@ -922,9 +924,9 @@ void Mesh::balance(bool predictive) {
   owners2new.set_dest_globals(owner_globals);
   auto sorted_new2owners = owners2new.invert();
   migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
-  printf("post migration\n");
-  auto new_owners = this-> ask_owners(0);
-  Omega_h::meshsim::print_owners(new_owners, comm_->rank());
+  //printf("post migration\n");
+  //auto new_owners = this-> ask_owners(0);
+  //Omega_h::meshsim::print_owners(new_owners, comm_->rank());
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {
@@ -1076,6 +1078,7 @@ Mesh Mesh::copy_meta() const {
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
   m.class_sets = this->class_sets;
+  m.periodic_ = this->periodic_;
   return m;
 }
 

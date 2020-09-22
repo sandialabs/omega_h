@@ -155,6 +155,11 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     PList_delete(matches);
   }
   VIter_delete(vertices);
+  bool mesh_IsMatched = 0;
+  if (count_matched) mesh_IsMatched = true;
+  mesh->set_periodic(mesh_IsMatched);
+  //note this bool is specifically set at lowest dimension ent
+  // as they are present in even 1d mesh
 
   //to get model matches
   auto g_numVtx = GM_numVertices(g);
@@ -396,7 +401,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   printf("7.1\n");
 
 
-  //set the certain veriables before this as per the build APIs
   auto vert_globals = Read<GO>(numVtx, 0, 1);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->set_family(family);
@@ -446,15 +450,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
       }
       host_class_id[i] = ent_class_ids[ent_dim][static_cast<std::size_t>(i)];
     }
-    //auto eqv2v = Read<LO>(host_ev2v.write());
-/*
-    if (ent_dim == max_dim) {
-      build_from_elems_and_coords(
-          mesh, family, max_dim, eqv2v, host_coords.write());
-    }
-*/
     classify_equal_order(mesh, ent_dim, host_ev2v.write(), host_class_id.write());
-    //classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
   finalize_classification(mesh);
 
@@ -472,16 +468,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     }
     auto matches = Read<LO>(host_matches.write());
     auto match_classId = Read<LO>(host_match_classId.write());
-
-/*
-    // hard coded fix for bad owners, mesh= plateX6elem
-    if ((numFaces == 6) && (numEdges == 13) && (numVtx == 8) && (ent_dim == 1) && (max_dim == 2)) {
-      host_owners[4] = 3;
-      host_owners[5] = 5;
-      host_owners[6] = 0;
-    }
-    //
-*/
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
     mesh->add_tag(ent_dim, "matches", 1, matches);
@@ -498,7 +484,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     call_print((mesh->get_adj(d+1, d)).ab2b);
   }
 
-  //add model matches info to mesh
+  //add model matches info to mesh and if mesh is periodic
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {
     HostWrite<LO> host_model_ids(g_numEnt[ent_dim]);
     HostWrite<LO> host_model_matches(g_numEnt[ent_dim]);

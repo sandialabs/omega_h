@@ -114,6 +114,8 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
   old_low_owners2new_lows = new_lows2old_owners.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
+  int waiting=0;
+  while (waiting);
   new_ents2new_lows.ab2b = new_conn;
   auto old_codes = old_mesh->ask_down(ent_dim, low_dim).codes;
   if (old_codes.exists()) {

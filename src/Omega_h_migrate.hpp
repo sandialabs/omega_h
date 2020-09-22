@@ -11,6 +11,8 @@ class Mesh;
 /* create arrays mapping uses of (low_dim) entities by
    (high_dim) entities to their (low_dim) owners */
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
+/* When mesh has matched owners, use this to get topological owners */
+Remotes form_down_use_owners_matched(Mesh* mesh, Int high_dim, Int low_dim);
 
 /* Given a parallel map (Dist) from
    (new local copies of uses of low entities by high entities)
