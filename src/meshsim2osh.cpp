@@ -47,9 +47,17 @@ int main(int argc, char** argv) {
     if (nparts_out != nparts_in) mesh.balance();
     Omega_h::binary::write(mesh_out, &mesh);
     printf("nparts3out=%d\n", nparts_out);
-    Omega_h::binary::write_model(model_out, &mesh);
+    //Omega_h::binary::write_model(model_out, &mesh);
+/*
+commented because we dont need to write model since convertor was coupled with
+oshPart
+Also this model info is not migrated to new mesh which causes segfault
+*/
     printf("nparts4out=%d\n", nparts_out);
   }
+/*
+the askDown call confirms if connectivity is proper
+*/
   //mesh.ask_down(mesh.dim(), 0);
   printf("rank=%d\n", world->rank());
 

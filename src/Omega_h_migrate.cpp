@@ -114,8 +114,6 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
   old_low_owners2new_lows = new_lows2old_owners.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
-  int waiting=0;
-  while (waiting);
   new_ents2new_lows.ab2b = new_conn;
   auto old_codes = old_mesh->ask_down(ent_dim, low_dim).codes;
   if (old_codes.exists()) {
@@ -167,6 +165,14 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
   }
   auto owners = update_ownership(new_ents2old_owners, own_ranks);
+/*
+  int waiting=0;
+  if (ent_dim == 0) {
+    waiting=1;
+    auto coords = new_mesh->coords();
+    while (waiting);
+  }
+*/
   new_mesh->set_owners(ent_dim, owners);
 }
 
@@ -214,6 +220,28 @@ void migrate_mesh(
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
     old_owners2new_ents = old_low_owners2new_lows;
+
+    if (d < dim) {
+      //auto nnew_ents = new_ents2old_owners.nroots();
+      auto nnew_ents = new_ents2old_owners.nitems();
+      //auto nnew_entsSrcs = new_ents2old_owners.nsrcs();
+
+      Dist new_ents2old_matchOwners = new_ents2old_owners;
+      auto old_matchOwners = mesh->ask_match_owners(d);
+      printf("ok1\n");
+      new_ents2old_matchOwners.set_dest_idxs(old_matchOwners.idxs, nnew_ents);
+      printf("ok2\n");
+      new_ents2old_matchOwners.set_dest_ranks(old_matchOwners.ranks);
+      printf("ok3\n");
+      Read<I32> own_ranks;
+      auto new_matchOwners = update_ownership(new_ents2old_matchOwners, own_ranks);
+      new_mesh.set_match_owners(d, new_matchOwners);
+    int waiting=1;
+    while (waiting);
+
+    }
+
+
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();
   auto nnew_verts = new_verts2old_owners.nitems();

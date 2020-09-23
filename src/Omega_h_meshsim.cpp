@@ -472,7 +472,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto ranks = LOs(ndim_ents, 0);//serial mesh
     mesh->add_tag(ent_dim, "matches", 1, matches);
     mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
-    mesh->set_owners(ent_dim, Remotes(ranks, owners));
+    mesh->set_match_owners(ent_dim, Remotes(ranks, owners));
+    //mesh->set_owners(ent_dim, Remotes(ranks, owners));
   }
   for (Int d = 0; d < max_dim; ++d) {
     auto d_matches = mesh->get_array<LO>(d, "matches");

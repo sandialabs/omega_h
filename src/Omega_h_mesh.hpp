@@ -168,6 +168,7 @@ class Mesh {
   AdjPtr adjs_[DIMS][DIMS];
   AdjPtr adjs_type_[TOPO_TYPES][TOPO_TYPES];
   Remotes owners_[DIMS];
+  Remotes match_owners_[DIMS];
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
   ParentPtr parents_[DIMS];
@@ -198,6 +199,10 @@ class Mesh {
   bool has_any_parents() const;
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
+
+  void set_match_owners(Int dim, Remotes owners);
+  Remotes ask_match_owners(Int dim);
+
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
   Int nghost_layers() const;

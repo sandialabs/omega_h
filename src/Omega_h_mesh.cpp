@@ -811,6 +811,14 @@ void Mesh::set_owners(Int ent_dim, Remotes owners) {
   dists_[ent_dim] = DistPtr();
 }
 
+void Mesh::set_match_owners(Int ent_dim, Remotes match_owners) {
+  check_dim2(ent_dim);
+  OMEGA_H_CHECK(nents(ent_dim) == match_owners.ranks.size());
+  OMEGA_H_CHECK(nents(ent_dim) == match_owners.idxs.size());
+  match_owners_[ent_dim] = match_owners;
+  //dists_[ent_dim] = DistPtr();
+}
+
 Remotes Mesh::ask_owners(Int ent_dim) {
   if (!owners_[ent_dim].ranks.exists() || !owners_[ent_dim].idxs.exists()) {
     OMEGA_H_CHECK(comm_->size() == 1);
@@ -818,6 +826,16 @@ Remotes Mesh::ask_owners(Int ent_dim) {
         Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
   }
   return owners_[ent_dim];
+}
+
+Remotes Mesh::ask_match_owners(Int ent_dim) {
+  if (!match_owners_[ent_dim].ranks.exists() || !match_owners_[ent_dim].idxs.exists()) {
+    OMEGA_H_CHECK(comm_->size() == 1);
+    Omega_h_fail(" Match owners for dim %d don't exist\n", ent_dim);
+    //match_owners_[ent_dim] = Remotes(
+        //Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
+  }
+  return match_owners_[ent_dim];
 }
 
 Read<I8> Mesh::owned(Int ent_dim) {

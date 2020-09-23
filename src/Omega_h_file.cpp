@@ -408,7 +408,7 @@ void write(std::ostream& stream, Mesh* mesh) {
 }
 
 void write_model(filesystem::path const& path, Mesh* mesh) {
-  begin_code("binary::write(path,Mesh)");
+  begin_code("binary::write model(path,Mesh)");
   filesystem::create_directory(path);
   mesh->comm()->barrier();
   auto filepath = path;
