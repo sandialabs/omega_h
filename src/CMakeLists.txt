@@ -523,6 +523,7 @@ set(Omega_h_HEADERS
   Omega_h_vector.hpp
   Omega_h_vtk.hpp
   Omega_h_xml_lite.hpp
+  Omega_h_xml.hpp
   r3d.hpp
   )
 
