@@ -8,9 +8,8 @@ Language build_language() {
   auto& prods = out.productions;
   prods.resize(NPRODS);
   prods[PROD_DOC] = {"document", {"toplevels"}};
-  prods[PROD_TOPLEVEL] = {"toplevels", {"toplevel"}};
-  prods[PROD_TOPLEVELS] = {"toplevels", {"toplevel", "toplevels"}};
-  prods[PROD_TOPLEVELS_MISC] = {"toplevels", {"toplevel", "Misc", "toplevels"}};
+  prods[PROD_TOPLEVEL] = {"toplevels", {}};
+  prods[PROD_TOPLEVELS] = {"toplevels", {"toplevel", "S?", "toplevels"}};
   prods[PROD_TOPLEVEL_ELEMENT] = {"toplevel", {"element"}};
   prods[PROD_TOPLEVEL_XMLDECL] = {"toplevel", {"XMLDecl"}};
   prods[PROD_ELEMENT_EMPTY] = {"element", {"EmptyElemTag"}};
