@@ -838,6 +838,20 @@ Remotes Mesh::ask_match_owners(Int ent_dim) {
   return match_owners_[ent_dim];
 }
 
+void Mesh::set_matches(Int ent_dim, c_Remotes matches) {
+  check_dim2(ent_dim);
+  check_dim2(ent_dim + 1);//matches will be always 1d less than ents
+  //OMEGA_H_CHECK(nents(ent_dim) == match_owners.idxs.size());
+  matches_[ent_dim] = matches;
+  //dists_[ent_dim] = DistPtr();
+}
+
+c_Remotes Mesh::get_matches(Int ent_dim) {
+  check_dim2(ent_dim);
+  check_dim2(ent_dim + 1);
+  return matches_[ent_dim];
+}
+
 Read<I8> Mesh::owned(Int ent_dim) {
   auto e2rank = ask_owners(ent_dim).ranks;
   return each_eq_to(e2rank, comm()->rank());

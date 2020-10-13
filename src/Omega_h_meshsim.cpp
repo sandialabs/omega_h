@@ -22,6 +22,33 @@ namespace meshsim {
 
 //namespace {
 
+void print_matches(c_Remotes matches, int rank) {
+  printf("\n");
+  auto root_ranks = matches.root_ranks;
+  auto root_idxs = matches.root_idxs;
+  auto leaf_idxs = matches.leaf_idxs;
+  auto root_ranks_w = Write<LO> (root_ranks.size());
+  auto root_idxs_w = Write<LO> (root_idxs.size());
+  auto leaf_idxs_w = Write<LO> (leaf_idxs.size());
+  auto r2w = OMEGA_H_LAMBDA(LO i) {
+    root_ranks_w[i] = root_ranks[i];
+    root_idxs_w[i] = root_idxs[i];
+    leaf_idxs_w[i] = leaf_idxs[i];
+  };  
+  parallel_for(leaf_idxs.size(), r2w);
+  auto root_ranks_host = HostWrite<LO>(root_ranks_w);
+  auto root_idxs_host = HostWrite<LO>(root_idxs_w);
+  auto leaf_idxs_host = HostWrite<LO>(leaf_idxs_w);
+  printf("On rank %d\n", rank);
+  for (int i=0; i<leaf_idxs_host.size(); ++i) {
+    printf("leaf id %d, root id %d, root rank %d\n", leaf_idxs_host[i],
+            root_idxs_host[i], root_ranks_host[i]);
+  };  
+  printf("\n");
+  printf("\n");
+  return;
+}
+
 void print_owners(Remotes owners, int rank) {
   printf("\n");
   auto ranks = owners.ranks;
@@ -73,7 +100,6 @@ int classType(pEntity e) {
 }
 
 void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
-  //(void)mesh;
   pMesh m = PM_mesh(sm, 0);
   Int max_dim;
   if (M_numRegions(m)) {
@@ -109,6 +135,11 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   ent_match_classId[0].reserve(numVtx);
   HostWrite<Real> host_coords(numVtx*max_dim);
 
+  //c_r
+  std::vector<int> leaf_idxs[max_dim];
+  std::vector<int> root_idxs[max_dim];
+  std::vector<int> root_ranks[max_dim];
+  //
   VIter vertices = M_vertexIter(m);
   pVertex vtx;
   i = 0;
@@ -140,10 +171,18 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
         if (EN_id(match) < EN_id(vtx)) {
           ent_owners[0].push_back(EN_id(match));
-          //ent with lower global id become owners
+          //ent with lower global id become roots
+
+          leaf_idxs[0].push_back(EN_id(vtx));
+          root_idxs[0].push_back(EN_id(match));
+          root_ranks[0].push_back(0);
         }
-        else {
+        else if (EN_id(vtx) < EN_id(match)) {
           ent_owners[0].push_back(EN_id(vtx));
+
+          leaf_idxs[0].push_back(EN_id(vtx));
+          root_idxs[0].push_back(EN_id(vtx));
+          root_ranks[0].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {
@@ -301,9 +340,17 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
         if (EN_id(match) < EN_id(edge)) {
           ent_owners[1].push_back(EN_id(match));
+
+          leaf_idxs[1].push_back(EN_id(edge));
+          root_idxs[1].push_back(EN_id(match));
+          root_ranks[1].push_back(0);
         }
         else {
           ent_owners[1].push_back(EN_id(edge));
+
+          leaf_idxs[1].push_back(EN_id(edge));
+          root_idxs[1].push_back(EN_id(edge));
+          root_ranks[1].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {
@@ -359,9 +406,17 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
         if (EN_id(match) < EN_id(face)) {
           ent_owners[2].push_back(EN_id(match));
+
+          leaf_idxs[2].push_back(EN_id(face));
+          root_idxs[2].push_back(EN_id(match));
+          root_ranks[2].push_back(0);
         }
         else {
           ent_owners[2].push_back(EN_id(face));
+
+          leaf_idxs[2].push_back(EN_id(face));
+          root_idxs[2].push_back(EN_id(face));
+          root_ranks[2].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {
@@ -399,7 +454,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   }
   RIter_delete(regions);
   printf("7.1\n");
-
 
   auto vert_globals = Read<GO>(numVtx, 0, 1);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
@@ -454,6 +508,26 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   }
   finalize_classification(mesh);
 
+  //add c_r input info to mesh
+  for (Int ent_dim = 0; ent_dim < max_dim; ++ent_dim) {
+    LO nLeaves = leaf_idxs[ent_dim].size();
+    HostWrite<LO> host_leaf_idxs(nLeaves);
+    HostWrite<LO> host_root_idxs(nLeaves);
+    HostWrite<I32> host_root_ranks(nLeaves);
+    for (i = 0; i < nLeaves; ++i) {
+      host_leaf_idxs[i] = leaf_idxs[ent_dim][static_cast<std::size_t>(i)];
+      host_root_idxs[i] = root_idxs[ent_dim][static_cast<std::size_t>(i)];
+      host_root_ranks[i] = root_ranks[ent_dim][static_cast<std::size_t>(i)];
+    }
+    auto cr_leaf_idxs = Read<LO>(host_leaf_idxs.write());
+    auto cr_root_idxs = Read<LO>(host_root_idxs.write());
+    auto cr_root_ranks = Read<I32>(host_root_ranks.write());
+    auto cr = c_Remotes(cr_leaf_idxs, cr_root_idxs, cr_root_ranks);
+    mesh->set_matches(ent_dim, cr);
+    auto o_cr = mesh->get_matches(ent_dim);
+    print_matches(o_cr, 0);
+  }
+
   //add matches and owners info to mesh
   for (Int ent_dim = 0; ent_dim < max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
@@ -473,7 +547,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     mesh->add_tag(ent_dim, "matches", 1, matches);
     mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
     mesh->set_match_owners(ent_dim, Remotes(ranks, owners));
-    //mesh->set_owners(ent_dim, Remotes(ranks, owners));
   }
   for (Int d = 0; d < max_dim; ++d) {
     auto d_matches = mesh->get_array<LO>(d, "matches");

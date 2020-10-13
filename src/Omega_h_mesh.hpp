@@ -203,6 +203,10 @@ class Mesh {
   void set_match_owners(Int dim, Remotes owners);
   Remotes ask_match_owners(Int dim);
 
+  c_Remotes matches_[DIMS];
+  void set_matches(Int dim, c_Remotes matches);
+  c_Remotes get_matches(Int dim);
+
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
   Int nghost_layers() const;

@@ -58,7 +58,7 @@ Also this model info is not migrated to new mesh which causes segfault
 /*
 the askDown call confirms if connectivity is proper
 */
-  //mesh.ask_down(mesh.dim(), 0);
+  mesh.ask_down(mesh.dim(), 0);
   printf("rank=%d\n", world->rank());
 
   return 0;
