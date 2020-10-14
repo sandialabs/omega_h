@@ -220,8 +220,25 @@ void migrate_mesh(
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
     old_owners2new_ents = old_low_owners2new_lows;
-
+    auto size1 = old_owners2new_ents.roots2items().size();
+    auto size2 = old_owners2new_ents.items2content().size();
+    auto size3 = old_owners2new_ents.msgs2content().size();
+    auto i2dR = old_owners2new_ents.items2ranks();
+    auto i2dI = old_owners2new_ents.items2dest_idxs();
+    auto i2d = old_owners2new_ents.items2dests();
+//
+    int waiting=1;
+    while (waiting);
     if (d < dim) {
+      auto matches = mesh->get_matches(d);
+      auto owners = mesh->ask_owners(d);
+      auto new_r2L = OMEGA_H_LAMBDA (LO i) {
+        auto leaf = matches.leaf_idxs[i];
+        auto root = matches.root_idxs[i];
+        auto root_owner = owners.idxs[root];
+      };
+      parallel_for (matches.leaf_idxs.size(), new_r2L, "new_r2L");
+/*
       //auto nnew_ents = new_ents2old_owners.nroots();
       auto nnew_ents = new_ents2old_owners.nitems();
       //auto nnew_entsSrcs = new_ents2old_owners.nsrcs();
@@ -238,9 +255,9 @@ void migrate_mesh(
       new_mesh.set_match_owners(d, new_matchOwners);
     int waiting=1;
     while (waiting);
-
+*/
     }
-
+//
 
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();

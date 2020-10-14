@@ -859,7 +859,6 @@ Read<I8> Mesh::owned(Int ent_dim) {
 
 Dist Mesh::ask_dist(Int ent_dim) {
   if (!dists_[ent_dim]) {
-    printf("in askDist dist n.a.\n");
     auto owners = ask_owners(ent_dim);
     OMEGA_H_CHECK(owners.ranks.exists());
     OMEGA_H_CHECK(owners.idxs.exists());
