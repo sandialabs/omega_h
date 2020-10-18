@@ -40,11 +40,11 @@ int main(int argc, char** argv) {
     printf("nparts2out=%d\n", nparts_out);
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
-    Omega_h::binary::write(mesh_out, &mesh);
+    //Omega_h::binary::write(mesh_out, &mesh);
     printf("nparts3out=%d\n", nparts_out);
   }
   //the askDown call confirms if connectivity is proper
-  mesh.ask_down(mesh.dim(), 0);
+  //mesh.ask_down(mesh.dim(), 0);
 
   return 0;
 }

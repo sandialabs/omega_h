@@ -30,6 +30,7 @@ Mesh::Mesh() {
   parting_ = -1;
   nghost_layers_ = -1;
   library_ = nullptr;
+  periodic_ = -1;
 }
 
 Mesh::Mesh(Library* library_in) : Mesh() { set_library(library_in); }
