@@ -221,51 +221,61 @@ void migrate_mesh(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
 
 //
-    auto r2i = old_owners2new_ents.roots2items();
-    //auto size1 = r2i.size();
-    //auto size2 = old_owners2new_ents.items2content().size();
-    //auto size3 = old_owners2new_ents.msgs2content().size();
-    auto i2dR = old_owners2new_ents.items2ranks();
-    auto i2dI = old_owners2new_ents.items2dest_idxs();
-    //auto i2d = old_owners2new_ents.items2dests();
-    int waiting=1;
-    while (waiting);
-    if (d < dim) {
-      auto matches = mesh->get_matches(d);
-      //see if we can store pointers to owners, not copying it into 'owners'
-      auto owners = mesh->ask_owners(d);
-      std::vector<int> dest_r;//ranks
-      std::vector<int> dest_i;//idxs
-      std::vector<int> r2i;//froots2fitems
-      std::vector<int> c_r2i[2];//froots2fitems
-      r2i.reserve(owners.ranks.size());
-      LO n_items = 0;
-      LO last_root_owner;
-      LO root_owner;
-      auto new_r2L = OMEGA_H_LAMBDA (LO i) {
-        auto leaf = matches.leaf_idxs[i];
-        auto root = matches.root_idxs[i];
-        root_owner = owners.idxs[root];
-        auto L_R_item_begin = r2i[root_owner];
-        auto L_R_item_end = r2i[root_owner+1];
-        auto L_R = L_R_item_end - L_R_item_begin;
-        for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
-         auto L_rank = i2dR[item];
-         auto L_idx = i2dI[item];
-         dest_r.push_back(L_rank);
-         dest_i.push_back(L_idx);
+    if (mesh->is_periodic()) {
+      //auto r2i = old_owners2new_ents.roots2items();
+      //auto size1 = r2i.size();
+      //auto size2 = old_owners2new_ents.items2content().size();
+      //auto size3 = old_owners2new_ents.msgs2content().size();
+      auto i2dR = old_owners2new_ents.items2ranks();
+      auto i2dI = old_owners2new_ents.items2dest_idxs();
+      //auto i2d = old_owners2new_ents.items2dests();
+      if (d < dim) {
+        auto matches = mesh->get_matches(d);
+        //see if we can store pointers to owners, not copying it into 'owners'
+        auto owners = mesh->ask_owners(d);
+        std::vector<Write<LO>> dest_r[1];//ranks
+        std::vector<Write<LO>> dest_i[1];//idxs
+        Write<LO> r2i(owners.ranks.size()+1, -1, "froots2fitems");
+        //std::vector<int> r2i;//froots2fitems
+        //r2i.assign(owners.size+1, -1);
+        //std::vector<int> c_r2i[2];//froots2fitems
+        //r2i.reserve(owners.ranks.size());
+        //Write<LO> n_items(1, 0, "nitems");
+        for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
+        //auto new_r2L = OMEGA_H_LAMBDA (LO i) {
+          auto leaf = matches.leaf_idxs[i];
+          auto root = matches.root_idxs[i];
+          LO root_owner = 0;
+          LO n_items = 0;
+          root_owner = owners.idxs[root];
+          auto L_R_item_begin = r2i[root_owner];
+          auto L_R_item_end = r2i[root_owner+1];
+          auto L_R = L_R_item_end - L_R_item_begin;
+          for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
+            auto L_rank = i2dR[item];
+            auto L_idx = i2dI[item];
+            dest_r[0].push_back(L_rank);//cannot do this in pFor
+            //dest_r[0].push_back(static_cast<std::size_t>(L_rank));
+            dest_i[0].push_back(L_idx);//cannot do this in pFor
+          }
+          auto leaf_owner = owners.idxs[leaf];
+          auto L_L_item_begin = r2i[leaf_owner];
+          auto L_L_item_end = r2i[leaf_owner+1];
+          auto L_L = L_L_item_end - L_L_item_begin;
+          auto L = L_R + L_L;
+          n_items += L;
+          r2i[root_owner] = n_items;
+          //c_r2i[0].push_back(root_owner);//or direstly insert nitems at
+//position of oldRoot Owner in r2i array sized n_owners and separately fill the
+//reemaining r2i in another pFor
+          //c_r2i[1].push_back(n_items);
+          //or then do something like prefix sum over these c_r2i
         }
-        auto leaf_owner = owners.idxs[leaf];
-        auto L_L_item_begin = r2i[leaf_owner];
-        auto L_L_item_end = r2i[leaf_owner+1];
-        auto L_L = L_L_item_end - L_L_item_begin;
-        auto L = L_R + L_L;
-        n_items += L;
-        c_r2i[0].push_back(root_owner);
-        c_r2i[1].push_back(n_items);
-        //then do something like prefix sum over these c_r2i
-      };
-      parallel_for (matches.leaf_idxs.size(), new_r2L, "new_r2L");
+        //};
+        //parallel_for (matches.leaf_idxs.size(), new_r2L, "new_r2L");
+        //LO last_root_owner;
+        int waiting=1;
+        while (waiting);
 /*
       //auto nnew_ents = new_ents2old_owners.nroots();
       auto nnew_ents = new_ents2old_owners.nitems();
@@ -281,9 +291,8 @@ void migrate_mesh(
       Read<I32> own_ranks;
       auto new_matchOwners = update_ownership(new_ents2old_matchOwners, own_ranks);
       new_mesh.set_match_owners(d, new_matchOwners);
-    int waiting=1;
-    while (waiting);
 */
+      }
     }
 //
     old_owners2new_ents = old_low_owners2new_lows;
