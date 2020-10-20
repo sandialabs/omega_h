@@ -221,62 +221,82 @@ void migrate_mesh(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
 
 /*begin periodic migration*/
-    if (mesh->is_periodic()) {
+    if ((mesh->is_periodic()) && (d < dim)) {
       auto r2i = old_owners2new_ents.roots2items();
       auto i2dR = old_owners2new_ents.items2ranks();
       auto i2dI = old_owners2new_ents.items2dest_idxs();
-      if (d < dim) {
-        auto owners = mesh->ask_owners(d);
-        if (owners.ranks.size()) {//if mesh exists on that process
-          auto matches = mesh->get_matches(d);
-          std::vector<Write<I32>> dest_r;//ranks
-          std::vector<Write<LO>> dest_i;//idxs
-          Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
-          for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
-            auto leaf = matches.leaf_idxs[i];
-            auto root = matches.root_idxs[i];
-            if (leaf != root) {
-              LO root_owner = 0;
-              LO n_items = 0;
-              root_owner = owners.idxs[root];
-              auto L_R_item_begin = r2i[root_owner];
-              auto L_R_item_end = r2i[root_owner+1];
-              auto L_R = L_R_item_end - L_R_item_begin;
-              for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
-                auto L_rank = i2dR[item];
-                auto L_idx = i2dI[item];
-                dest_r.push_back(L_rank);//cannot do this in parallelFor
-                dest_i.push_back(L_idx);//cannot do this in parallelFor
-              }
-              auto leaf_owner = owners.idxs[leaf];
-              auto L_L_item_begin = r2i[leaf_owner];
-              auto L_L_item_end = r2i[leaf_owner+1];
-              for (int item = L_L_item_begin; item < L_L_item_end; ++item) {
-                auto L_rank = i2dR[item];
-                auto L_idx = i2dI[item];
-                dest_r.push_back(L_rank);//cannot do this in parallelFor
-                dest_i.push_back(L_idx);//cannot do this in parallelFor
-              }
-              auto L_L = L_L_item_end - L_L_item_begin;
-              auto L = L_R + L_L;
-              n_items += L;
-              new_r2i[root_owner+1] = n_items;//temp store
+      auto owners = mesh->ask_owners(d);
+        std::vector<int> dest_r;//ranks
+        std::vector<int> dest_i;//idxs
+        Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
+      if (owners.ranks.size()) {//if mesh exists on that process
+        auto matches = mesh->get_matches(d);
+        for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
+          auto leaf = matches.leaf_idxs[i];
+          auto root = matches.root_idxs[i];
+          if (leaf != root) {//avoid creating duplicate dests
+            LO root_owner = 0;
+            LO n_items = 0;
+            root_owner = owners.idxs[root];
+            auto L_R_item_begin = r2i[root_owner];
+            auto L_R_item_end = r2i[root_owner+1];
+            auto L_R = L_R_item_end - L_R_item_begin;
+            for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
+              auto L_rank = i2dR[item];
+              auto L_idx = i2dI[item];
+              dest_r.push_back(L_rank);//cannot do this in parallelFor
+              dest_i.push_back(L_idx);//cannot do this in parallelFor
             }
+            auto leaf_owner = owners.idxs[leaf];
+            auto L_L_item_begin = r2i[leaf_owner];
+            auto L_L_item_end = r2i[leaf_owner+1];
+            for (int item = L_L_item_begin; item < L_L_item_end; ++item) {
+              auto L_rank = i2dR[item];
+              auto L_idx = i2dI[item];
+              dest_r.push_back(L_rank);//cannot do this in parallelFor
+              dest_i.push_back(L_idx);//cannot do this in parallelFor
+            }
+            auto L_L = L_L_item_end - L_L_item_begin;
+            auto L = L_R + L_L;
+            n_items += L;
+            new_r2i[root_owner+1] = n_items;//temp store
           }
-          //create offsets from nitems
-          LO n_items = 0;
-          for (LO i = 1; i < new_r2i.size(); ++i) {
-            n_items += new_r2i[i];
-            new_r2i[i] = n_items;
-          }
-          printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
-                                                   dest_i.size());
-          int waiting=1;
-          while (waiting);
         }
+        //create offsets from nitems
+        LO n_items = 0;
+        for (LO i = 1; i < new_r2i.size(); ++i) {
+          n_items += new_r2i[i];
+          new_r2i[i] = n_items;
+        }
+        printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
+                                                   dest_i.size());
       }
+      HostWrite<I32> host_dest_r(dest_r.size());
+      HostWrite<LO> host_dest_i(dest_r.size());
+      printf("ok1\n");
+      for (unsigned int i = 0; i < dest_r.size(); ++i) {
+        host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
+        host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
+      }
+      printf("ok2\n");
+      Dist owners2new_leaves; 
+      owners2new_leaves.set_parent_comm(mesh->comm());
+      printf("ok3 %d\n", owners.ranks.size());
+      owners2new_leaves.set_roots2items(new_r2i);
+      printf("ok4\n");
+      owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
+        int waiting=0;
+        while (waiting);
+      //collective call and must be called from all procs
+      printf("ok5 %d\n", host_dest_i.size());
+      owners2new_leaves.set_dest_idxs(host_dest_i.write(),
+      //                              2);
+      host_dest_i.size());
+      //owners.ranks.size());
+      printf("ok6 %d\n", owners.ranks.size());
+      mesh->comm()->barrier();
+      printf("ok period d =%d\n", d);
     }
-    printf("ok period d =%d\n", d);
 /**/
     old_owners2new_ents = old_low_owners2new_lows;
   }

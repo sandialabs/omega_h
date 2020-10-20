@@ -236,10 +236,12 @@ Graph invert_map_by_atomics(LOs const a2b, LO const nb,
     atomic_increment(&degrees[b]);
   };
   parallel_for(na, std::move(count));
+  printf("1 nb=%d\n", nb);
   auto const b2ba = offset_scan(Read<LO>(degrees), b2ba_name);
   auto const nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba, ba2a_name);
   auto const positions = Write<LO>(nb, 0);
+  printf("2 nb=%d na=%d\n", nb, na);
   auto fill = OMEGA_H_LAMBDA(LO a) {
     auto const b = a2b[a];
     auto const first = b2ba[b];
@@ -247,6 +249,7 @@ Graph invert_map_by_atomics(LOs const a2b, LO const nb,
     write_ba2a[first + j] = a;
   };
   parallel_for(na, std::move(fill));
+  printf("3 nb=%d\n", nb);
   auto const ba2a = LOs(write_ba2a);
   return Graph(b2ba, ba2a);
 }

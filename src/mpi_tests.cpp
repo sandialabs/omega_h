@@ -24,13 +24,11 @@ static void test_one_rank(CommPtr comm) {
     Dist dist;
     dist.set_parent_comm(comm);
     dist.set_dest_ranks(Read<I32>({0, 0, 0, 0}));
-    dist.set_dest_idxs(LOs({2, 3, 1, 0}), 4);
-    //dist.set_dest_idxs(LOs({3, 2, 1, 0}), 4);
+    dist.set_dest_idxs(LOs({3, 2, 1, 0}), 4);
     Read<GO> a({0, 1, 2, 3});
     {
       auto b = dist.exch(a, 1);
-      OMEGA_H_CHECK(b == Read<GO>({3, 2, 0, 1}));
-      //OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+      OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
     }
   }
   {

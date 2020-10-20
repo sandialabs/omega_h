@@ -75,8 +75,11 @@ void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   OMEGA_H_TIME_FUNCTION;
+  printf("set di 1\n");
   auto const rcontent2rroots = exch(fitems2rroots, 1);
+  printf("set di 2\n");
   auto const rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
+  printf("set di 3\n");
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
 }
@@ -109,7 +112,9 @@ template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
   ScopedTimer exch_timer("Dist::exch");
   if (roots2items_[F].exists()) {
+    printf("ex 1 %d\n", roots2items_[F].size());
     data = expand(data, roots2items_[F], width);
+    printf("ex 2 %d\n", roots2items_[F].size());
   }
   if (items2content_[F].exists()) {
     data = permute(data, items2content_[F], width);
