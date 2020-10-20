@@ -282,20 +282,29 @@ void migrate_mesh(
       Dist owners2new_leaves; 
       owners2new_leaves.set_parent_comm(mesh->comm());
       printf("ok3 %d\n", owners.ranks.size());
-      owners2new_leaves.set_roots2items(new_r2i);
+      //auto new_leaves2owners = owners2new_leaves.invert();
+      //new_leaves2owners.set_dest_globals(mesh->globals(d));
+      //owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
       printf("ok4\n");
       owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
-        int waiting=0;
-        while (waiting);
       //collective call and must be called from all procs
       printf("ok5 %d\n", host_dest_i.size());
-      owners2new_leaves.set_dest_idxs(host_dest_i.write(),
-      //                              2);
-      host_dest_i.size());
-      //owners.ranks.size());
+
+      owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
       printf("ok6 %d\n", owners.ranks.size());
-      mesh->comm()->barrier();
-      printf("ok period d =%d\n", d);
+      //owners2new_leaves.set_dest_idxs(host_dest_i.write(),
+        //                            2);
+     // host_dest_i.size());
+      //owners.ranks.size()+1);
+      //mesh->comm()->barrier();
+      printf("ok period 7 d =%d %ld\n", d, dest_i.size());
+      Read<I32> own_ranks;
+      auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
+      auto rsize = new_matches.ranks.size();
+      auto isize = new_matches.idxs.size();
+      int waiting=1;
+      while (waiting);
+      printf("ok period 8 d =%d %ld\n", d, dest_i.size());
     }
 /**/
     old_owners2new_ents = old_low_owners2new_lows;
@@ -306,11 +315,13 @@ void migrate_mesh(
     auto i2dR = old_owners2new_ents.items2ranks();
     auto i2dI = old_owners2new_ents.items2dest_idxs();
     auto owners = mesh->ask_owners(VERT);
+    std::vector<int> dest_r;//ranks
+    std::vector<int> dest_i;//idxs
+    Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
     if (owners.ranks.size()) {//if mesh exists on that process
       auto matches = mesh->get_matches(VERT);
-      std::vector<Write<I32>> dest_r;//ranks
-      std::vector<Write<LO>> dest_i;//idxs
-      Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
+      //std::vector<Write<I32>> dest_r;//ranks
+      //std::vector<Write<LO>> dest_i;//idxs
       for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
         auto leaf = matches.leaf_idxs[i];
         auto root = matches.root_idxs[i];
@@ -350,9 +361,43 @@ void migrate_mesh(
       }
       printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
                                                dest_i.size());
-      int waiting=0;
-      while (waiting);
     }
+    int waiting=0;
+    while (waiting);
+    HostWrite<I32> host_dest_r(dest_r.size());
+    HostWrite<LO> host_dest_i(dest_r.size());
+    printf("ok1\n");
+    for (unsigned int i = 0; i < dest_r.size(); ++i) {
+      host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
+      host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
+    }
+    printf("ok2\n");
+    Dist owners2new_leaves; 
+    owners2new_leaves.set_parent_comm(mesh->comm());
+    printf("ok3 %d\n", owners.ranks.size());
+    //auto new_leaves2owners = owners2new_leaves.invert();
+    //new_leaves2owners.set_dest_globals(mesh->globals(d));
+    //owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
+    printf("ok4\n");
+    owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
+    //collective call and must be called from all procs
+    printf("ok5 %d\n", host_dest_i.size());
+
+    owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
+    printf("ok6 %d\n", owners.ranks.size());
+    //owners2new_leaves.set_dest_idxs(host_dest_i.write(),
+    //                            2);
+    // host_dest_i.size());
+    //owners.ranks.size()+1);
+    //mesh->comm()->barrier();
+    printf("ok period 7 d =%d %ld\n", 0, dest_i.size());
+    Read<I32> own_ranks;
+    auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
+    auto rsize = new_matches.ranks.size();
+    auto isize = new_matches.idxs.size();
+    waiting=0;
+    while (waiting);
+    printf("ok period 8 d =%d %ld\n", 0, dest_i.size());
   }
   printf("ok period d =%d\n", VERT);
 /**/
