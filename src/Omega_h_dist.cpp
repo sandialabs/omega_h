@@ -75,11 +75,14 @@ void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   OMEGA_H_TIME_FUNCTION;
-  printf("set di 1\n");
+  //printf("set di 1 %d\n", fitems2rroots.size());
   auto const rcontent2rroots = exch(fitems2rroots, 1);
-  printf("set di 2\n");
+  //printf("set di 2 %d\n", fitems2rroots.size());
+  int waiting = 0;
+  if ((nrroots == 2) || (nrroots == 3)) waiting = 0;
+  while (waiting);
   auto const rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
-  printf("set di 3\n");
+  //printf("set di 3 %d\n", fitems2rroots.size());
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
 }

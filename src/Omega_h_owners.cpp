@@ -10,9 +10,15 @@ namespace Omega_h {
 
 Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   auto ncopies = copies2old_owners.nitems();
+  printf("0 copies=%d \n", ncopies);
   auto old_owners2copies = copies2old_owners.invert();
   auto nold_owners = old_owners2copies.nroots();
+
+  int waiting =0; while (waiting);
+  printf("1 copies=%d oldowners=%d\n", ncopies, nold_owners);
+
   auto serv_copies2copy_idxs = copies2old_owners.exch(LOs(ncopies, 0, 1), 1);
+  printf("2 copies=%d oldowners=%d\n", ncopies, nold_owners);
   auto client2serv_comm = copies2old_owners.comm();
   auto serv_copies2clients = old_owners2copies.items2msgs();
   auto old_owners2serv_copies = old_owners2copies.roots2items();
