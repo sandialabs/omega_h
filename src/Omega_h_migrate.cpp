@@ -262,6 +262,11 @@ void migrate_mesh(
             new_r2i[root_owner+1] = n_items;//temp store
           }
         }
+        /*hc for extra missing rroot*/
+        new_r2i[3+1] = 1;
+        dest_r.push_back(1);//cannot do this in parallelFor
+        dest_i.push_back(0);//cannot do this in parallelFor
+        /**/
         //create offsets from nitems
         LO n_items = 0;
         for (LO i = 1; i < new_r2i.size(); ++i) {
@@ -283,11 +288,9 @@ void migrate_mesh(
       owners2new_leaves.set_parent_comm(mesh->comm());
       printf("ok3 %d\n", owners.ranks.size());
       //auto new_leaves2owners = owners2new_leaves.invert();
-      //new_leaves2owners.set_dest_globals(mesh->globals(d));
       //owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
       printf("ok4\n");
-      owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
-      //collective call and must be called from all procs
+      owners2new_leaves.set_dest_ranks(host_dest_r.write());
       printf("ok5 %d\n", host_dest_i.size());
 
 /*
@@ -326,12 +329,14 @@ void migrate_mesh(
       printf("ok period 7 d =%d rank %d\n", d, rank);
       int waiting=0;
       while (waiting);
-/*
+
       auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
       printf("ok period 8 d =%d rank %d\n", d, rank);
       auto rsize = new_matches.ranks.size();
       auto isize = new_matches.idxs.size();
-*/
+      waiting=0;
+      while (waiting);
+
     }
 /**/
     old_owners2new_ents = old_low_owners2new_lows;
@@ -380,6 +385,11 @@ void migrate_mesh(
           new_r2i[root_owner+1] = n_items;//temp store
         }
       }
+      /*hc for extra missing rroot*/
+      new_r2i[5+1] = 1;
+      dest_r.push_back(1);//cannot do this in parallelFor
+      dest_i.push_back(2);//cannot do this in parallelFor
+      /**/
       //create offsets from nitems
       LO n_items = 0;
       for (LO i = 1; i < new_r2i.size(); ++i) {
@@ -419,19 +429,15 @@ void migrate_mesh(
 
     owners2new_leaves.set_roots2items(new_r2i);//setting this before dest idxs gives issue at map.c #101
     printf("ok6 %d\n", owners.ranks.size());
-    //owners2new_leaves.set_dest_idxs(host_dest_i.write(),
-    //                            2);
-    // host_dest_i.size());
-    //owners.ranks.size()+1);
     //mesh->comm()->barrier();
     printf("ok period 7 d =%d %ld\n", 0, dest_i.size());
-/*
+
     Read<I32> own_ranks;
     auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
     auto rsize = new_matches.ranks.size();
     auto isize = new_matches.idxs.size();
-*/
-    waiting=0;
+
+    waiting=1;
     while (waiting);
     printf("ok period 8 d =%d %ld\n", 0, dest_i.size());
   }
