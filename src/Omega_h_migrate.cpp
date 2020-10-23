@@ -226,12 +226,16 @@ void migrate_mesh(
       auto i2dR = old_owners2new_ents.items2ranks();
       auto i2dI = old_owners2new_ents.items2dest_idxs();
       auto owners = mesh->ask_owners(d);
-        std::vector<int> dest_r;//ranks
-        std::vector<int> dest_i;//idxs
-        Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
+      std::vector<int> dest_r;//ranks
+      //std::vector<Write<I32>> dest_r;//ranks
+      std::vector<int> dest_i;//idxs
+      //std::vector<Write<LO>> dest_i;//idxs
+      Write<LO> new_r2i(owners.ranks.size()+1, 0, "froots2fitems");
       if (owners.ranks.size()) {//if mesh exists on that process
         auto matches = mesh->get_matches(d);
-        for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
+        auto get_dests = OMEGA_H_LAMBDA (LO i) {
+        //for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
+          auto matches = mesh->get_matches(d);
           auto leaf = matches.leaf_idxs[i];
           auto root = matches.root_idxs[i];
           if (leaf != root) {//avoid creating duplicate dests
@@ -244,6 +248,7 @@ void migrate_mesh(
             for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
               auto L_rank = i2dR[item];
               auto L_idx = i2dI[item];
+              //dest_r.push_back(static_cast<HostWrite<LO>>(L_rank));//cannot do this in parallelFor
               dest_r.push_back(L_rank);//cannot do this in parallelFor
               dest_i.push_back(L_idx);//cannot do this in parallelFor
             }
@@ -261,7 +266,9 @@ void migrate_mesh(
             n_items += L;
             new_r2i[root_owner+1] = n_items;//temp store
           }
-        }
+        //}
+        };
+        parallel_for(matches.leaf_idxs.size(), get_dests, "get_dests");
         /*hc for extra missing rroot*/
         new_r2i[3+1] = 1;
         dest_r.push_back(1);//cannot do this in parallelFor
@@ -280,6 +287,7 @@ void migrate_mesh(
       HostWrite<LO> host_dest_i(dest_r.size());
       printf("ok1\n");
       for (unsigned int i = 0; i < dest_r.size(); ++i) {
+        //host_dest_r[i] = dest_r[i];
         host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
         host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
       }
@@ -294,6 +302,7 @@ void migrate_mesh(
       printf("ok5 %d\n", host_dest_i.size());
 
 /*
+//can also do the exch using dist
       auto size = mesh->comm()->size();
       LO max_rroots[size] = {0};
       if (owners.ranks.size()) {
