@@ -169,7 +169,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) < EN_id(vtx)) {
+        if (EN_id(match) > EN_id(vtx)) {
+        //if (EN_id(match) < EN_id(vtx)) {
           ent_owners[0].push_back(EN_id(match));
           //ent with lower global id become roots
 
@@ -177,12 +178,16 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
           root_idxs[0].push_back(EN_id(match));
           root_ranks[0].push_back(0);
         }
-        else if (EN_id(vtx) < EN_id(match)) {
+        else {
+        //else if (EN_id(vtx) < EN_id(match)) {
           ent_owners[0].push_back(EN_id(vtx));
 
           leaf_idxs[0].push_back(EN_id(vtx));
-          root_idxs[0].push_back(EN_id(vtx));
+          root_idxs[0].push_back(EN_id(match));
           root_ranks[0].push_back(0);
+          //leaf_idxs[0].push_back(EN_id(vtx));
+          //root_idxs[0].push_back(EN_id(vtx));
+          //root_ranks[0].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {
@@ -338,7 +343,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) < EN_id(edge)) {
+        if (EN_id(match) > EN_id(edge)) {
+        //if (EN_id(match) < EN_id(edge)) {
           ent_owners[1].push_back(EN_id(match));
 
           leaf_idxs[1].push_back(EN_id(edge));
@@ -349,8 +355,11 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
           ent_owners[1].push_back(EN_id(edge));
 
           leaf_idxs[1].push_back(EN_id(edge));
-          root_idxs[1].push_back(EN_id(edge));
+          root_idxs[1].push_back(EN_id(match));
           root_ranks[1].push_back(0);
+          //leaf_idxs[1].push_back(EN_id(edge));
+          //root_idxs[1].push_back(EN_id(edge));
+          //root_ranks[1].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {
@@ -404,7 +413,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) < EN_id(face)) {
+        if (EN_id(match) > EN_id(face)) {
+        //if (EN_id(match) < EN_id(face)) {
           ent_owners[2].push_back(EN_id(match));
 
           leaf_idxs[2].push_back(EN_id(face));
@@ -415,8 +425,11 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
           ent_owners[2].push_back(EN_id(face));
 
           leaf_idxs[2].push_back(EN_id(face));
-          root_idxs[2].push_back(EN_id(face));
+          root_idxs[2].push_back(EN_id(match));
           root_ranks[2].push_back(0);
+          //leaf_idxs[2].push_back(EN_id(face));
+          //root_idxs[2].push_back(EN_id(face));
+          //root_ranks[2].push_back(0);
         }
       }
       else if (PList_size(matches)==1) {

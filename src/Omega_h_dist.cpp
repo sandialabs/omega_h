@@ -115,9 +115,9 @@ template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
   ScopedTimer exch_timer("Dist::exch");
   if (roots2items_[F].exists()) {
-    printf("ex 1 %d\n", roots2items_[F].size());
+    //printf("ex 1 %d\n", roots2items_[F].size());
     data = expand(data, roots2items_[F], width);
-    printf("ex 2 %d\n", roots2items_[F].size());
+    //printf("ex 2 %d\n", roots2items_[F].size());
   }
   if (items2content_[F].exists()) {
     data = permute(data, items2content_[F], width);
