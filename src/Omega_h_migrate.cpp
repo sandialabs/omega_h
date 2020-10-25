@@ -227,19 +227,20 @@ void migrate_mesh(
       auto r2i = old_owners2new_ents.roots2items();
       auto i2dR = old_owners2new_ents.items2ranks();
       auto i2dI = old_owners2new_ents.items2dest_idxs();
-      auto owners = mesh->ask_owners(d);
+      auto nents = mesh->nents(d);
       std::vector<int> dest_r;//ranks
       std::vector<int> dest_i;//idxs
-      HostWrite<LO> new_r2i(owners.ranks.size()+1, 0, 0, "froots2fitems");
-      if (owners.ranks.size()) {//if mesh exists on that process
+      HostWrite<LO> new_r2i(nents+1, 0, 0, "froots2fitems");
+      //roots2items stores offsets; +1 for offsets
+      if (nents) {//if mesh exists on that process
         auto matches = mesh->get_matches(d);
         HostRead<LO> leaf_idxs(matches.leaf_idxs);
         HostRead<LO> root_idxs(matches.root_idxs);
-        HostRead<LO> owners_idxs(owners.idxs);
+        HostRead<LO> owners_idxs((mesh->ask_owners(d)).idxs);
+        //HostRead<LO> owners_idxs(owners.idxs);
         HostRead<LO> h_r2i(r2i);
         HostRead<LO> h_i2dR(i2dR);
         HostRead<LO> h_i2dI(i2dI);
-        //auto get_dests = OMEGA_H_LAMBDA (LO i) {
         for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
           auto leaf = leaf_idxs[i];
           auto root = root_idxs[i];
@@ -271,12 +272,10 @@ void migrate_mesh(
             }
           }
         }
-        //};
-        //parallel_for(matches.leaf_idxs.size(), get_dests, "get_dests");
         /*hc for extra missing rroot*/
         new_r2i[3+1] = 1;
-        dest_r.push_back(1);//cannot do this in parallelFor
-        dest_i.push_back(0);//cannot do this in parallelFor
+        dest_r.push_back(1);
+        dest_i.push_back(0);
         /**/
         //create offsets from nitems
         LO n_items = 0;
@@ -294,52 +293,32 @@ void migrate_mesh(
         host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
         host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
       }
-      //printf("ok2\n");
-      Dist owners2new_leaves; 
-      owners2new_leaves.set_parent_comm(mesh->comm());
-      //printf("ok3 %d\n", owners.ranks.size());
-      //auto new_leaves2owners = owners2new_leaves.invert();
-      //printf("ok4\n");
-      owners2new_leaves.set_dest_ranks(host_dest_r.write());
-      //printf("ok5 %d\n", host_dest_i.size());
 
       auto size = mesh->comm()->size();
       auto rank = mesh->comm()->rank();
       HostWrite<LO> max_dest_id(size, -1, 0, "max_dest_id");
-      if (owners.ranks.size()) {
-        printf ("rank %d\n", rank);
+      if (nents) {
         for (LO leaf = 0; leaf < host_dest_i.size(); ++leaf) {
           I32 destR = host_dest_r[leaf];
           LO destId = host_dest_i[leaf];
           if (destId > max_dest_id[destR]) max_dest_id[destR] = destId;
         }
       }
-      for (I32 i = 0; i < size; ++i)
-      printf("before max_rroots %d rank %d\n", max_dest_id[i], rank);
       HostWrite<LO> n_rroots(size, -1, 0, "n_rroots");
       for (I32 i = 0; i < size; ++i)
       n_rroots[i] = mesh->comm()->allreduce(max_dest_id[i], OMEGA_H_MAX) + 1;
       //here we need all to one communication pattern, all to all not needed
       //but this cannot be done without exposing MPi call or making a new dist
       //so for now allreduce is used
-      for (I32 i = 0; i < size; ++i)
-      printf("after  n_rroots %d rank %d\n", n_rroots[i], rank);
 
-/*
-      int n_rroots = -1;
-      if (!rank) n_rroots = 2;
-      if (rank == 1) n_rroots = 3;
-      printf("n_rroots %d rank %d\n", n_rroots, rank);
-*/
-      owners2new_leaves.set_dest_idxs(host_dest_i.write(),
-                                      n_rroots[rank]);
-      printf("ok6 %d\n", owners.ranks.size());
+      Dist owners2new_leaves; 
+      owners2new_leaves.set_parent_comm(mesh->comm());
+      owners2new_leaves.set_dest_ranks(host_dest_r.write());
+      owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
       owners2new_leaves.set_roots2items(new_r2i.write());
       Read<I32> own_ranks;
       auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
       printf("ok period 8 d =%d rank %d\n", d, rank);
-      auto rsize = new_matches.ranks.size();
-      auto isize = new_matches.idxs.size();
       meshsim::print_owners(new_matches, rank);
     }
 /**/
@@ -350,15 +329,15 @@ void migrate_mesh(
     auto r2i = old_owners2new_ents.roots2items();
     auto i2dR = old_owners2new_ents.items2ranks();
     auto i2dI = old_owners2new_ents.items2dest_idxs();
-    auto owners = mesh->ask_owners(VERT);
+    auto nents = mesh->nents(VERT);
     std::vector<int> dest_r;//ranks
     std::vector<int> dest_i;//idxs
-    HostWrite<LO> new_r2i(owners.ranks.size()+1, 0, 0, "froots2fitems");
-    if (owners.ranks.size()) {//if mesh exists on that process
+    HostWrite<LO> new_r2i(nents+1, 0, 0, "froots2fitems");
+    if (nents) {//if mesh exists on that process
       auto matches = mesh->get_matches(VERT);
       HostRead<LO> leaf_idxs(matches.leaf_idxs);
       HostRead<LO> root_idxs(matches.root_idxs);
-      HostRead<LO> owners_idxs(owners.idxs);
+      HostRead<LO> owners_idxs(mesh->ask_owners(VERT).idxs);
       HostRead<LO> h_r2i(r2i);
       HostRead<LO> h_i2dR(i2dR);
       HostRead<LO> h_i2dI(i2dI);
@@ -393,11 +372,13 @@ void migrate_mesh(
           new_r2i[root_owner+1] = n_items;//temp store
         }
       }
+
       /*hc for extra missing rroot*/
       new_r2i[5+1] = 1;
       dest_r.push_back(1);//cannot do this in parallelFor
       dest_i.push_back(2);//cannot do this in parallelFor
       /**/
+
       //create offsets from nitems
       LO n_items = 0;
       for (LO i = 1; i < new_r2i.size(); ++i) {
@@ -407,62 +388,37 @@ void migrate_mesh(
       printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
                                                dest_i.size());
     }
-    int waiting=0;
-    while (waiting);
     HostWrite<I32> host_dest_r(dest_r.size());
     HostWrite<LO> host_dest_i(dest_r.size());
-    //printf("ok1\n");
     for (unsigned int i = 0; i < dest_r.size(); ++i) {
       host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
       host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
     }
-    //printf("ok2\n");
-    Dist owners2new_leaves; 
-    owners2new_leaves.set_parent_comm(mesh->comm());
-    owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
-    //collective call and must be called from all procs
 
     auto size = mesh->comm()->size();
     auto rank = mesh->comm()->rank();
     HostWrite<LO> max_dest_id(size, -1, 0, "max_dest_id");
-    if (owners.ranks.size()) {
-      printf ("rank %d\n", rank);
+    if (nents) {
       for (LO leaf = 0; leaf < host_dest_i.size(); ++leaf) {
         I32 destR = host_dest_r[leaf];
         LO destId = host_dest_i[leaf];
         if (destId > max_dest_id[destR]) max_dest_id[destR] = destId;
       }
     }
-    for (I32 i = 0; i < size; ++i)
-    printf("before max_rroots %d rank %d\n", max_dest_id[i], rank);
     HostWrite<LO> n_rroots(size, -1, 0, "n_rroots");
     for (I32 i = 0; i < size; ++i)
-    n_rroots[i] = mesh->comm()->allreduce(max_dest_id[i], OMEGA_H_MAX) + 1;
-/*
-    int n_rroots;
-    if (!rank) n_rroots = 3;
-    if (rank == 1) n_rroots = 4;
-    printf("d=%d, n_rroots %d rank %d\n", VERT, n_rroots, rank);
-*/
-    owners2new_leaves.set_dest_idxs(host_dest_i.write(),
-                                       n_rroots[rank]);
+      n_rroots[i] = mesh->comm()->allreduce(max_dest_id[i], OMEGA_H_MAX) + 1;
 
-    owners2new_leaves.set_roots2items(new_r2i.write());//setting this before dest idxs gives issue at map.c #101
-    printf("ok6 %d\n", owners.ranks.size());
-    //mesh->comm()->barrier();
-    printf("ok period 7 d =%d %ld\n", 0, dest_i.size());
-
+    Dist owners2new_leaves; 
+    owners2new_leaves.set_parent_comm(mesh->comm());
+    owners2new_leaves.set_dest_ranks(host_dest_r.write());//this is a
+    owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
+    owners2new_leaves.set_roots2items(new_r2i.write());
     Read<I32> own_ranks;
     auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
-    auto rsize = new_matches.ranks.size();
-    auto isize = new_matches.idxs.size();
-
-    waiting=0;
-    while (waiting);
     printf("ok period 8 d =%d %ld\n", 0, dest_i.size());
     meshsim::print_owners(new_matches, rank);
   }
-  printf("ok period d =%d\n", VERT);
 /**/
 
   auto new_verts2old_owners = old_owners2new_ents.invert();
