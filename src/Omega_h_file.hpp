@@ -38,6 +38,7 @@ void read(filesystem::path const& mesh_fname, filesystem::path const& model,
 //    CommPtr comm);
 void call_print(LOs a);
 void print_owners(Remotes owners, int rank);
+void print_matches(c_Remotes matches, int rank);
 }  // namespace meshsim
 #endif
 

@@ -167,14 +167,6 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
   }
   auto owners = update_ownership(new_ents2old_owners, own_ranks);
-/*
-  int waiting=0;
-  if (ent_dim == 0) {
-    waiting=1;
-    auto coords = new_mesh->coords();
-    while (waiting);
-  }
-*/
   new_mesh->set_owners(ent_dim, owners);
 }
 
@@ -259,7 +251,7 @@ void migrate_mesh(
           /*for missing old ents to avoid broken graphs and hanging nodes*/
           auto leaf_next = leaf;
           while (ent < leaf_next) {
-            printf ("missing edge old id %d next leaf %d\n", ent, leaf_next);
+            //printf ("missing edge old id %d next leaf %d\n", ent, leaf_next);
             leaf = ent;
             LO root_owner = 0;
             LO n_items = 0;
@@ -272,7 +264,7 @@ void migrate_mesh(
               auto L_idx = h_i2dI[item];
               dest_r.push_back(L_rank);
               dest_i.push_back(L_idx);
-              printf ("missing edge old destR %d destI %d\n", L_rank, L_idx);
+              //printf ("missing edge old destR %d destI %d\n", L_rank, L_idx);
             }
             n_items += L_R;
             new_r2i[root_owner+1] = n_items;
@@ -282,6 +274,7 @@ void migrate_mesh(
           /**/
 
           if (leaf < root) {
+          //for parallel: if ((leaf < root)||(rank < root_rank))
             LO root_owner = 0;
             LO n_items = 0;
             root_owner = owners_idxs[root];
@@ -316,8 +309,8 @@ void migrate_mesh(
           n_items += new_r2i[i];
           new_r2i[i] = n_items;
         }
-        printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
-                                                            dest_i.size());
+        //printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
+        //                                                    dest_i.size());
       }
       HostWrite<I32> host_dest_r(dest_r.size());
       HostWrite<LO> host_dest_i(dest_r.size());
@@ -345,23 +338,62 @@ void migrate_mesh(
       owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
       owners2new_leaves.set_roots2items(new_r2i.write());
       Read<I32> own_ranks;
-      auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
-      printf("ok period 8 d =%d rank %d\n", d, rank);
-      meshsim::print_owners(new_matches, rank);
+      auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
+      //printf("ok period 8 d =%d rank %d\n", d, rank);
+      //meshsim::print_owners(new_matchOwners, rank);
+      
+      /*create c_r in new mesh*/
+      std::vector<int> leaf_ids;
+      std::vector<int> root_ids;
+      std::vector<int> root_rks;
+      HostRead<LO> new_matchOwner_idxs(new_matchOwners.idxs);
+      HostRead<I32> new_matchOwner_ranks(new_matchOwners.ranks);
+      for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
+        if (new_matchOwner_ranks[i] != rank) {
+          leaf_ids.push_back(i);
+          root_ids.push_back(new_matchOwner_idxs[i]);
+          root_rks.push_back(new_matchOwner_ranks[i]);
+        }
+        else if (new_matchOwner_idxs[i] != i) {
+          leaf_ids.push_back(i);
+          root_ids.push_back(new_matchOwner_idxs[i]);
+          root_rks.push_back(new_matchOwner_ranks[i]);
+        }
+      }
+      HostWrite<LO> host_leaf_ids(leaf_ids.size());
+      HostWrite<LO> host_root_ids(leaf_ids.size());
+      HostWrite<LO> host_root_rks(leaf_ids.size());
+      for (unsigned int i = 0; i < leaf_ids.size(); ++i) {
+        host_leaf_ids[i] = leaf_ids[static_cast<std::size_t>(i)]; 
+        host_root_ids[i] = root_ids[static_cast<std::size_t>(i)]; 
+        host_root_rks[i] = root_rks[static_cast<std::size_t>(i)]; 
+      }
+      auto cr = c_Remotes(Read<LO>(host_leaf_ids.write()),
+                          Read<LO>(host_root_ids.write()),
+                          Read<I32>(host_root_rks.write()));
+      new_mesh.set_matches(d, cr);
+      meshsim::print_matches(new_mesh.get_matches(d), rank);
+      /**/
 
       if (!rank) {
-        OMEGA_H_CHECK (new_matches.ranks == LOs({0, 0, 0}));
-        OMEGA_H_CHECK (new_matches.idxs == LOs({0, 1, 2}));
+        OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0}));
+        OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 1, 2}));
       }
       else {
-        OMEGA_H_CHECK (new_matches.ranks == LOs({1, 0, 0}));
-        OMEGA_H_CHECK (new_matches.idxs == LOs({0, 0, 1}));
+        OMEGA_H_CHECK (new_matchOwners.ranks == LOs({1, 0, 0}));
+        OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 0, 1}));
       }
     }
 /**/
 
     old_owners2new_ents = old_low_owners2new_lows;
   }
+
+  auto new_verts2old_owners = old_owners2new_ents.invert();
+  auto nnew_verts = new_verts2old_owners.nitems();
+  new_mesh.set_verts(nnew_verts);
+  push_ents(
+      mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
 
 /*for verts*/
   if (mesh->is_periodic()) {
@@ -401,7 +433,7 @@ void migrate_mesh(
         /*for missing old ents to avoid broken graphs and hanging nodes*/
         auto leaf_next = leaf;
         while (ent < leaf_next) {
-          printf ("missing edge old id %d next leaf %d\n", ent, leaf_next);
+          //printf ("missing edge old id %d next leaf %d\n", ent, leaf_next);
           leaf = ent;
           LO root_owner = 0;
           LO n_items = 0;
@@ -414,7 +446,7 @@ void migrate_mesh(
             auto L_idx = h_i2dI[item];
             dest_r.push_back(L_rank);
             dest_i.push_back(L_idx);
-            printf ("missing edge old destR %d destI %d\n", L_rank, L_idx);
+            //printf ("missing edge old destR %d destI %d\n", L_rank, L_idx);
           }
           n_items += L_R;
           new_r2i[root_owner+1] = n_items;
@@ -458,12 +490,12 @@ void migrate_mesh(
         n_items += new_r2i[i];
         new_r2i[i] = n_items;
       }
-      printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
-                                                          dest_i.size());
+      //printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
+      //                                                    dest_i.size());
     }
     HostWrite<I32> host_dest_r(dest_r.size());
     HostWrite<LO> host_dest_i(dest_r.size());
-    printf("ok1\n");
+    //printf("ok1\n");
     for (unsigned int i = 0; i < dest_r.size(); ++i) {
       host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
       host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
@@ -487,26 +519,53 @@ void migrate_mesh(
     owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
     owners2new_leaves.set_roots2items(new_r2i.write());
     Read<I32> own_ranks;
-    auto new_matches = update_ownership(owners2new_leaves.invert(), own_ranks);
-    printf("ok period 8 d =%d rank %d\n", d, rank);
-    meshsim::print_owners(new_matches, rank);
+    auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
+    //printf("ok period 8 d =%d rank %d\n", d, rank);
+    //meshsim::print_owners(new_matches, rank);
+      
+    /*create c_r in new mesh*/
+    std::vector<int> leaf_ids;
+    std::vector<int> root_ids;
+    std::vector<int> root_rks;
+    HostRead<LO> new_matchOwner_idxs(new_matchOwners.idxs);
+    HostRead<I32> new_matchOwner_ranks(new_matchOwners.ranks);
+    for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
+      if (new_matchOwner_ranks[i] != rank) {
+        leaf_ids.push_back(i);
+        root_ids.push_back(new_matchOwner_idxs[i]);
+        root_rks.push_back(new_matchOwner_ranks[i]);
+      }
+      else if (new_matchOwner_idxs[i] != i) {
+        leaf_ids.push_back(i);
+        root_ids.push_back(new_matchOwner_idxs[i]);
+        root_rks.push_back(new_matchOwner_ranks[i]);
+      }
+    }
+    HostWrite<LO> host_leaf_ids(leaf_ids.size());
+    HostWrite<LO> host_root_ids(leaf_ids.size());
+    HostWrite<LO> host_root_rks(leaf_ids.size());
+    for (unsigned int i = 0; i < leaf_ids.size(); ++i) {
+      host_leaf_ids[i] = leaf_ids[static_cast<std::size_t>(i)]; 
+      host_root_ids[i] = root_ids[static_cast<std::size_t>(i)]; 
+      host_root_rks[i] = root_rks[static_cast<std::size_t>(i)]; 
+    }
+    auto cr = c_Remotes(Read<LO>(host_leaf_ids.write()),
+                        Read<LO>(host_root_ids.write()),
+                        Read<I32>(host_root_rks.write()));
+    new_mesh.set_matches(d, cr);
+    meshsim::print_matches(new_mesh.get_matches(d), rank);
+    /**/
 
     if (!rank) {
-      OMEGA_H_CHECK (new_matches.ranks == LOs({0, 0, 0, 0}));
-      OMEGA_H_CHECK (new_matches.idxs == LOs({0, 1, 2, 3}));
+      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0, 0}));
+      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 1, 2, 3}));
     }
     else {
-      OMEGA_H_CHECK (new_matches.ranks == LOs({0, 0, 0, 0}));
-      OMEGA_H_CHECK (new_matches.idxs == LOs({1, 0, 3, 2}));
+      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0, 0}));
+      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({1, 0, 3, 2}));
     }
   }
 /**/
-
-  auto new_verts2old_owners = old_owners2new_ents.invert();
-  auto nnew_verts = new_verts2old_owners.nitems();
-  new_mesh.set_verts(nnew_verts);
-  push_ents(
-      mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
