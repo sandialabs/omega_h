@@ -21,7 +21,15 @@
 #include <thrust/execution_policy.h>
 #include <thrust/transform_scan.h>
 #include <Omega_h_malloc.hpp>
+#include <cuda_runtime_api.h>
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION < 11000)
 #include <thrust/system/cuda/detail/cub/device/device_scan.cuh>
+#else
+// apparently in cuda 11 this is where device scan is...
+#include <cub/device/device_scan.cuh>
+#endif
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
@@ -52,11 +60,19 @@ OutputIterator inclusive_scan(
     InputIterator first, InputIterator last, OutputIterator result) {
   std::size_t temp_storage_bytes;
   int const n = int(last - first);
+#if (CUDART_VERSION < 11000)
   auto err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
+#else
+  auto err = cub::DeviceScan::InclusiveSum(
+#endif
       nullptr, temp_storage_bytes, first, result, (last - first));
   OMEGA_H_CHECK(err == cudaSuccess);
   void* d_temp_storage = maybe_pooled_device_malloc(temp_storage_bytes);
+#if (CUDART_VERSION < 11000)
   err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
+#else
+  err = cub::DeviceScan::InclusiveSum(
+#endif
       d_temp_storage, temp_storage_bytes, first, result, n);
   OMEGA_H_CHECK(err == cudaSuccess);
   maybe_pooled_device_free(d_temp_storage, temp_storage_bytes);

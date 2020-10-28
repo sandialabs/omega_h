@@ -61,6 +61,14 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_INCLUDE_DIRS
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
+if (Omega_h_USE_SEACASExodus)
+  # On Windows, we must find hdf5 targets since 
+  # it is linked PUBLIC
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(Omega_h_USE_HDF5_DEFAULT ON)
+    bob_add_dependency(PUBLIC NAME HDF5)
+  endif()
+endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
