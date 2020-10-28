@@ -77,7 +77,7 @@ static OMEGA_H_INLINE int side_exo2osh(
         case 2:
           // seeing files from CUBIT with triangle sides in {3,4,5}...
           // no clue what thats about, just modulo and move on
-          return (side-1) % 3;
+          return (side) % 3;
         case 3:
           switch (side) {
             case 1:
