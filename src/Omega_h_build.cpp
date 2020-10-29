@@ -85,11 +85,11 @@ void build_from_elems2verts(Mesh* mesh, Omega_h_Family family,
 //void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family family,
     //Int edim, LOs ev2v, Read<GO> vert_globals) {
   //mesh->set_comm(comm);//removed to accommodate mesh conV+splitting
-  printf("ok1, edim=%d\n", edim);
-  //comm set in meshsim::read
-  printf("ok2, edim=%d\n", edim);
+  //printf("ok1, edim=%d\n", edim);
+  //comm set in meshsim::read API
+  //printf("ok2, edim=%d\n", edim);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  printf("ok3, edim=%d\n", edim);
+  //printf("ok3, edim=%d\n", edim);
   mesh->set_family(family);
   printf("ok4, edim=%d\n", edim);
   mesh->set_dim(edim);

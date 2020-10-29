@@ -79,6 +79,39 @@ void finalize_write(int numVerts, const double *coords, int numElems,
   Sim_logOff();
 }
 
+void tet_gen(CommPtr comm) {
+  auto mesh = Mesh(comm->library());
+  try {
+    int numVerts = 8;
+    double coords[8*3] =  {
+                           0.000, 0.000, 0.000,
+                           1.000, 0.000, 0.000,
+                           1.000, 1.000, 0.000,
+                           0.000, 1.000, 0.000,
+                           0.000, 0.000, 1.000,
+                           1.000, 0.000, 1.000,
+                           1.000, 1.000, 1.000,
+                           0.000, 1.000, 1.000
+                          };
+    int numElems = 1;
+    int elementType[1] = {13};
+    int elementData[8+5] = {0,1,2,3,4,5,6,7};
+    pVertex vReturn[8];
+    pEntity eReturn[1];
+    const char *mesh_path = "/users/joshia5/simmodeler/Example_hex.sms";
+    const char *model_path = "/users/joshia5/simmodeler/Example_hex.smd";
+    finalize_write(numVerts, coords, numElems, elementType, elementData,
+                   vReturn, eReturn, mesh_path, model_path);
+  } catch (pSimError err) {
+    cerr<<"SimModSuite error caught:"<<endl;
+    cerr<<"  Error code: "<<SimError_code(err)<<endl;
+    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
+    SimError_delete(err);
+  } catch (...) {
+    cerr<<"Unhandled exception caught"<<endl;
+  }
+}
+
 void hex_gen(CommPtr comm) {
   auto mesh = Mesh(comm->library());
   try {

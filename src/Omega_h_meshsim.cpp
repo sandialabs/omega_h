@@ -22,7 +22,7 @@ namespace meshsim {
 
 //namespace {
 
-void print_matches(c_Remotes matches, int rank) {
+void print_matches(c_Remotes matches, int rank, int d) {
   printf("\n");
   auto root_ranks = matches.root_ranks;
   auto root_idxs = matches.root_idxs;
@@ -39,7 +39,7 @@ void print_matches(c_Remotes matches, int rank) {
   auto root_ranks_host = HostWrite<LO>(root_ranks_w);
   auto root_idxs_host = HostWrite<LO>(root_idxs_w);
   auto leaf_idxs_host = HostWrite<LO>(leaf_idxs_w);
-  printf("On rank %d\n", rank);
+  printf("On rank %d, for dim = %d\n", rank, d);
   for (int i=0; i<leaf_idxs_host.size(); ++i) {
     printf("leaf id %d, root id %d, root rank %d\n", leaf_idxs_host[i],
             root_idxs_host[i], root_ranks_host[i]);
@@ -81,6 +81,10 @@ void call_print(LOs a) {
   auto a_host = HostWrite<LO>(a_w);
   for (int i=0; i<a_host.size(); ++i) {
     printf(" %d,", a_host[i]);
+  };
+  printf("indices \n");
+  for (int i=0; i<a_host.size(); ++i) {
+    printf(" %d,", i);
   };
   printf("\n");
   printf("\n");
@@ -151,8 +155,10 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     V_coord(vtx,xyz);
     if(max_dim < 3 && xyz[2] != 0)
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
+    printf("\nvtx%d has coords\n", EN_id(vtx));
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
+      printf(" %f ", xyz[j]);
     }
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
@@ -169,32 +175,32 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) > EN_id(vtx)) {
+        //if (EN_id(match) > EN_id(vtx)) {
         //if (EN_id(match) < EN_id(vtx)) {
-          ent_owners[0].push_back(EN_id(match));
+          //ent_owners[0].push_back(EN_id(match));
           //ent with lower global id become roots
 
           leaf_idxs[0].push_back(EN_id(vtx));
           root_idxs[0].push_back(EN_id(match));
           root_ranks[0].push_back(0);
-        }
-        else {
+        //}
+        //else {
         //else if (EN_id(vtx) < EN_id(match)) {
-          ent_owners[0].push_back(EN_id(vtx));
+          //ent_owners[0].push_back(EN_id(vtx));
 
-          leaf_idxs[0].push_back(EN_id(vtx));
-          root_idxs[0].push_back(EN_id(match));
-          root_ranks[0].push_back(0);
+          //leaf_idxs[0].push_back(EN_id(vtx));
+          //root_idxs[0].push_back(EN_id(match));
+          //root_ranks[0].push_back(0);
           //leaf_idxs[0].push_back(EN_id(vtx));
           //root_idxs[0].push_back(EN_id(vtx));
           //root_ranks[0].push_back(0);
-        }
+        //}
       }
-      else if (PList_size(matches)==1) {
-        ent_matches[0].push_back(-1);
-        ent_match_classId[0].push_back(-1);
-        ent_owners[0].push_back(EN_id(vtx));
-      }
+      //else if (PList_size(matches)==1) {
+      //ent_matches[0].push_back(-1);
+        //ent_match_classId[0].push_back(-1);
+        //ent_owners[0].push_back(EN_id(vtx));
+      //}
     }
     PList_delete(matches);
   }
@@ -312,16 +318,16 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pEdge edge;
   count_matched = 0;
   while (edge = (pEdge) EIter_next(edges)) {
-    printf("sim edge %d hasverts\n", EN_id(edge));
+    //printf("sim edge %d hasverts\n", EN_id(edge));
     for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge, j);
       double xyz[3];
       V_coord(vtx,xyz);
       ent_nodes[1].push_back(EN_id(vtx));
-      printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
-               j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
+      //printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
+               //j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
-    printf("\n");
+    //printf("\n");
     ent_class_ids[1].push_back(classId(edge));
 
     pPList matches = EN_getMatchingEnts(edge, 0, 0);
@@ -331,41 +337,40 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     while (match = (pEdge)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
 
-/*
         printf("original edge %d with verts\n", EN_id(edge));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(edge, j)));
         printf("\n  is matched to edge %d with verts ", EN_id(match));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(match, j)));
         printf("\n");
-*/
+
         ent_matches[1].push_back(EN_id(match));
         ent_match_classId[1].push_back(classId(match));
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) > EN_id(edge)) {
+        //if (EN_id(match) > EN_id(edge)) {
         //if (EN_id(match) < EN_id(edge)) {
-          ent_owners[1].push_back(EN_id(match));
+          //ent_owners[1].push_back(EN_id(match));
 
           leaf_idxs[1].push_back(EN_id(edge));
           root_idxs[1].push_back(EN_id(match));
           root_ranks[1].push_back(0);
-        }
-        else {
-          ent_owners[1].push_back(EN_id(edge));
+        //}
+        //else {
+          //ent_owners[1].push_back(EN_id(edge));
 
-          leaf_idxs[1].push_back(EN_id(edge));
-          root_idxs[1].push_back(EN_id(match));
-          root_ranks[1].push_back(0);
+          //leaf_idxs[1].push_back(EN_id(edge));
+          //root_idxs[1].push_back(EN_id(match));
+          //root_ranks[1].push_back(0);
           //leaf_idxs[1].push_back(EN_id(edge));
           //root_idxs[1].push_back(EN_id(edge));
           //root_ranks[1].push_back(0);
-        }
+        //}
       }
       else if (PList_size(matches)==1) {
-        ent_matches[1].push_back(-1);
-        ent_match_classId[1].push_back(-1);
-        ent_owners[1].push_back(EN_id(edge));
+        //ent_matches[1].push_back(-1);
+        //ent_match_classId[1].push_back(-1);
+        //ent_owners[1].push_back(EN_id(edge));
       }
     }
     PList_delete(matches);
@@ -394,17 +399,17 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     while(match = (pFace)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
 
-        //printf("original face %d with verts\n", EN_id(face));
+        printf("\noriginal face %d with verts\n", EN_id(face));
         pPList vertsP1 = F_vertices(face, 1);
         void *iterP1 = 0; // must initialize to 0
         while(vtx = (pVertex)PList_next(vertsP1, &iterP1))
-          //printf(" %d ", EN_id(vtx));
+          printf(" %d ", EN_id(vtx));
         PList_delete(vertsP1);
-        //printf("\n    is matched to face %d with verts ", EN_id(match));
+        printf("\n    is matched to face %d with verts ", EN_id(match));
         pPList vertsP2 = F_vertices(match, 1);
         void *iterP2 = 0; // must initialize to 0
         while(vtx = (pVertex)PList_next(vertsP2, &iterP2))
-          //printf(" %d ", EN_id(vtx));
+          printf(" %d ", EN_id(vtx));
         PList_delete(verts);
         //printf("\n");
 
@@ -413,24 +418,24 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        if (EN_id(match) > EN_id(face)) {
+        //if (EN_id(match) > EN_id(face)) {
         //if (EN_id(match) < EN_id(face)) {
-          ent_owners[2].push_back(EN_id(match));
+          //ent_owners[2].push_back(EN_id(match));
 
           leaf_idxs[2].push_back(EN_id(face));
           root_idxs[2].push_back(EN_id(match));
           root_ranks[2].push_back(0);
-        }
-        else {
-          ent_owners[2].push_back(EN_id(face));
+        //}
+        //else {
+          //ent_owners[2].push_back(EN_id(face));
 
-          leaf_idxs[2].push_back(EN_id(face));
-          root_idxs[2].push_back(EN_id(match));
-          root_ranks[2].push_back(0);
+          //leaf_idxs[2].push_back(EN_id(face));
+          //root_idxs[2].push_back(EN_id(match));
+          //root_ranks[2].push_back(0);
           //leaf_idxs[2].push_back(EN_id(face));
           //root_idxs[2].push_back(EN_id(face));
           //root_ranks[2].push_back(0);
-        }
+        //}
       }
       else if (PList_size(matches)==1) {
         ent_matches[2].push_back(-1);
@@ -538,7 +543,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto cr = c_Remotes(cr_leaf_idxs, cr_root_idxs, cr_root_ranks);
     mesh->set_matches(ent_dim, cr);
     auto o_cr = mesh->get_matches(ent_dim);
-    print_matches(o_cr, 0);
+    print_matches(o_cr, 0, ent_dim);
   }
 
   //add matches and owners info to mesh
@@ -557,18 +562,21 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto match_classId = Read<LO>(host_match_classId.write());
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
-    mesh->add_tag(ent_dim, "matches", 1, matches);
-    mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
-    mesh->set_match_owners(ent_dim, Remotes(ranks, owners));
+    //mesh->add_tag(ent_dim, "matches", 1, matches);
+    //mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
+    //mesh->set_match_owners(ent_dim, Remotes(ranks, owners));
   }
   for (Int d = 0; d < max_dim; ++d) {
-    auto d_matches = mesh->get_array<LO>(d, "matches");
-    printf("\nfor dim d=%d, matches= \n", d);
-    call_print(d_matches);
-    printf("owners=\n");
-    print_owners(mesh->ask_owners(d), comm->rank());
-    printf("ab2b=\n");
-    call_print((mesh->get_adj(d+1, d)).ab2b);
+    //auto d_matches = mesh->get_array<LO>(d, "matches");
+    printf("\nfor dim d=%d\n", d+1);
+    //printf("\nfor dim d=%d, matches= \n", d);
+    //call_print(d_matches);
+    //printf("owners=\n");
+    //print_owners(mesh->ask_owners(d), comm->rank());
+    printf("av2v=\n");
+    auto av2v = mesh->ask_down(d+1, 0).ab2b;
+    call_print(av2v);
+    //int waiting=1; while(waiting);
   }
 
   //add model matches info to mesh and if mesh is periodic
@@ -598,21 +606,21 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
 //    CommPtr comm) {
 void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm, Mesh *mesh, int is_in) {
-  printf("0\n");
+  //printf("0\n");
   SimPartitionedMesh_start(NULL,NULL);
-  printf("1\n");
+  //printf("1\n");
   SimModel_start();
-  printf("2\n");
+  //printf("2\n");
   Sim_readLicenseFile(NULL);
-  printf("3\n");
+  //printf("3\n");
   pNativeModel nm = NULL;
-  printf("4\n");
+  //printf("4\n");
   pProgress p = NULL;
-  printf("5\n");
+  //printf("5\n");
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
-  printf("6\n");
+  //printf("6\n");
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
-  printf("7\n");
+  //printf("7\n");
   //auto mesh = Mesh(comm->library());
   //
   if (is_in) {

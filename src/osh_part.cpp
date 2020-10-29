@@ -7,50 +7,14 @@
 
 #include <Omega_h_for.hpp>
 
-void call_print(Omega_h::LOs a) {
-  printf("\n");
-  auto a_w = Omega_h::Write<Omega_h::LO> (a.size());
-  auto r2w = OMEGA_H_LAMBDA(Omega_h::LO i) {
-    a_w[i] = a[i];
-  };
-  Omega_h::parallel_for(a.size(), r2w);
-  auto a_host = Omega_h::HostWrite<Omega_h::LO>(a_w);
-  for (int i=0; i<a_host.size(); ++i) {
-    printf(" %d,", a_host[i]);
-  };
-  printf("\n");
-  printf("\n");
-  return;
-}
-
-void print_owners(Omega_h::Remotes owners, int rank) {
-  printf("\n");
-  auto ranks = owners.ranks;
-  auto idxs = owners.idxs;
-  auto ranks_w = Omega_h::Write<Omega_h::LO> (ranks.size());
-  auto idxs_w = Omega_h::Write<Omega_h::LO> (idxs.size());
-  auto r2w = OMEGA_H_LAMBDA(Omega_h::LO i) {
-    ranks_w[i] = ranks[i];
-    idxs_w[i] = idxs[i];
-  };  
-  Omega_h::parallel_for(idxs.size(), r2w);
-  auto ranks_host = Omega_h::HostWrite<Omega_h::LO>(ranks_w);
-  auto idxs_host = Omega_h::HostWrite<Omega_h::LO>(idxs_w);
-  printf("On rank %d\n", rank);
-  for (int i=0; i<idxs_host.size(); ++i) {
-    printf("owner of %d, is on rank %d, with LId %d\n", i, ranks_host[i], idxs_host[i]);
-  };  
-  printf("\n");
-  printf("\n");
-  return;
-}
-
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
-  if (argc != 5) {
+  if (argc != 4) {
+  //if (argc != 5) {
     if (!world->rank()) {
-      std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh model_file\n";
+      std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh \n";
+      //std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh model_file\n";
     }
     return -1;
   }
@@ -58,7 +22,7 @@ int main(int argc, char** argv) {
   auto path_in = argv[1];
   auto nparts_out = atoi(argv[2]);
   auto path_out = argv[3];
-  auto path_model = argv[4];
+  //auto path_model = argv[4];
   auto t0 = Omega_h::now();
   if (nparts_out < 1) {
     if (!world->rank()) {
@@ -89,7 +53,7 @@ int main(int argc, char** argv) {
   auto version = Omega_h::binary::read_version(path_in, world);
   if (is_in) {
     Omega_h::binary::read_in_comm(path_in, comm_in, &mesh, version);
-    Omega_h::binary::read_model(path_model, &mesh);
+    //Omega_h::binary::read_model(path_model, &mesh);
     if (nparts_out < nparts_in) {
       Omega_h_fail(
           "partitioning to a smaller part count not yet implemented\n");
@@ -108,7 +72,6 @@ int main(int argc, char** argv) {
     }
   }
 */
-  //printf("ok1\n");
   if (is_in || is_out) mesh.set_comm(comm_out); //dist changes here but owners same as before
 /*
   if (!world->rank()) {
