@@ -181,8 +181,8 @@ class Mesh {
  public:
   void set_model_ents(Int ent_dim, LOs Ids); 
   void set_model_matches(Int ent_dim, LOs matches); 
-  LOs ask_model_ents(Int ent_dim); 
-  LOs ask_model_matches(Int ent_dim); 
+  LOs get_model_ents(Int ent_dim); 
+  LOs get_model_matches(Int ent_dim); 
   void add_coords(Reals array);
   Reals coords() const;
   void set_coords(Reals const& array);

@@ -428,8 +428,8 @@ void write_model(filesystem::path const& path, Mesh* mesh) {
   write_value(stream, is_compressed, needs_swapping);
 
   for (Int d = 0; d < mesh->dim(); ++d) {
-    auto model_ents = mesh->ask_model_ents(d);
-    auto model_matches = mesh->ask_model_matches(d);
+    auto model_ents = mesh->get_model_ents(d);
+    auto model_matches = mesh->get_model_matches(d);
     write_array(stream, model_ents, is_compressed, needs_swapping);
     write_array(stream, model_matches, is_compressed, needs_swapping);
   }

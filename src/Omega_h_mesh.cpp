@@ -128,13 +128,13 @@ void Mesh::set_model_matches(Int ent_dim, LOs matches) {
   model_matches_[ent_dim] = matches;
 }
 
-LOs Mesh::ask_model_ents(Int ent_dim) {
+LOs Mesh::get_model_ents(Int ent_dim) {
   OMEGA_H_TIME_FUNCTION;
   check_dim(ent_dim);
   return model_ents_[ent_dim];
 }
 
-LOs Mesh::ask_model_matches(Int ent_dim) {
+LOs Mesh::get_model_matches(Int ent_dim) {
   OMEGA_H_TIME_FUNCTION;
   check_dim(ent_dim);
   return model_matches_[ent_dim];

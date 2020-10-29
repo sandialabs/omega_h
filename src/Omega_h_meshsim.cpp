@@ -220,10 +220,10 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   std::vector<int> model_matches[3];
   std::vector<int> model_ents[3];
 
-  char filename[200];
-  sprintf(filename, "model_matches.csv");
-  std::ofstream in_str(filename);
-  in_str << "id" << ",match" << ",dim\n";
+  //char filename[200];
+  //sprintf(filename, "model_matches.csv");
+  //std::ofstream in_str(filename);
+  //in_str << "id" << ",match" << ",dim\n";
 
   //for matched model verts
   model_matches[0].reserve(g_numVtx);
@@ -249,7 +249,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     VIter_delete(verts);
     model_matches[0].push_back(match_gEnt);
     model_ents[0].push_back(GEN_tag(g_vert));
-    in_str << GEN_tag(g_vert) << "," << match_gEnt << "," << GEN_type(g_vert) << "\n";
+    //in_str << GEN_tag(g_vert) << "," << match_gEnt << "," << GEN_type(g_vert) << "\n";
   }
   GVIter_delete(g_verts);
 
@@ -277,7 +277,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     EIter_delete(edges);
     model_matches[1].push_back(match_gEnt);
     model_ents[1].push_back(GEN_tag(g_edge));
-    in_str << GEN_tag(g_edge) << "," << match_gEnt << "," << GEN_type(g_edge) << "\n";
+    //in_str << GEN_tag(g_edge) << "," << match_gEnt << "," << GEN_type(g_edge) << "\n";
   }
   GEIter_delete(g_edges);
 
@@ -305,7 +305,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     FIter_delete(faces);
     model_matches[2].push_back(match_gEnt);
     model_ents[2].push_back(GEN_tag(g_face));
-    in_str << GEN_tag(g_face) << "," << match_gEnt << "," << GEN_type(g_face) << "\n";
+    //in_str << GEN_tag(g_face) << "," << match_gEnt << "," << GEN_type(g_face) << "\n";
   }
   GFIter_delete(g_faces);
   //
@@ -573,9 +573,9 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     //call_print(d_matches);
     //printf("owners=\n");
     //print_owners(mesh->ask_owners(d), comm->rank());
-    printf("av2v=\n");
-    auto av2v = mesh->ask_down(d+1, 0).ab2b;
-    call_print(av2v);
+    //printf("av2v=\n");
+    //auto av2v = mesh->ask_down(d+1, 0).ab2b;
+    //call_print(av2v);
     //int waiting=1; while(waiting);
   }
 
@@ -591,8 +591,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto model_match = Read<LO>(host_model_matches.write());
     mesh->set_model_ents(ent_dim, model_ids);
     mesh->set_model_matches(ent_dim, model_match);
-    auto return_model_ents = mesh->ask_model_ents(ent_dim);
-    auto return_model_matches = mesh->ask_model_matches(ent_dim);
+    auto return_model_ents = mesh->get_model_ents(ent_dim);
+    auto return_model_matches = mesh->get_model_matches(ent_dim);
     //printf("ent_dim=%d\n", ent_dim);
     //call_print(return_model_ents);
     //call_print(return_model_matches);

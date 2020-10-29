@@ -12,7 +12,6 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   auto ncopies = copies2old_owners.nitems();
   auto old_owners2copies = copies2old_owners.invert();
   auto nold_owners = old_owners2copies.nroots();
-  printf("u o 0\n");
   auto serv_copies2copy_idxs = copies2old_owners.exch(LOs(ncopies, 0, 1), 1);
   auto client2serv_comm = copies2old_owners.comm();
   auto serv_copies2clients = old_owners2copies.items2msgs();
@@ -20,7 +19,6 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   auto clients2ranks = old_owners2copies.msgs2ranks();
   Write<LO> old_owners2own_idxs(nold_owners);
   Read<LO> copies2own_ranks;
-  printf("u o 1\n");
   if (own_ranks.exists()) {
     auto serv_copies2own_ranks = copies2old_owners.exch(own_ranks, 1);
     auto f = OMEGA_H_LAMBDA(LO old_owner) {
@@ -42,7 +40,6 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   } else {
     Write<I32> old_owners2own_ranks(nold_owners);
     auto clients2ncopies = client2serv_comm->allgather(ncopies);
-  printf("u o 2\n");
     auto f = OMEGA_H_LAMBDA(LO old_owner) {
       I32 own_rank = -1;
       LO nown_client_copies = -1;
@@ -65,10 +62,8 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
       old_owners2own_idxs[old_owner] = own_idx;
     };
     parallel_for(nold_owners, f, "update_ownership");
-  printf("u o 3\n");
     copies2own_ranks =
         old_owners2copies.exch(Read<I32>(old_owners2own_ranks), 1);
-  printf("u o 4\n");
   }
   auto copies2own_idxs =
       old_owners2copies.exch(Read<LO>(old_owners2own_idxs), 1);
