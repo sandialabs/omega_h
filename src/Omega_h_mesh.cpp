@@ -1111,6 +1111,10 @@ Mesh Mesh::copy_meta() const {
   m.rib_hints_ = this->rib_hints_;
   m.class_sets = this->class_sets;
   m.periodic_ = this->periodic_;
+  for (LO d = 0; d<DIMS; ++d) {
+    m.model_ents_[d] = this->model_ents_[d];
+    m.model_matches_[d] = this->model_matches_[d];
+  }
   return m;
 }
 
