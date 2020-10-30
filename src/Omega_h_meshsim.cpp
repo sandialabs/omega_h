@@ -20,8 +20,6 @@ namespace Omega_h {
 
 namespace meshsim {
 
-//namespace {
-
 void print_matches(c_Remotes matches, int rank, int d) {
   printf("\n");
   auto root_ranks = matches.root_ranks;
@@ -155,10 +153,10 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     V_coord(vtx,xyz);
     if(max_dim < 3 && xyz[2] != 0)
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
-    printf("\nvtx%d has coords\n", EN_id(vtx));
+    //printf("\nvtx%d has coords\n", EN_id(vtx));
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
-      printf(" %f ", xyz[j]);
+      //printf(" %f ", xyz[j]);
     }
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
@@ -175,32 +173,11 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        //if (EN_id(match) > EN_id(vtx)) {
-        //if (EN_id(match) < EN_id(vtx)) {
-          //ent_owners[0].push_back(EN_id(match));
-          //ent with lower global id become roots
 
-          leaf_idxs[0].push_back(EN_id(vtx));
-          root_idxs[0].push_back(EN_id(match));
-          root_ranks[0].push_back(0);
-        //}
-        //else {
-        //else if (EN_id(vtx) < EN_id(match)) {
-          //ent_owners[0].push_back(EN_id(vtx));
-
-          //leaf_idxs[0].push_back(EN_id(vtx));
-          //root_idxs[0].push_back(EN_id(match));
-          //root_ranks[0].push_back(0);
-          //leaf_idxs[0].push_back(EN_id(vtx));
-          //root_idxs[0].push_back(EN_id(vtx));
-          //root_ranks[0].push_back(0);
-        //}
+        leaf_idxs[0].push_back(EN_id(vtx));
+        root_idxs[0].push_back(EN_id(match));
+        root_ranks[0].push_back(0);
       }
-      //else if (PList_size(matches)==1) {
-      //ent_matches[0].push_back(-1);
-        //ent_match_classId[0].push_back(-1);
-        //ent_owners[0].push_back(EN_id(vtx));
-      //}
     }
     PList_delete(matches);
   }
@@ -219,11 +196,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   int const g_numEnt[4] = {g_numVtx, g_numEdge, g_numFace, g_numRgn};
   std::vector<int> model_matches[3];
   std::vector<int> model_ents[3];
-
-  //char filename[200];
-  //sprintf(filename, "model_matches.csv");
-  //std::ofstream in_str(filename);
-  //in_str << "id" << ",match" << ",dim\n";
 
   //for matched model verts
   model_matches[0].reserve(g_numVtx);
@@ -249,7 +221,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     VIter_delete(verts);
     model_matches[0].push_back(match_gEnt);
     model_ents[0].push_back(GEN_tag(g_vert));
-    //in_str << GEN_tag(g_vert) << "," << match_gEnt << "," << GEN_type(g_vert) << "\n";
   }
   GVIter_delete(g_verts);
 
@@ -277,7 +248,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     EIter_delete(edges);
     model_matches[1].push_back(match_gEnt);
     model_ents[1].push_back(GEN_tag(g_edge));
-    //in_str << GEN_tag(g_edge) << "," << match_gEnt << "," << GEN_type(g_edge) << "\n";
   }
   GEIter_delete(g_edges);
 
@@ -305,7 +275,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     FIter_delete(faces);
     model_matches[2].push_back(match_gEnt);
     model_ents[2].push_back(GEN_tag(g_face));
-    //in_str << GEN_tag(g_face) << "," << match_gEnt << "," << GEN_type(g_face) << "\n";
   }
   GFIter_delete(g_faces);
   //
@@ -336,41 +305,22 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while (match = (pEdge)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
-
+/*
         printf("original edge %d with verts\n", EN_id(edge));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(edge, j)));
         printf("\n  is matched to edge %d with verts ", EN_id(match));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(match, j)));
         printf("\n");
-
+*/
         ent_matches[1].push_back(EN_id(match));
         ent_match_classId[1].push_back(classId(match));
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        //if (EN_id(match) > EN_id(edge)) {
-        //if (EN_id(match) < EN_id(edge)) {
-          //ent_owners[1].push_back(EN_id(match));
 
-          leaf_idxs[1].push_back(EN_id(edge));
-          root_idxs[1].push_back(EN_id(match));
-          root_ranks[1].push_back(0);
-        //}
-        //else {
-          //ent_owners[1].push_back(EN_id(edge));
-
-          //leaf_idxs[1].push_back(EN_id(edge));
-          //root_idxs[1].push_back(EN_id(match));
-          //root_ranks[1].push_back(0);
-          //leaf_idxs[1].push_back(EN_id(edge));
-          //root_idxs[1].push_back(EN_id(edge));
-          //root_ranks[1].push_back(0);
-        //}
-      }
-      else if (PList_size(matches)==1) {
-        //ent_matches[1].push_back(-1);
-        //ent_match_classId[1].push_back(-1);
-        //ent_owners[1].push_back(EN_id(edge));
+        leaf_idxs[1].push_back(EN_id(edge));
+        root_idxs[1].push_back(EN_id(match));
+        root_ranks[1].push_back(0);
       }
     }
     PList_delete(matches);
@@ -398,7 +348,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while(match = (pFace)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
-
+/*
         printf("\noriginal face %d with verts\n", EN_id(face));
         pPList vertsP1 = F_vertices(face, 1);
         void *iterP1 = 0; // must initialize to 0
@@ -412,30 +362,17 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
           printf(" %d ", EN_id(vtx));
         PList_delete(verts);
         //printf("\n");
+*/
 
         ent_matches[2].push_back(EN_id(match));
         ent_match_classId[2].push_back(classId(match));
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
-        //if (EN_id(match) > EN_id(face)) {
-        //if (EN_id(match) < EN_id(face)) {
-          //ent_owners[2].push_back(EN_id(match));
 
-          leaf_idxs[2].push_back(EN_id(face));
-          root_idxs[2].push_back(EN_id(match));
-          root_ranks[2].push_back(0);
-        //}
-        //else {
-          //ent_owners[2].push_back(EN_id(face));
-
-          //leaf_idxs[2].push_back(EN_id(face));
-          //root_idxs[2].push_back(EN_id(match));
-          //root_ranks[2].push_back(0);
-          //leaf_idxs[2].push_back(EN_id(face));
-          //root_idxs[2].push_back(EN_id(face));
-          //root_ranks[2].push_back(0);
-        //}
+        leaf_idxs[2].push_back(EN_id(face));
+        root_idxs[2].push_back(EN_id(match));
+        root_ranks[2].push_back(0);
       }
       else if (PList_size(matches)==1) {
         ent_matches[2].push_back(-1);
@@ -471,7 +408,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     ent_class_ids[3].push_back(classId(rgn));
   }
   RIter_delete(regions);
-  printf("7.1\n");
 
   auto vert_globals = Read<GO>(numVtx, 0, 1);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
@@ -503,7 +439,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     }
     mesh->add_tag(ent_dim, "global", 1, GOs(ndim_ents, 0, 1));
   }
-  printf("7.2\n");
   //
   if (!comm->reduce_and(is_sorted(vert_globals)))
     reorder_by_globals(mesh);
@@ -562,10 +497,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto match_classId = Read<LO>(host_match_classId.write());
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
-    //mesh->add_tag(ent_dim, "matches", 1, matches);
-    //mesh->add_tag(ent_dim, "match_classId", 1, match_classId);
-    //mesh->set_match_owners(ent_dim, Remotes(ranks, owners));
   }
+/*
   for (Int d = 0; d < max_dim; ++d) {
     //auto d_matches = mesh->get_array<LO>(d, "matches");
     printf("\nfor dim d=%d\n", d+1);
@@ -578,6 +511,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     //call_print(av2v);
     //int waiting=1; while(waiting);
   }
+*/
 
   //add model matches info to mesh and if mesh is periodic
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {
@@ -591,53 +525,28 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto model_match = Read<LO>(host_model_matches.write());
     mesh->set_model_ents(ent_dim, model_ids);
     mesh->set_model_matches(ent_dim, model_match);
-    //auto return_model_ents = mesh->get_model_ents(ent_dim);
-    //auto return_model_matches = mesh->get_model_matches(ent_dim);
-    //printf("ent_dim=%d\n", ent_dim);
-    //call_print(return_model_ents);
-    //call_print(return_model_matches);
   }
   //
 }
 
-//}  // end anonymous namespace
-
-//Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
-//    CommPtr comm) {
 void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm, Mesh *mesh, int is_in) {
-  //printf("0\n");
   SimPartitionedMesh_start(NULL,NULL);
-  //printf("1\n");
   SimModel_start();
-  //printf("2\n");
   Sim_readLicenseFile(NULL);
-  //printf("3\n");
   pNativeModel nm = NULL;
-  //printf("4\n");
   pProgress p = NULL;
-  //printf("5\n");
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
-  //printf("6\n");
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
-  //printf("7\n");
-  //auto mesh = Mesh(comm->library());
-  //
   if (is_in) {
     mesh->set_comm(comm);
     meshsim::read_internal(sm, mesh, g, comm);
   }
-  //meshsim::read_internal(sm, mesh, g);
-  //meshsim::read_internal(sm, &mesh, g);
 
-  printf("8\n");
   M_release(sm);
   GM_release(g);
   SimModel_stop();
   SimPartitionedMesh_stop();
-  //return;
-  //return mesh;
-
 }
 
 }  // namespace meshsim

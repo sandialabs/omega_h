@@ -192,32 +192,8 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   }
 }
 
-/*
-  Read<LO> model_ids_r = mesh->get_model_ents(d);
-  Read<LO> model_matches_r = mesh->get_model_matches(d);
-  HostRead<LO> model_ids_hr(model_ids_r);
-  HostRead<LO> model_matches_hr(model_matches_r);
-  //HostRead<LO> g_matches(mesh->get_model_matches(d));
-  LO n_g_ents;
-  if (nents) n_g_ents = model_ids_r.size();
-  mesh->comm()->bcast(n_g_ents);
-  auto model_ids_hw = HostWrite<LO>(n_g_ents, -1, 0);
-  auto model_matches_hw = HostWrite<LO>(n_g_ents, -1, 0);
-  //auto model_matches = HostWrite<LO>(n_g_ents, -1, 0);
-  if (nents) {
-    for (LO i = 0; i<n_g_ents; ++i) {
-      model_ids_hw[i] = model_ids_hr[i];
-      model_matches_hw[i] = model_matches_hr[i];
-    }
-  }
-  for (LO i = 0; i<n_g_ents; ++i) {
-    mesh->comm()->bcast(model_ids_hw[i]);
-    mesh->comm()->bcast(model_matches_hw[i]);
-  }
-*/
 void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     Dist const* old_owners2new_ents) {
-  //printf("entering matches migration, d=%d\n", d);
   auto size = mesh->comm()->size();
   auto rank = mesh->comm()->rank();
   auto r2i = old_owners2new_ents->roots2items();//roots2items
@@ -295,9 +271,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
         auto L_R_item_end = h_r2i[root_owner+1];
         auto L_R = L_R_item_end - L_R_item_begin;
         auto leaf_owner = owners_idxs[leaf];
-        //if(leaf_owner == 12) {
-          //printf("hi\n");
-        //}
         auto L_L_item_begin = h_r2i[leaf_owner];
         auto L_L_item_end = h_r2i[leaf_owner+1];
         auto L_L = L_L_item_end - L_L_item_begin;
@@ -330,7 +303,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   } // mesh has ents
   HostWrite<I32> host_dest_r(dest_r.size());
   HostWrite<LO> host_dest_i(dest_r.size());
-  //printf("ok1\n");
   for (unsigned int i = 0; i < dest_r.size(); ++i) {
     host_dest_r[i] = dest_r[static_cast<std::size_t>(i)];
     host_dest_i[i] = dest_i[static_cast<std::size_t>(i)];
@@ -348,26 +320,18 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   for (I32 i = 0; i < size; ++i)
     n_rroots[i] = mesh->comm()->allreduce(max_dest_id[i], OMEGA_H_MAX) + 1;
     //dont reduce array of size=size, can try using dist
-  //printf("ok2\n");
 
   Dist owners2new_leaves;
   owners2new_leaves.set_parent_comm(mesh->comm());
   owners2new_leaves.set_dest_ranks(host_dest_r.write());
-  //printf("ok3\n");
   owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
-  //see if using set dest globals will avoid creating maxroots. by my
-  //understanding, it will segfault or create dest roots which have sequential
-  //ids starting from 0. this will cause a mismap between the dest ids and newmesh entity ids
-  //one other alternative is also to mix the natches in the owners2new_ents
+  //to mix the natches in the owners2new_ents
   //dist before calling udate_ownership however then the remote copies will be
   //mixed in with matches and I dont know what implications that will have on
   //lets say adaptation or ghosting or other such omegaH operations
-  //printf("ok4\n");
   owners2new_leaves.set_roots2items(new_r2i.write());
-  //printf("ok5 d=%d\n", d);
   Read<I32> own_ranks;
   auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
-  //meshsim::print_owners(new_matchOwners, rank);
   auto new_isMatch = owners2new_leaves.exch(Read<LO>(old_isMatch.write()), 1);
   HostRead<LO> new_isMatch_h(new_isMatch);
 
@@ -378,58 +342,13 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   HostRead<LO> new_matchOwner_idxs(new_matchOwners.idxs);
   HostRead<I32> new_matchOwner_ranks(new_matchOwners.ranks);
 
-  //the classification routine will need mods when oldmesh is partitioned
-//edge
-  Read<LO> model_ids_r = new_mesh->get_model_ents(d);
-  Read<LO> model_matches_r = new_mesh->get_model_matches(d);
-  HostRead<LO> model_ids_hr(model_ids_r);
-  HostRead<LO> model_matches_hr(model_matches_r);
-  //HostRead<LO> g_matches(mesh->get_model_matches(d));
-  LO n_g_ents;
-  if (nents) n_g_ents = model_ids_r.size();
-  mesh->comm()->bcast(n_g_ents);
-  auto model_ids_hw = HostWrite<LO>(n_g_ents, -1, 0);
-  auto model_matches_hw = HostWrite<LO>(n_g_ents, -1, 0);
-  //auto model_matches = HostWrite<LO>(n_g_ents, -1, 0);
-  if (nents) {
-    for (LO i = 0; i<n_g_ents; ++i) {
-      model_ids_hw[i] = model_ids_hr[i];
-      model_matches_hw[i] = model_matches_hr[i];
-    }
-  }
-  for (LO i = 0; i<n_g_ents; ++i) {
-    mesh->comm()->bcast(model_ids_hw[i]);
-    mesh->comm()->bcast(model_matches_hw[i]);
-  }
-  HostRead<LO> class_id(new_mesh->get_array<ClassId>(d, "class_id"));
-  HostRead<I8> class_dim(new_mesh->get_array<I8>(d, "class_dim"));
-/*
-  auto ent_is_match_hw = HostWrite<LO>(new_mesh->nents(d), -1, 0);
-  for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
-    auto e_classId = class_id[i];
-    for (I8 edim = d; edim < mesh->dim()-1; ++edim) {
-    }
-  }
-*/
   for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
     if (new_isMatch_h[i] == 1) {
-  //will need to spend some time to use reverse classification to remove non-matched ents
-  //or can set a dist which tells which of the destI are matched
-    //auto e_classId = class_id[i];
-    //printf("class dim = %d\n", class_dim[i]);
-    //for (LO j = 0; j < n_g_ents; ++j) {
-
-     // if ((e_classId == model_ids_hw[j]) && (d == class_dim[i])) {
-       // if (model_matches_hw[j]) {
-          leaf_ids.push_back(i);
-          root_ids.push_back(new_matchOwner_idxs[i]);
-          root_rks.push_back(new_matchOwner_ranks[i]);
-        //}
-      //}
-    //}
+      leaf_ids.push_back(i);
+      root_ids.push_back(new_matchOwner_idxs[i]);
+      root_rks.push_back(new_matchOwner_ranks[i]);
     }
   }
-  //printf("ok7 rank %d\n", rank);
   HostWrite<LO> host_leaf_ids(leaf_ids.size());
   HostWrite<LO> host_root_ids(leaf_ids.size());
   HostWrite<LO> host_root_rks(leaf_ids.size());
@@ -443,32 +362,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
                       Read<I32>(host_root_rks.write()));
   new_mesh->set_matches(d, cr);
   meshsim::print_matches(new_mesh->get_matches(d), rank, d);
-  /**/
-
-  //specific checks for 6 elem mesh
-/*
-  if (d == 1) {
-    if (!rank) {
-      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0}));
-      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 1, 2}));
-    }
-    else {
-      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({1, 0, 0}));
-      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 0, 1}));
-    }
-  }
-  else if (d == 0) {
-    if (!rank) {
-      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0, 0}));
-      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({0, 1, 2, 3}));
-    }
-    else {
-      OMEGA_H_CHECK (new_matchOwners.ranks == LOs({0, 0, 0, 0}));
-      OMEGA_H_CHECK (new_matchOwners.idxs == LOs({1, 0, 3, 2}));
-    }
-  }
-*/
-  //
 }
 
 void migrate_mesh(
@@ -493,11 +386,6 @@ void migrate_mesh(
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
 
-//NOTE WE WILL HAVE TO WRITE CLASSIFICATION APIS to see which of these new
-//matched ents in new matches are classified on matched moedl ents to go from
-//newMatched owners to c_R
-    //for some meshes, face and edge gives errors
-    //atgetting copies2own_ranks in owners.c update_ownership fn
     if ((mesh->is_periodic()) && (d < mesh->dim()))
       migrate_matches(mesh, &new_mesh, d, &old_owners2new_ents);
 
@@ -516,6 +404,13 @@ void migrate_mesh(
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
+  }
+
+  auto coords = new_mesh.coords();
+  for (Int d = mesh->dim()-1; d>0; --d) {
+    printf("for d=%d, dv2v on rank %d\n", d, mesh->comm()->rank());
+    auto dv2v = new_mesh.ask_down(d, VERT).ab2b;
+    meshsim::call_print(new_mesh.ask_down(d, VERT).ab2b);
   }
 }
 
