@@ -543,7 +543,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto cr = c_Remotes(cr_leaf_idxs, cr_root_idxs, cr_root_ranks);
     mesh->set_matches(ent_dim, cr);
     auto o_cr = mesh->get_matches(ent_dim);
-    print_matches(o_cr, 0, ent_dim);
+    //print_matches(o_cr, 0, ent_dim);
   }
 
   //add matches and owners info to mesh
@@ -591,8 +591,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto model_match = Read<LO>(host_model_matches.write());
     mesh->set_model_ents(ent_dim, model_ids);
     mesh->set_model_matches(ent_dim, model_match);
-    auto return_model_ents = mesh->get_model_ents(ent_dim);
-    auto return_model_matches = mesh->get_model_matches(ent_dim);
+    //auto return_model_ents = mesh->get_model_ents(ent_dim);
+    //auto return_model_matches = mesh->get_model_matches(ent_dim);
     //printf("ent_dim=%d\n", ent_dim);
     //call_print(return_model_ents);
     //call_print(return_model_matches);

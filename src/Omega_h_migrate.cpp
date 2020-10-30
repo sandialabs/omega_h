@@ -301,7 +301,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
       n_items += new_r2i[j];
       new_r2i[j] = n_items;
     }
-    int waiting=0; while(waiting);
     //printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
     //                                                    dest_i.size());
   } // mesh has ents
@@ -344,7 +343,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   //printf("ok5 d=%d\n", d);
   Read<I32> own_ranks;
   auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
-  //printf("ok6\n");
   //meshsim::print_owners(new_matchOwners, rank);
     
   /*create c_r in new mesh*/
@@ -353,20 +351,67 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   std::vector<int> root_rks;
   HostRead<LO> new_matchOwner_idxs(new_matchOwners.idxs);
   HostRead<I32> new_matchOwner_ranks(new_matchOwners.ranks);
-  for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
-//    if (new_matchOwner_ranks[i] != rank) {
-      leaf_ids.push_back(i);
-      root_ids.push_back(new_matchOwner_idxs[i]);
-      root_rks.push_back(new_matchOwner_ranks[i]);
-/*
+  //the classification routine will need mods when oldmesh is partitioned
+  Read<LO> model_ids_r = mesh->get_model_ents(d);
+  Read<LO> model_matches_r = mesh->get_model_matches(d);
+  HostRead<LO> model_ids_hr(model_ids_r);
+  HostRead<LO> model_matches_hr(model_matches_r);
+  //HostRead<LO> g_matches(mesh->get_model_matches(d));
+  LO n_g_ents;
+  if (nents) n_g_ents = model_ids_r.size();
+  mesh->comm()->bcast(n_g_ents);
+  auto model_ids_hw = HostWrite<LO>(n_g_ents, -1, 0);
+  auto model_matches_hw = HostWrite<LO>(n_g_ents, -1, 0);
+  //auto model_matches = HostWrite<LO>(n_g_ents, -1, 0);
+  if (nents) {
+    for (LO i = 0; i<n_g_ents; ++i) {
+      model_ids_hw[i] = model_ids_hr[i];
+      model_matches_hw[i] = model_matches_hr[i];
     }
-    else if (new_matchOwner_idxs[i] != i) {
-      leaf_ids.push_back(i);
-      root_ids.push_back(new_matchOwner_idxs[i]);
-      root_rks.push_back(new_matchOwner_ranks[i]);
-    }
-*/
   }
+  for (LO i = 0; i<n_g_ents; ++i) {
+    mesh->comm()->bcast(model_ids_hw[i]);
+    mesh->comm()->bcast(model_matches_hw[i]);
+  }
+  HostRead<I32> class_id(new_mesh->get_array<ClassId>(d, "class_id"));
+/*
+  auto ent_is_match_hw = HostWrite<LO>(new_mesh->nents(d), -1, 0);
+  for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
+    auto e_classId = class_id[i];
+    for (I8 edim = d; edim < mesh->dim()-1; ++edim) {
+    }  
+  }
+*/
+  for (LO i = 0; i < new_matchOwner_idxs.size(); ++i) {
+  //use reverse classification to remove non-matched ents
+  //note that it will be very expensive as omegaH 
+    auto e_classId = class_id[i];
+    //bool is_matched = false;
+    for (LO j = 0; j < n_g_ents; ++j) {
+/*
+      if (nents) {
+        g_id = g_ids[j];
+        g_match = g_matches[j];
+      }
+      mesh->comm()->barrier();
+      mesh->comm()->bcast(g_id);
+      mesh->comm()->bcast(g_match);
+*/
+
+      if (e_classId == model_ids_hw[j]) {
+        if (model_matches_hw[j]) {
+          //is_matched = true;
+          leaf_ids.push_back(i);
+          root_ids.push_back(new_matchOwner_idxs[i]);
+          root_rks.push_back(new_matchOwner_ranks[i]);
+        }
+      }
+    }
+    //leaf_ids.push_back(i);
+    //root_ids.push_back(new_matchOwner_idxs[i]);
+    //root_rks.push_back(new_matchOwner_ranks[i]);
+  }
+  //printf("ok7 rank %d\n", rank);
   HostWrite<LO> host_leaf_ids(leaf_ids.size());
   HostWrite<LO> host_root_ids(leaf_ids.size());
   HostWrite<LO> host_root_rks(leaf_ids.size());
