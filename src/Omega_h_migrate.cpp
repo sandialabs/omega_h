@@ -204,7 +204,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   std::vector<int> dest_i;//idxs
   HostWrite<LO> new_r2i(nents+1, 0, 0, "froots2fitems");
   HostWrite<LO> old_isMatch(nents, -1, 0, "old_isMatch");
-  //roots2items stores offsets; +1 for offsets. it should be possible to
+  //roots2items stores offsets; +1 for offsets. it is possible to
   //make this proportional to O(max [froot IDs of all(i.e.
   //missing+present) rroots])
   if (nents) {//if mesh exists on a process
@@ -219,9 +219,10 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     auto max_leaf = leaf_idxs.last();
     auto max_leaf_rootID = root_idxs.last();
     auto max_leaf_rootRank = root_ranks.last();
-    if (max_leaf_rootRank == rank) {
+    if (max_leaf_rootRank == rank) 
       OMEGA_H_CHECK(max_leaf_rootID != max_leaf);
-    }
+      //check leaf and root are disinct
+    
     LO ent = 0;
     for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
       auto leaf = leaf_idxs[i];
@@ -316,15 +317,39 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
       if (destId > max_dest_id[destR]) max_dest_id[destR] = destId;
     }
   }
-  HostWrite<LO> n_rroots(size, -1, 0, "n_rroots");
-  for (I32 i = 0; i < size; ++i)
-    n_rroots[i] = mesh->comm()->allreduce(max_dest_id[i], OMEGA_H_MAX) + 1;
-    //dont reduce array of size=size, can try using dist
+  std::vector<int> mesh_dest_r;//destination ranks for mesh (all ranks)
+  std::vector<int> max_dest_i;//destination ranks for mesh (all ranks)
+  if (nents) {
+    for (LO i = 0; i<size; ++i) {
+      mesh_dest_r.push_back(i);
+      max_dest_i.push_back(max_dest_id[i]);
+    }
+  }
+  HostWrite<LO> mesh_dest_r_h(mesh_dest_r.size());
+  HostWrite<LO> max_dest_i_h(max_dest_i.size());
+  for (unsigned int i = 0; i < mesh_dest_r.size(); ++i) {
+    mesh_dest_r_h[i] = mesh_dest_r[static_cast<std::size_t>(i)];
+    max_dest_i_h[i] = max_dest_i[static_cast<std::size_t>(i)];
+  }
+  Dist old_rank2new_ranks;
+  old_rank2new_ranks.set_parent_comm(mesh->comm());
+  old_rank2new_ranks.set_dest_ranks(mesh_dest_r_h.write());
+
+  auto rev_max_dest_ids =
+old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
+//old_rank2new_ranks.exch_reduce(Read<LO>(max_dest_i_h.write()), 1,
+//OMEGA_H_MAX);//this dosent work, for parallel input we want to get max
+//of dest ids recved from all old ranks
+  LO rev_nroots;
+  rev_nroots = rev_max_dest_ids.last()+1;
 
   Dist owners2new_leaves;
   owners2new_leaves.set_parent_comm(mesh->comm());
   owners2new_leaves.set_dest_ranks(host_dest_r.write());
-  owners2new_leaves.set_dest_idxs(host_dest_i.write(), n_rroots[rank]);
+  int wait=0; while(wait);
+  owners2new_leaves.set_dest_idxs(host_dest_i.write(), rev_nroots);
+  //set dest globals will not work becasue it assumes that dest roots and
+  //items ae same
   //to mix the natches in the owners2new_ents
   //dist before calling udate_ownership however then the remote copies will be
   //mixed in with matches and I dont know what implications that will have on
@@ -406,12 +431,6 @@ void migrate_mesh(
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
 
-  auto coords = new_mesh.coords();
-  for (Int d = mesh->dim()-1; d>0; --d) {
-    printf("for d=%d, dv2v on rank %d\n", d, mesh->comm()->rank());
-    auto dv2v = new_mesh.ask_down(d, VERT).ab2b;
-    meshsim::call_print(new_mesh.ask_down(d, VERT).ab2b);
-  }
 }
 
 }  // end namespace Omega_h
