@@ -478,7 +478,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto cr = c_Remotes(cr_leaf_idxs, cr_root_idxs, cr_root_ranks);
     mesh->set_matches(ent_dim, cr);
     auto o_cr = mesh->get_matches(ent_dim);
-    //print_matches(o_cr, 0, ent_dim);
   }
 
   //add matches and owners info to mesh

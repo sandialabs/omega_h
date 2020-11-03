@@ -382,11 +382,11 @@ old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
     host_root_ids[i] = root_ids[static_cast<std::size_t>(i)]; 
     host_root_rks[i] = root_rks[static_cast<std::size_t>(i)]; 
   }
-  auto cr = c_Remotes(Read<LO>(host_leaf_ids.write()),
-                      Read<LO>(host_root_ids.write()),
-                      Read<I32>(host_root_rks.write()));
+  auto cr = c_Remotes(LOs(host_leaf_ids.write()),
+                      LOs(host_root_ids.write()),
+                      LOs(host_root_rks.write()));
   new_mesh->set_matches(d, cr);
-  meshsim::print_matches(new_mesh->get_matches(d), rank, d);
+  //meshsim::print_matches(new_mesh->get_matches(d), rank, d);
 }
 
 void migrate_mesh(

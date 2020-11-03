@@ -5,6 +5,7 @@
 #include "Omega_h_mesh.hpp"
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_for.hpp"
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
@@ -36,6 +37,24 @@ int main(int argc, char** argv) {
   if (is_in || is_out) mesh.set_comm(comm_out);
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
+
+    auto rank = world->rank();
+    mesh.add_tag<Omega_h::Real>(0, "gravity", 1);
+    Omega_h::Write<Omega_h::Real> gravityArray(mesh.nverts(), 0.0, "gravityArray");
+    auto leaf_ids = mesh.get_matches(0).leaf_idxs;
+    auto root_ids = mesh.get_matches(0).root_idxs;
+    auto root_rks = mesh.get_matches(0).root_ranks;
+    auto fill_tag = OMEGA_H_LAMBDA (Omega_h::LO i) {
+      auto leaf = leaf_ids[i];
+      auto root = root_ids[i];
+      auto root_rk = root_rks[i];
+      if ((root == leaf) && (root_rk == rank))
+        gravityArray[leaf] = 9.81;
+    };
+    Omega_h::parallel_for(leaf_ids.size(), fill_tag);
+    mesh.set_tag<Omega_h::Real>(0, "gravity", Omega_h::Reals(gravityArray));
+    mesh.sync_tag_periodic(0, "gravity");
+
     Omega_h::binary::write(mesh_out, &mesh);
   }
 
