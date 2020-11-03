@@ -205,8 +205,8 @@ static void read_internal_entities_section(Mesh& mesh, Real format,
       Int num_bounding_points;
       read(stream, num_bounding_points, is_binary, needs_swapping);
       while (num_bounding_points-- > 0) {
-        Int tag;
-        read(stream, tag, is_binary, needs_swapping);
+        Int points_tag;
+        read(stream, points_tag, is_binary, needs_swapping);
       }
     }
   }

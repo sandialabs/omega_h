@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.32.5 LANGUAGES CXX)
+project(Omega_h VERSION 9.33.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -39,11 +39,15 @@ set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
 
-set(Gmsh_REQUIRED_VERSION 4.4.1)
 set(Omega_h_USE_Gmsh_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME Gmsh
     INCLUDE_DIR_VARS Gmsh_INCLUDE_DIRS
     LIBRARY_VARS Gmsh_LIBRARIES)
+if(Omega_h_USE_Gmsh)
+  if(Gmsh_VERSION_STRING VERSION_LESS 4.4.1)
+    message(SEND_ERROR "Gmsh minimum version is 4.4.1 but found version ${Gmsh_VERSION_STRING}")
+  endif()
+endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
@@ -57,6 +61,14 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_INCLUDE_DIRS
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
+if (Omega_h_USE_SEACASExodus)
+  # On Windows, we must find hdf5 targets since 
+  # it is linked PUBLIC
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(Omega_h_USE_HDF5_DEFAULT ON)
+    bob_add_dependency(PUBLIC NAME HDF5)
+  endif()
+endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)

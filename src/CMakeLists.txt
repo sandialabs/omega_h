@@ -165,7 +165,7 @@ endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
-set_property(TARGET omega_h PROPERTY CXX_STANDARD "11")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "14")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
@@ -192,7 +192,7 @@ if (Omega_h_USE_CUDA)
   endif()
 else()
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
@@ -200,7 +200,7 @@ else()
         -Wimplicit-fallthrough
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
@@ -251,7 +251,7 @@ function(osh_add_exe EXE_NAME)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
-  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "11")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
@@ -315,6 +315,9 @@ if(BUILD_TESTING)
       set(TEST_STR ${VALGRIND} ${ARGN})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}\\bin;$ENV{PATH}" )
+    endif()
   endfunction(test_func)
 
   osh_add_exe(unit_math)
@@ -426,9 +429,12 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(random_test)
-  target_include_directories(random_test PRIVATE ${TPL_PATH})
-  test_func(run_random_test 1 ./random_test)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  else()
+    osh_add_exe(random_test)
+    target_include_directories(random_test PRIVATE ${TPL_PATH})
+    test_func(run_random_test 1 ./random_test)
+  endif()
   osh_add_exe(hypercube_test)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)

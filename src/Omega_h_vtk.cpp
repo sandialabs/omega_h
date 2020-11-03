@@ -661,10 +661,12 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
 void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   bool needs_swapping, is_compressed;
   read_vtkfile_vtu_start_tag(stream, &needs_swapping, &is_compressed);
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "UnstructuredGrid");
+  auto tag1 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag1.elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Cells");
+  auto tag2 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag2.elem_name == "Cells");
   auto comm = mesh->comm();
   Omega_h_Family family;
   Int dim;
@@ -673,13 +675,17 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
       &family, &dim, &ev2v);
   mesh->set_family(family);
   mesh->set_dim(dim);
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Cells");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Points");
+  auto tag3 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag3.elem_name == "Cells");
+  auto tag4 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag4.elem_name == "Points");
   auto coords = read_known_array<Real>(
       stream, "coordinates", nverts, 3, needs_swapping, is_compressed);
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Points");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "PointData");
+  auto tag5 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag5.elem_name == "Points");
+  auto tag6 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag6.elem_name == "PointData");
   GOs vert_globals;
   if (mesh->could_be_shared(VERT)) {
     vert_globals = read_known_array<GO>(
@@ -693,7 +699,8 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
     ;
   mesh->remove_tag(VERT, "local");
   mesh->remove_tag(VERT, "owner");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "CellData");
+  auto tag7 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag7.elem_name == "CellData");
   GOs elem_globals;
   if (mesh->could_be_shared(dim)) {
     elem_globals = read_known_array<GO>(
@@ -706,9 +713,12 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
     ;
   mesh->remove_tag(dim, "local");
   mesh->remove_tag(dim, "owner");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Piece");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "UnstructuredGrid");
-  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "VTKFile");
+  auto tag8 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag8.elem_name == "Piece");
+  auto tag9 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag9.elem_name == "UnstructuredGrid");
+  auto tag10 = xml_lite::read_tag(stream);
+  OMEGA_H_CHECK(tag10.elem_name == "VTKFile");
 }
 
 void write_vtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
