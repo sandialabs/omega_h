@@ -6,6 +6,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <algorithm>
 
 #include "Omega_h_fail.hpp"
 #include "Omega_h_string.hpp"

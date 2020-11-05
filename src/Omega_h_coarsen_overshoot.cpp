@@ -9,7 +9,7 @@
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
-static Read<I8> prevent_coarsen_overshoot_tmp(
+Read<I8> prevent_coarsen_overshoot_tmp(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
   OMEGA_H_CHECK(mesh->dim() == mesh_dim);
   MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh);

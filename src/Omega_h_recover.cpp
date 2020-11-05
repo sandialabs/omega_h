@@ -28,7 +28,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
+Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto v2e = mesh->ask_up(VERT, dim);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
@@ -61,7 +61,7 @@ static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps) {
   OMEGA_H_NORETURN(Reals());
 }
 
-static void diffuse_to_exterior(
+void diffuse_to_exterior(
     Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8>* p_visited) {
   auto v_data = *p_v_data;
   auto visited = *p_visited;
@@ -98,7 +98,7 @@ static void diffuse_to_exterior(
 }
 
 template <Int dim>
-static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
+Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * ncomps);
   auto f = OMEGA_H_LAMBDA(LO v) {
@@ -171,7 +171,7 @@ OMEGA_H_INLINE Matrix<dim, dim> get_simplex_jacobian(
 }
 
 template <Int dim>
-static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
+Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems() * dim);
@@ -191,7 +191,7 @@ static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
 }
 
 template <Int dim>
-static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
+Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));

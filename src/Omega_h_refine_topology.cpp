@@ -10,7 +10,7 @@
 
 namespace Omega_h {
 
-static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
+void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
     LOs old_verts2new_verts, LOs& keys2pairs, LOs& pair_verts2verts) {
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto nkeys = keys2edges.size();

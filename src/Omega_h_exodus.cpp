@@ -11,8 +11,8 @@
 
 #include <algorithm>
 #include <iostream>
-#include <sstream>
 #include <set>
+#include <sstream>
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
@@ -28,7 +28,7 @@
 namespace Omega_h {
 
 #define CALL(f)                                                                \
-  {                                                                            \
+  do {                                                                         \
     auto f_err = (f);                                                          \
     if (f_err != 0) {                                                          \
       const char* errmsg;                                                      \
@@ -38,7 +38,7 @@ namespace Omega_h {
       Omega_h_fail("Exodus call %s failed (%d): %s: %s\n", #f, errnum,         \
           errfunc, errmsg);                                                    \
     }                                                                          \
-  }
+  } while (0)
 
 namespace exodus {
 
@@ -699,8 +699,9 @@ void write(
     }
     std::vector<char*> set_name_ptrs(surface_set.size(), nullptr);
     for (std::size_t i = 0; i < set_names.size(); ++i) {
-      if (set_names[i].empty()){
-        std::stringstream ss; ss << "surface_" << i;
+      if (set_names[i].empty()) {
+        std::stringstream ss;
+        ss << "surface_" << i;
         set_names[i] = ss.str();
       }
       set_name_ptrs[i] = const_cast<char*>(set_names[i].c_str());

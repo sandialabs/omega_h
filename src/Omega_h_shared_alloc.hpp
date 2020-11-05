@@ -12,7 +12,7 @@ class Library;
 
 struct Allocs;
 
-extern bool entering_parallel;
+OMEGA_H_DLL extern bool entering_parallel;
 extern Allocs* global_allocs;
 
 void start_tracking_allocations();
@@ -27,7 +27,7 @@ struct Alloc {
   Alloc* next;
   Alloc(std::size_t size_in, std::string const& name_in);
   Alloc(std::size_t size_in, std::string&& name_in);
-  ~Alloc();
+  OMEGA_H_DLL ~Alloc();
   Alloc(Alloc const&) = delete;
   Alloc(Alloc&&) = delete;
   Alloc& operator=(Alloc const&) = delete;

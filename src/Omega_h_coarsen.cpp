@@ -69,11 +69,13 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
       prevent_coarsen_overshoot(mesh, max_length, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
+  #ifndef _MSC_VER
   if (opts.should_prevent_coarsen_flip) {
     cand_edge_codes = prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
     if (comm->reduce_and(cands2edges.size() == 0)) return false;
   }
+  #endif
   /* cavity quality checks */
   auto cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
   cand_edge_codes = filter_coarsen_min_qual(
@@ -169,7 +171,7 @@ static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
   return ret;
 }
 
-static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
+bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
     Read<I8> vert_marks, OvershootLimit overshoot, Improve improve) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   Write<I8> edge_codes_w(mesh->nedges(), DONT_COLLAPSE);

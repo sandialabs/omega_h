@@ -70,7 +70,7 @@ static OMEGA_H_DEVICE bool same_adj(Int a[], Int b[]) {
   return true;
 }
 
-static void test_tri_align() {
+void test_tri_align() {
   auto f = OMEGA_H_LAMBDA(LO) {
     Int ident[3] = {0, 1, 2};
     Int out[3];
@@ -421,7 +421,7 @@ static void test_swap2d_topology(Library* lib) {
   OMEGA_H_CHECK(keys2prods[FACE] == offset_scan(LOs({2})));
 }
 
-static void test_swap3d_loop(Library* lib) {
+void test_swap3d_loop(Library* lib) {
   auto mesh = Mesh(lib);
   build_box_internal(&mesh, OMEGA_H_SIMPLEX, 1, 1, 1, 1, 1, 1);
   auto edges2tets = mesh.ask_up(EDGE, REGION);
@@ -464,7 +464,7 @@ static void test_element_implied_metric() {
 }
 
 template <Int dim>
-static void test_recover_hessians_dim(Library* lib) {
+void test_recover_hessians_dim(Library* lib) {
   auto one_if_3d = ((dim == 3) ? 1 : 0);
   auto mesh = build_box(
       lib->world(), OMEGA_H_SIMPLEX, 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);

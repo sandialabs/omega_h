@@ -97,7 +97,7 @@ INST(GO)
 #undef INST
 
 template <typename T>
-static T next_smallest_value(Read<T> const a, T const value) {
+T next_smallest_value(Read<T> const a, T const value) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = ArithTraits<T>::max();
@@ -109,7 +109,7 @@ static T next_smallest_value(Read<T> const a, T const value) {
 }
 
 template <typename T>
-static LO number_same_values(
+LO number_same_values(
     Read<T> const a, T const value, Write<LO> const tmp_perm) {
   tmp_perm.set(0, 0);
   auto const first = IntIterator(0);
@@ -124,7 +124,7 @@ static LO number_same_values(
 }
 
 template <typename T>
-static void combine_perms(Read<T> const a, T const value,
+void combine_perms(Read<T> const a, T const value,
     Write<LO> const tmp_perm, Write<LO> const perm, LO ndone) {
   tmp_perm.set(0, 0);
   auto functor = OMEGA_H_LAMBDA(LO i) {

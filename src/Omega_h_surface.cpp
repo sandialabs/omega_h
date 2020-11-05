@@ -130,7 +130,7 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
  * Journal of Graphics Tools 4.2 (1999): 1-6.
  */
 
-static Reals tri_vert_normal_weights(
+Reals tri_vert_normal_weights(
     Mesh* mesh, Adj surf_verts2tris, LOs tri2surf_tri) {
   auto nsurf_verts = surf_verts2tris.nnodes();
   auto fv2v = mesh->ask_verts_of(FACE);
@@ -167,7 +167,7 @@ static Reals tri_vert_normal_weights(
  * one over the length of the edge.
  */
 
-static Reals get_recip_length_weights(
+Reals get_recip_length_weights(
     Mesh* mesh, Adj surf_verts2edges, LOs edge2surf_edge) {
   auto edge2len = measure_edges_real(mesh);
   auto nedges = mesh->nedges();
@@ -220,7 +220,7 @@ Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side,
  * In order to handle this case, we locally negate vectors as
  * necessary to get a correct tangent vector at each vertex
  */
-static Read<I8> get_curv_vert_edge_flips(
+Read<I8> get_curv_vert_edge_flips(
     Adj curv_verts2edges, LOs edge2curv_edge) {
   auto out = Write<I8>(curv_verts2edges.nedges());
   auto ncurv_verts = curv_verts2edges.nnodes();
@@ -241,7 +241,7 @@ static Read<I8> get_curv_vert_edge_flips(
   return out;
 }
 
-static Read<I8> get_curv_edge_vert_flips(
+Read<I8> get_curv_edge_vert_flips(
     Mesh* mesh, Adj curv_verts2edges, LOs edge2curv_edge) {
   auto in = get_curv_vert_edge_flips(curv_verts2edges, edge2curv_edge);
   auto out = Write<I8>(mesh->nedges() * 2, I8(0));
@@ -260,7 +260,7 @@ static Read<I8> get_curv_edge_vert_flips(
 }
 
 template <Int dim>
-static Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
+Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_tangents, LOs curv_vert2vert) {
   OMEGA_H_CHECK(mesh->dim() == dim);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
@@ -523,7 +523,7 @@ Reals get_curv_edge_curvatures(Mesh* mesh, LOs curv_edge2edge,
 }
 
 template <Int dim>
-static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
+Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_curvatures, LOs curv_vert2vert) {
   auto verts2edges = mesh->ask_up(VERT, EDGE);
   auto edges2verts = mesh->ask_verts_of(EDGE);
