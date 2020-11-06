@@ -196,7 +196,6 @@ else()
         -W
         -Wall
         -Wextra
-        -Werror
         -Wimplicit-fallthrough
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -204,7 +203,6 @@ else()
         -W
         -Wall
         -Wextra
-        -Werror
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(omega_h PUBLIC
