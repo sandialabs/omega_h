@@ -35,10 +35,12 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
+  assert(false);
   return a;
 }
 
 OMEGA_H_INLINE std::uint64_t bswap64(std::uint64_t a) {
+  assert(false);
   return a;
 }
 
