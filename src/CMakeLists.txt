@@ -178,6 +178,11 @@ if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
 endif()
 
+if (OCL_LIBS)
+  message(STATUS "Linking omega_h against OCL_LIBS ${OCL_LIBS}")
+  target_link_libraries(omega_h PUBLIC ${OCL_LIBS})
+endif()
+
 if (Omega_h_USE_CUDA)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
