@@ -178,11 +178,6 @@ if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
 endif()
 
-if (OCL_LIBS)
-  message(STATUS "Linking omega_h against OCL_LIBS ${OCL_LIBS}")
-  target_link_libraries(omega_h PUBLIC ${OCL_LIBS})
-endif()
-
 if (Omega_h_USE_CUDA)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
@@ -258,6 +253,11 @@ function(osh_add_exe EXE_NAME)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
+  if (OMP_EXTRA_LIBS)
+    file(GLOB OMP_OBJS ${OMP_EXTRA_LIBS})
+    message(STATUS "adding OMP_EXTRA_LIBS ${OMP_OBJS} to omega_h")
+    target_link_libraries(${EXE_NAME} PRIVATE ${OMP_OBJS})
+  endif()
 endfunction(osh_add_exe)
 
 macro(osh_add_util EXE_NAME)
