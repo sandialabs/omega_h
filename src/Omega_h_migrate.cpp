@@ -204,7 +204,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   std::vector<int> dest_i;//idxs
   HostWrite<LO> new_r2i(nents+1, 0, 0, "froots2fitems");
   HostWrite<LO> old_isMatch(nents, -1, 0, "old_isMatch");
-  //roots2items stores offsets; +1 for offsets. it is possible to
+  //roots2items stores offsets; +1 for offsets. TODO:it can be possible to
   //make this proportional to O(max [froot IDs of all(i.e.
   //missing+present) rroots])
   if (nents) {//if mesh exists on a process
@@ -221,7 +221,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     auto max_leaf_rootRank = root_ranks.last();
     if (max_leaf_rootRank == rank) 
       OMEGA_H_CHECK(max_leaf_rootID != max_leaf);
-      //check leaf and root are disinct
+    //check leaf and root are disinct
     
     LO ent = 0;
     for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
@@ -232,7 +232,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
       /*for missing old ents to avoid broken graphs and hanging nodes*/
       auto leaf_next = leaf;
       while (ent < leaf_next) {
-        //printf ("missing ent old id %d next leaf %d\n", ent, leaf_next);
         leaf = ent;
         LO root_owner = 0;
         LO n_items = 0;
@@ -245,7 +244,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
           auto L_idx = h_i2dI[item];
           dest_r.push_back(L_rank);
           dest_i.push_back(L_idx);
-          //printf ("missing ent old destR %d destI %d\n", L_rank, L_idx);
         }
         n_items += L_R;
         new_r2i[root_owner+1] = n_items;
@@ -256,17 +254,12 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
       /**/
 
       if (((rank == root_rank) && (leaf < root)) || (rank != root_rank)) {
-      //for parallel: if ((leaf < root)||(rank < root_rank))
+      //distributed i/p: if ((leaf < root)||(rank < root_rank))
         LO root_owner = 0;
-        //there is a problem here for distributed mesh input as the roots will
+        //for distributed mesh input as the roots will
         //be present on different parts hence we cannot get the info about the
-        //root's new copies. Solution can be that both leaf and root
-        //individually take care of creating it's own copies. so the way I am
-        //storing the new matches right now, i have discarded cases when
-        //root=leaf. if root=self then the info about whether I am matched or
-        //not is lost. So either we do not discard that info or write a query
-        //fn to find whether I am matched or not based on classification on
-        //model entities.
+        //root's new copies. TODO: create dist from
+        //oldLeafOwners-2-oldRootOwners to exch info about their new copies
         root_owner = owners_idxs[root];
         auto L_R_item_begin = h_r2i[root_owner];
         auto L_R_item_end = h_r2i[root_owner+1];
@@ -277,8 +270,9 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
         auto L_L = L_L_item_end - L_L_item_begin;
         auto L = L_R + L_L;
         const LO n_items = L;
-        new_r2i[leaf_owner+1] = n_items;//leaf_owner cause for picking new owners the anchor should be one having lower old GID
-        old_isMatch[leaf_owner] = 1;//to get if new ents are matched
+        new_r2i[leaf_owner+1] = n_items;//leaf_owner cause for picking new
+        //owners the anchor should be one having lower old GID
+        old_isMatch[leaf_owner] = 1;
         for (int item = L_R_item_begin; item < L_R_item_end; ++item) {
           auto L_rank = h_i2dR[item];
           auto L_idx = h_i2dI[item];
@@ -299,9 +293,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
       n_items += new_r2i[j];
       new_r2i[j] = n_items;
     }
-    //printf("n_items %d destr %ld desti %ld\n", n_items, dest_r.size(),
-    //                                                    dest_i.size());
-  } // mesh has ents
+  } // end if mesh has ents
   HostWrite<I32> host_dest_r(dest_r.size());
   HostWrite<LO> host_dest_i(dest_r.size());
   for (unsigned int i = 0; i < dest_r.size(); ++i) {
@@ -336,10 +328,10 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   old_rank2new_ranks.set_dest_ranks(mesh_dest_r_h.write());
 
   auto rev_max_dest_ids =
-old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
-//old_rank2new_ranks.exch_reduce(Read<LO>(max_dest_i_h.write()), 1,
-//OMEGA_H_MAX);//this dosent work, for parallel input we want to get max
-//of dest ids recved from all old ranks
+    old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
+  //old_rank2new_ranks.exch_reduce(Read<LO>(max_dest_i_h.write()), 1,
+  //OMEGA_H_MAX);//for parallel input we want to get max
+  //of dest ids recved from all old ranks
   LO rev_nroots;
   rev_nroots = rev_max_dest_ids.last()+1;
 
@@ -348,12 +340,8 @@ old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
   owners2new_leaves.set_dest_ranks(host_dest_r.write());
   int wait=0; while(wait);
   owners2new_leaves.set_dest_idxs(host_dest_i.write(), rev_nroots);
-  //set dest globals will not work becasue it assumes that dest roots and
-  //items ae same
-  //to mix the natches in the owners2new_ents
-  //dist before calling udate_ownership however then the remote copies will be
-  //mixed in with matches and I dont know what implications that will have on
-  //lets say adaptation or ghosting or other such omegaH operations
+  //set dest globals will not work. it assumes that dest roots and
+  //items are same
   owners2new_leaves.set_roots2items(new_r2i.write());
   Read<I32> own_ranks;
   auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
@@ -386,7 +374,6 @@ old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
                       LOs(host_root_ids.write()),
                       LOs(host_root_rks.write()));
   new_mesh->set_matches(d, cr);
-  //meshsim::print_matches(new_mesh->get_matches(d), rank, d);
 }
 
 void migrate_mesh(

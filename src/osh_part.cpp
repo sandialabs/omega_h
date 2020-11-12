@@ -11,10 +11,8 @@ int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
   if (argc != 4) {
-  //if (argc != 5) {
     if (!world->rank()) {
       std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh \n";
-      //std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh model_file\n";
     }
     return -1;
   }
@@ -22,7 +20,6 @@ int main(int argc, char** argv) {
   auto path_in = argv[1];
   auto nparts_out = atoi(argv[2]);
   auto path_out = argv[3];
-  //auto path_model = argv[4];
   auto t0 = Omega_h::now();
   if (nparts_out < 1) {
     if (!world->rank()) {
@@ -53,38 +50,13 @@ int main(int argc, char** argv) {
   auto version = Omega_h::binary::read_version(path_in, world);
   if (is_in) {
     Omega_h::binary::read_in_comm(path_in, comm_in, &mesh, version);
-    //Omega_h::binary::read_model(path_model, &mesh);
     if (nparts_out < nparts_in) {
       Omega_h_fail(
           "partitioning to a smaller part count not yet implemented\n");
     }
   }
-/*
-  if (!world->rank()) {
-    for (int d=0; d<mesh.dim(); ++d) {
-      printf("dim=%d\n", d);
-      printf("owners\n");
-      print_owners(mesh.ask_owners(d), world->rank());
-      printf("model_ents\n");
-      call_print(mesh.ask_model_ents(d));
-      printf("model_matches\n");
-      call_print(mesh.ask_model_matches(d));
-    }
-  }
-*/
-  if (is_in || is_out) mesh.set_comm(comm_out); //dist changes here but owners same as before
-/*
-  if (!world->rank()) {
-    for (int d=0; d<mesh.dim(); ++d) {
-      printf("dim=%d\n", d);
-      printf("owners with new dist\n");
-      print_owners(mesh.ask_owners(d), world->rank());
-    }
-  }
-*/
-  //printf("ok2\n");
-  //int waiting=1;
-  //while(waiting);
+
+  if (is_in || is_out) mesh.set_comm(comm_out); //dist changes here but not owners
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
     Omega_h::binary::write(path_out, &mesh);

@@ -153,10 +153,14 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     V_coord(vtx,xyz);
     if(max_dim < 3 && xyz[2] != 0)
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
-    //printf("\nvtx%d has coords\n", EN_id(vtx));
+    #ifdef DEBUG_MODE
+    printf("\nvtx%d has coords\n", EN_id(vtx));
+    #endif
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
-      //printf(" %f ", xyz[j]);
+      #ifdef DEBUG_MODE
+      printf(" %f ", xyz[j]);
+      #endif
     }
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
@@ -287,14 +291,18 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pEdge edge;
   count_matched = 0;
   while (edge = (pEdge) EIter_next(edges)) {
-    //printf("sim edge %d hasverts\n", EN_id(edge));
+    #ifdef DEBUG_MODE
+    printf("sim edge %d hasverts\n", EN_id(edge));
+    #endif
     for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge, j);
       double xyz[3];
       V_coord(vtx,xyz);
       ent_nodes[1].push_back(EN_id(vtx));
-      //printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
-               //j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
+      #ifdef DEBUG_MODE
+      printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
+               j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
+      #endif
     }
     //printf("\n");
     ent_class_ids[1].push_back(classId(edge));
@@ -305,13 +313,13 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while (match = (pEdge)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
-/*
+        #ifdef DEBUG_MODE
         printf("original edge %d with verts\n", EN_id(edge));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(edge, j)));
         printf("\n  is matched to edge %d with verts ", EN_id(match));
         for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(match, j)));
         printf("\n");
-*/
+        #endif
         ent_matches[1].push_back(EN_id(match));
         ent_match_classId[1].push_back(classId(match));
         ++count_matches;
@@ -348,7 +356,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while(match = (pFace)PList_next(matches, &iterM)) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
-/*
+        #ifdef DEBUG_MODE
         printf("\noriginal face %d with verts\n", EN_id(face));
         pPList vertsP1 = F_vertices(face, 1);
         void *iterP1 = 0; // must initialize to 0
@@ -361,8 +369,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         while(vtx = (pVertex)PList_next(vertsP2, &iterP2))
           printf(" %d ", EN_id(vtx));
         PList_delete(verts);
-        //printf("\n");
-*/
+        #endif
 
         ent_matches[2].push_back(EN_id(match));
         ent_match_classId[2].push_back(classId(match));
@@ -480,7 +487,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto o_cr = mesh->get_matches(ent_dim);
   }
 
-  //add matches and owners info to mesh
+  //convert matches and owners info to device
   for (Int ent_dim = 0; ent_dim < max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size())/neev;
@@ -497,20 +504,17 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
   }
-/*
+
+  #ifdef DEBUG_MODE
   for (Int d = 0; d < max_dim; ++d) {
-    //auto d_matches = mesh->get_array<LO>(d, "matches");
     printf("\nfor dim d=%d\n", d+1);
-    //printf("\nfor dim d=%d, matches= \n", d);
-    //call_print(d_matches);
-    //printf("owners=\n");
-    //print_owners(mesh->ask_owners(d), comm->rank());
-    //printf("av2v=\n");
-    //auto av2v = mesh->ask_down(d+1, 0).ab2b;
-    //call_print(av2v);
-    //int waiting=1; while(waiting);
+    printf("owners=\n");
+    print_owners(mesh->ask_owners(d), comm->rank());
+    printf("av2v=\n");
+    auto av2v = mesh->ask_down(d+1, 0).ab2b;
+    call_print(av2v);
   }
-*/
+  #endif
 
   //add model matches info to mesh and if mesh is periodic
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {

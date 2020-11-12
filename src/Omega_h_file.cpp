@@ -387,8 +387,7 @@ void write(std::ostream& stream, Mesh* mesh) {
     for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i), is_compressed, needs_swapping);
     }
-    if (mesh->comm()->size() > 0) {
-    //if (mesh->comm()->size() > 1) {//removed to write matched owners in serial
+    if (mesh->comm()->size() > 1) {
       auto owners = mesh->ask_owners(d);
       write_array(stream, owners.ranks, is_compressed, needs_swapping);
       write_array(stream, owners.idxs, is_compressed, needs_swapping);
@@ -405,68 +404,6 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   end_code();
-}
-
-void write_model(filesystem::path const& path, Mesh* mesh) {
-  begin_code("binary::write model(path,Mesh)");
-  filesystem::create_directory(path);
-  mesh->comm()->barrier();
-  auto filepath = path;
-  filepath /= std::to_string(mesh->comm()->rank());
-  filepath += ".osh";
-  std::ofstream stream(filepath.c_str());
-  OMEGA_H_CHECK(stream.is_open());
-/*
-  stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
-*/
-#ifdef OMEGA_H_USE_ZLIB
-  I8 is_compressed = true;
-#else
-  I8 is_compressed = false;
-#endif
-  bool needs_swapping = !is_little_endian_cpu();
-  write_value(stream, is_compressed, needs_swapping);
-
-  for (Int d = 0; d < mesh->dim(); ++d) {
-    auto model_ents = mesh->get_model_ents(d);
-    auto model_matches = mesh->get_model_matches(d);
-    write_array(stream, model_ents, is_compressed, needs_swapping);
-    write_array(stream, model_matches, is_compressed, needs_swapping);
-  }
-  mesh->comm()->barrier();
-  end_code();
-}
-
-void read_model(filesystem::path const& path, Mesh* mesh) {
-  ScopedTimer timer("binary::read_model(path, mesh)");
-  auto filepath = path;
-  filepath /= std::to_string(mesh->comm()->rank());
-  filepath += ".osh";
-  std::ifstream stream(filepath.c_str(), std::ios::binary);
-  //puts(filepath.c_str());
-  OMEGA_H_CHECK(stream.is_open());
-/*
-  unsigned char magic_in[2];
-  stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
-  OMEGA_H_CHECK(magic_in[0] == magic[0]);
-  OMEGA_H_CHECK(magic_in[1] == magic[1]);
-*/
-  bool needs_swapping = !is_little_endian_cpu();
-  I8 is_compressed;
-  read_value(stream, is_compressed, needs_swapping);
-#ifndef OMEGA_H_USE_ZLIB
-  OMEGA_H_CHECK(!is_compressed);
-#endif
-
-  for (Int d = 0; d < mesh->dim(); ++d) {
-    //printf("ok %d\n", d);
-    LOs model_ents;
-    LOs model_matches;
-    read_array(stream, model_ents, is_compressed, needs_swapping);
-    read_array(stream, model_matches, is_compressed, needs_swapping);
-    mesh->set_model_ents(d, model_ents);
-    mesh->set_model_matches(d, model_matches);
-  }
 }
 
 void read(std::istream& stream, Mesh* mesh, I32 version) {
@@ -502,8 +439,7 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
     for (Int i = 0; i < ntags; ++i) {
       read_tag(stream, mesh, d, is_compressed, version, needs_swapping);
     }
-    if (mesh->comm()->size() > 0) {
-    //if (mesh->comm()->size() > 1) {//removed to read matched owners of serial mesh
+    if (mesh->comm()->size() > 1) {
       Remotes owners;
       read_array(stream, owners.ranks, is_compressed, needs_swapping);
       read_array(stream, owners.idxs, is_compressed, needs_swapping);

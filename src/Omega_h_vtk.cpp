@@ -32,13 +32,13 @@ TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim) {
   get_all_dim_tags(mesh, cell_dim, &tags);
   tags[VERT].insert("local");
   tags[size_t(cell_dim)].insert("local");
-  //if (mesh->comm()->size() > 1) {//commented for writing matched owner tags in serial
+  if (mesh->comm()->size() > 1) {
     tags[VERT].insert("owner");
     tags[size_t(cell_dim)].insert("owner");
     if (mesh->parting() == OMEGA_H_GHOSTED) {
       tags[size_t(cell_dim)].insert("vtkGhostType");
     }
-  //}
+  }
   return tags;
 }
 
@@ -60,7 +60,6 @@ TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim) {
   }
   tags[int(Topo_type::vertex)].insert("local");
   tags[size_t(cell_dim)].insert("local");
-/*//comment for serial
   if (mesh->comm()->size() > 1) {
     tags[int(Topo_type::vertex)].insert("owner");
     tags[size_t(cell_dim)].insert("owner");
@@ -68,7 +67,6 @@ TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim) {
       tags[size_t(cell_dim)].insert("vtkGhostType");
     }
   }
-*/
   return tags;
 }
 
@@ -584,11 +582,8 @@ static void write_locals(
 
 static void write_owners(
     std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
-  //if (mesh->comm()->size() == 1) return;
+  if (mesh->comm()->size() == 1) return;
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
-  //write_array(stream, "owners", 1, mesh->ask_owners(ent_dim).idxs, compress);
-  //write_array(stream, "owner_ranks", 1, mesh->ask_owners(ent_dim).ranks, compress);
-  //write_array(stream, "owner_ids", 1, mesh->ask_owners(ent_dim).idxs, compress);
 }
 
 static void write_vtk_ghost_types(

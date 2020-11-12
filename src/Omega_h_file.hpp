@@ -34,8 +34,6 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 namespace meshsim {
 void read(filesystem::path const& mesh_fname, filesystem::path const& model,
     CommPtr comm, Mesh *mesh, int is_in);
-//Mesh read(filesystem::path const& mesh, filesystem::path const& model,
-//    CommPtr comm);
 void call_print(LOs a);
 void print_owners(Remotes owners, int rank);
 void print_matches(c_Remotes matches, int rank, int d);
@@ -193,9 +191,6 @@ void read(std::istream& stream, std::string& val, bool needs_swapping);
 
 void write(std::ostream& stream, Mesh* mesh);
 void read(std::istream& stream, Mesh* mesh, I32 version);
-
-void write_model(filesystem::path const& path, Mesh* mesh);
-void read_model(filesystem::path const& path, Mesh* mesh);
 
 #define INST_DECL(T)                                                           \
   extern template void swap_bytes(T&);                                         \
