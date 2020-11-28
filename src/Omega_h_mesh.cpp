@@ -959,13 +959,11 @@ void Mesh::balance(bool predictive) {
 }
 
 void Mesh::swap_root_owner(Int dim) {
-  OMEGA_H_CHECK(this->is_periodic());//write is_periodic, matches to osh file
-  //right now try to call this from within the sim2osh convertor
+  OMEGA_H_CHECK(this->is_periodic());
   auto matches = this->get_matches(dim);
   auto leaf_idxs_r = matches.leaf_idxs;
   auto root_idxs_r = matches.root_idxs;
   auto root_ranks_r = matches.root_ranks;
-  //Write<LO> leaf_idx(matches.leaf_idxs, -1);
   Write<LO> root_idxs_w(matches.leaf_idxs.size(), -1);
   Write<LO> root_ranks_w(matches.leaf_idxs.size(), -1);
   auto owners = this->ask_owners(dim);
@@ -973,13 +971,6 @@ void Mesh::swap_root_owner(Int dim) {
   auto owner_ranks_r = owners.ranks;
   Write<LO> owner_idxs_w(owners.ranks.size(), -1);
   Write<LO> owner_ranks_w(owners.ranks.size(), -1);
-/*
-  auto copy_matches = OMEGA_H_LAMBDA (LO i) {
-    root_idxs_w[i] = root_idxs_r[i];
-    root_ranks_w[i] = root_ranks_r[i];
-  };
-  parallel_for(leaf_idxs_r.size(), copy_matches);
-*/
   auto copy_owners = OMEGA_H_LAMBDA (LO i) {
     owner_idxs_w[i] = owner_idxs_r[i];
     owner_ranks_w[i] = owner_ranks_r[i];
@@ -987,8 +978,6 @@ void Mesh::swap_root_owner(Int dim) {
   parallel_for(owner_idxs_r.size(), copy_owners);
   auto swap = OMEGA_H_LAMBDA (LO i) {
     auto leaf = leaf_idxs_r[i];
-    //auto temp_owner_id = owner_idxs_r[leaf];
-    //auto temp_owner_rk = owner_ranks_r[leaf];
     owner_idxs_w[leaf] = root_idxs_r[i];
     owner_ranks_w[leaf] = root_ranks_r[i];
     root_idxs_w[i] = owner_idxs_r[leaf];
@@ -1024,7 +1013,6 @@ Read<T> Mesh::sync_array_periodic(Int ent_dim, Read<T> a, Int width) {
   if (!could_be_shared(ent_dim)) return a;
   swap_root_owner(ent_dim);
   return ask_dist(ent_dim).invert().exch(a, width);
-  //return ask_dist(ent_dim).invert().exch_reduce(a, width, OMEGA_H_SUM);
 }
 
 template <typename T>
