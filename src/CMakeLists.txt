@@ -458,6 +458,7 @@ set(Omega_h_HEADERS
   Omega_h_array.hpp
   Omega_h_array_ops.hpp
   Omega_h_assoc.hpp
+  Omega_h_atomics.hpp
   Omega_h_base64.hpp
   Omega_h_bbox.hpp
   Omega_h_box.hpp
