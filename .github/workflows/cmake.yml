@@ -23,6 +23,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE
            -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+           -DCMAKE_VERBOSE_MAKEFILE=on
            -DOmega_h_USE_MPI=off
            -DOmega_h_USE_CUDA=off
            -DBUILD_TESTING=ON
