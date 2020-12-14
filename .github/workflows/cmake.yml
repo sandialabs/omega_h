@@ -21,10 +21,10 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE \
-           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
-           -DOmega_h_USE_MPI=off \
-           -DOmega_h_USE_CUDA=off \
+      run: cmake $GITHUB_WORKSPACE
+           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+           -DOmega_h_USE_MPI=off
+           -DOmega_h_USE_CUDA=off
            -DBUILD_TESTING=ON
 
     - name: Build
