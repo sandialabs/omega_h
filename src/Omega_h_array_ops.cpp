@@ -140,15 +140,14 @@ Write<T> divide_each(Read<T> a, Read<T> b, std::string const& name) {
 template <typename T>
 Write<T> concat(Read<T> a, Read<T> b, std::string const& name) {
   Write<T> c(a.size() + b.size(), name);
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    if (i < a.size()) {
-      c[i] = a[i];
-    }
-    else {
-      c[i] = b[i-a.size()];
-    }
+  auto add_a = OMEGA_H_LAMBDA(LO i) {
+    c[i] = a[i];
   };
-  parallel_for(c.size(), f, "concat");
+  parallel_for(a.size(), add_a, "add_a");
+  auto add_b = OMEGA_H_LAMBDA(LO i) {
+    c[i+a.size()] = b[i];
+  };
+  parallel_for(b.size(), add_b, "add_b");
   return c;
 }
 

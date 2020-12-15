@@ -60,15 +60,6 @@ TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim) {
   }
   tags[int(Topo_type::vertex)].insert("local");
   tags[size_t(cell_dim)].insert("local");
-/*//comment for serial
-  if (mesh->comm()->size() > 1) {
-    tags[int(Topo_type::vertex)].insert("owner");
-    tags[size_t(cell_dim)].insert("owner");
-    if (mesh->parting() == OMEGA_H_GHOSTED) {
-      tags[size_t(cell_dim)].insert("vtkGhostType");
-    }
-  }
-*/
   return tags;
 }
 
@@ -786,13 +777,11 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 
 void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type, bool compress) {
   auto tags = get_all_vtk_tags_mix(mesh, mesh->dim());
-  //ask_for_mesh_tags(mesh, tags);
   OMEGA_H_TIME_FUNCTION;
   std::ofstream stream(filename.c_str());
   OMEGA_H_CHECK(stream.is_open());
   auto cell_dim = mesh->ent_dim(max_type);
   default_dim(mesh, &cell_dim);
-  //verify_vtk_tagset(mesh, cell_dim, tags);
   write_vtkfile_vtu_start_tag(stream, compress);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag_mix(stream, mesh, cell_dim);
@@ -809,7 +798,6 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
     write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
   }
-  //write_locals_and_owners(stream, mesh, VERT, tags, compress);
   for (Int i = 0; i < mesh->ntags(Topo_type::vertex); ++i) {
     auto tag = mesh->get_tag(Topo_type::vertex, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
@@ -824,7 +812,6 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     write_tag(
         stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
-  //write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
   }

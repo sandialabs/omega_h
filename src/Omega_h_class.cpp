@@ -190,6 +190,7 @@ void classify_equal_order(
   mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_id);
 }
 
+/* TODO this function is included as work in progress and is not tested */
 void classify_equal_order(
     Mesh* mesh, Topo_type ent_type, LOs eqv2v, Read<ClassId> eq_class_ids) {
   LOs eq2e;
@@ -207,7 +208,7 @@ void classify_equal_order(
 
   auto ent_dim = mesh->ent_dim(ent_type);
 
-  auto neq = eqv2v.size() / (ent_dim + 1); //why??
+  auto neq = eqv2v.size() / (ent_dim + 1);
   auto eq_class_dim = Read<I8>(neq, I8(ent_dim));
   auto class_dim =
       map_onto(eq_class_dim, eq2e, mesh->nents(ent_type), I8(mesh->dim()), 1);
@@ -215,5 +216,6 @@ void classify_equal_order(
   mesh->add_tag<I8>(ent_type, "class_dim", 1, class_dim);
   mesh->add_tag<ClassId>(ent_type, "class_id", 1, class_id);
 }
+/* */
 
 }  // end namespace Omega_h
