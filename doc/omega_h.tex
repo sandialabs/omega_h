@@ -69,7 +69,7 @@ and installs, which is readable by other CMake projects.
 
 \subsection{Compiler}
 
-Omega\_h is written in the C++11 standard of C++,
+Omega\_h is written in the C++14 standard of C++,
 so a compiler with complete support for that standard
 is needed.
 Omega\_h's CMake files will accept the GCC, Clang,
@@ -102,7 +102,7 @@ cleaner memory management.
 In order to use this, we typically just use the MPI compiler wrapper
 \texttt{mpicxx} as the \texttt{CMAKE\_CXX\_COMPILER}.
 
-\item Kokkos: This C++11 library implements shared-memory parallelism
+\item Kokkos: This C++14 library implements shared-memory parallelism
 constructs and allows Omega\_h to (mostly) not worry about the details
 of OpenMP and CUDA.
 It is required if you want to use shared-memory parallelism in Omega\_h.
@@ -238,7 +238,7 @@ mirrors the variation in resolution of the initial starting mesh.
 
 \subsection{Header and Library}
 
-In most cases, users should call the C++11 API of Omega\_h directly
+In most cases, users should call the C++14 API of Omega\_h directly
 from their own C++ code.
 In terms of the build system, users need their code to include
 the \texttt{Omega\_h.hpp} header file and link their own code
