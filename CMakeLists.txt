@@ -25,6 +25,13 @@ bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of tha
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
+bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+
+if (Omega_h_USE_MPI)
+  enable_language(C)
+  find_package(MPI REQUIRED)
+endif()
+
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
@@ -80,7 +87,6 @@ if (Kokkos_HAS_CUDA AND (NOT Kokkos_HAS_CUDA_LAMBDA))
           "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
 endif()
 
-bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
