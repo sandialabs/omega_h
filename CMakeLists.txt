@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.33.0 LANGUAGES CXX)
+project(Omega_h VERSION 9.33.1 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -25,15 +25,19 @@ bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of tha
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
+bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+
+if (Omega_h_USE_MPI)
+  enable_language(C)
+  find_package(MPI REQUIRED)
+endif()
+
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
 set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
-bob_add_dependency(PUBLIC NAME Kokkos TARGETS kokkos INCLUDE_DIR_VARS Kokkos_INCLUDE_DIRS)
-if (Omega_h_USE_Kokkos)
-  set_target_properties(kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
-endif()
+bob_add_dependency(PUBLIC NAME Kokkos TARGETS Kokkos::kokkos)
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
@@ -62,12 +66,8 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 if (Omega_h_USE_SEACASExodus)
-  # On Windows, we must find hdf5 targets since 
-  # it is linked PUBLIC
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(Omega_h_USE_HDF5_DEFAULT ON)
-    bob_add_dependency(PUBLIC NAME HDF5)
-  endif()
+  set(Omega_h_USE_HDF5_DEFAULT ON)
+  bob_add_dependency(PUBLIC NAME HDF5)
 endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
@@ -80,7 +80,6 @@ if (Kokkos_HAS_CUDA AND (NOT Kokkos_HAS_CUDA_LAMBDA))
           "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
 endif()
 
-bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 

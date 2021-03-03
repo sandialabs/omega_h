@@ -159,7 +159,7 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
-if (Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
 
@@ -178,7 +178,7 @@ if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
 endif()
 
-if (Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
@@ -247,7 +247,7 @@ endif()
 bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
-  if (Omega_h_USE_CUDA)
+  if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
