@@ -67,7 +67,7 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 if (Omega_h_USE_SEACASExodus)
   set(Omega_h_USE_HDF5_DEFAULT ON)
-  bob_add_dependency(PUBLIC NAME HDF5)
+  bob_add_dependency(PUBLIC NAME HDF5 CONFIG)
 endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
