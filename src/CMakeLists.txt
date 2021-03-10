@@ -438,6 +438,12 @@ if(BUILD_TESTING)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
+  osh_add_exe(reverse_class_test)
+  test_func(reverse_class_test 1 ./reverse_class_test)
+  if(Omega_h_USE_MPI)
+    osh_add_exe(reverse_class_testPar)
+    test_func(reverse_class_testPar 4 ./reverse_class_testPar)
+  endif()
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -452,6 +458,7 @@ set(Omega_h_HEADERS
   Omega_h_array.hpp
   Omega_h_array_ops.hpp
   Omega_h_assoc.hpp
+  Omega_h_atomics.hpp
   Omega_h_base64.hpp
   Omega_h_bbox.hpp
   Omega_h_box.hpp
