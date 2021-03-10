@@ -64,7 +64,7 @@
 #define OMEGA_H_NOEXCEPT noexcept
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(OMEGA_H_IS_SHARED)
 #ifdef omega_h_EXPORTS
 #define OMEGA_H_DLL __declspec(dllexport)
 #else

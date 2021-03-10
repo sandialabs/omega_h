@@ -90,6 +90,8 @@ endif()
 include(cmake/osh_use_dolfin.cmake)
 osh_use_dolfin()
 
+set(Omega_h_IS_SHARED ${BUILD_SHARED_LIBS})
+
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
     Omega_h_USE_Kokkos
@@ -105,6 +107,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
     Omega_h_USE_Gmsh
+    Omega_h_IS_SHARED
    )
 
 set(Omega_h_KEY_INTS
