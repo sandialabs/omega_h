@@ -86,6 +86,10 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
+  Adj ask_revClass (Int edim);
+  bool has_revClass (Int edim) const;
+  Adj get_revClass (Int edim) const;
+
  public:
   typedef std::shared_ptr<TagBase> TagPtr;
   typedef std::shared_ptr<Adj> AdjPtr;
@@ -120,6 +124,9 @@ class Mesh {
   ParentPtr parents_[DIMS];
   ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
+
+  AdjPtr revClass_[DIMS];
+  Adj derive_revClass (Int edim);
 
  public:
   void add_coords(Reals array);
