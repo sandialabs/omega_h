@@ -16,7 +16,11 @@
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
-#define CALL(f) OMEGA_H_CHECK(MPI_SUCCESS == (f))
+#define CALL(f) \
+{ \
+  int omega_h_mpi_error = (f); \
+  OMEGA_H_CHECK(MPI_SUCCESS == omega_h_mpi_error); \
+}
 #endif
 
 Comm::Comm() {

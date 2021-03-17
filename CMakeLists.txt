@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.33.1 LANGUAGES CXX)
+project(Omega_h VERSION 9.33.2 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -67,7 +67,7 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 if (Omega_h_USE_SEACASExodus)
   set(Omega_h_USE_HDF5_DEFAULT ON)
-  bob_add_dependency(PUBLIC NAME HDF5)
+  bob_add_dependency(PUBLIC NAME HDF5 CONFIG)
 endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
@@ -90,6 +90,8 @@ endif()
 include(cmake/osh_use_dolfin.cmake)
 osh_use_dolfin()
 
+set(Omega_h_IS_SHARED ${BUILD_SHARED_LIBS})
+
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
     Omega_h_USE_Kokkos
@@ -105,6 +107,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
     Omega_h_USE_Gmsh
+    Omega_h_IS_SHARED
    )
 
 set(Omega_h_KEY_INTS

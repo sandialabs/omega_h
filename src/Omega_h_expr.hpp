@@ -33,7 +33,7 @@ struct ExprOp {
 
 using OpPtr = std::shared_ptr<ExprOp>;
 
-class ExprOpsReader : public Reader {
+class ExprOpsReader final : public Reader {
  public:
   ExprOpsReader();
   virtual ~ExprOpsReader() override final = default;
@@ -44,7 +44,7 @@ class ExprOpsReader : public Reader {
   any at_reduce(int token, std::vector<any>& rhs) override final;
 };
 
-class ExprReader : public Reader {
+class ExprReader final : public Reader {
  public:
   using Args = ExprEnv::Args;
   using Function = ExprEnv::Function;
