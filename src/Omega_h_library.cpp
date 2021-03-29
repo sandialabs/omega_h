@@ -3,6 +3,7 @@
 #include <Omega_h_library.hpp>
 #include <Omega_h_malloc.hpp>
 #include <Omega_h_profile.hpp>
+#include <Omega_h_dbg.hpp>
 
 #include <csignal>
 #include <cstdarg>
@@ -10,6 +11,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#if OMEGA_H_DBG
+Omega_h::Comm *DBG_COMM;
+#endif
 
 namespace Omega_h {
 
@@ -73,6 +78,11 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(this, world_dup));
+
+#if OMEGA_H_DBG
+  DBG_COMM = world_.get();
+#endif
+
 #else
   world_ = CommPtr(new Comm(this, false, false));
   self_ = CommPtr(new Comm(this, false, false));

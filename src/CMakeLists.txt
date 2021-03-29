@@ -30,6 +30,7 @@ set(Omega_h_SOURCES
   Omega_h_compare.cpp
   Omega_h_confined.cpp
   Omega_h_conserve.cpp
+  Omega_h_dbg.cpp
   Omega_h_dist.cpp
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
@@ -468,6 +469,7 @@ set(Omega_h_HEADERS
   Omega_h_cmdline.hpp
   Omega_h_comm.hpp
   Omega_h_compare.hpp
+  Omega_h_dbg.hpp
   Omega_h_defines.hpp
   Omega_h_dist.hpp
   Omega_h_eigen.hpp
