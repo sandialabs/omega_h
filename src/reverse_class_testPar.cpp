@@ -64,8 +64,8 @@ void test_3d_p(Library *lib) {
 
 int main(int argc, char** argv) {
 
-  auto temp = argc;
-  auto tempv = argv;
+  OMEGA_H_CHECK(argc != -1);
+  OMEGA_H_CHECK(std::string(argv[0]) != "");
 
   auto lib = Library();
 
