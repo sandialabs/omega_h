@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 
-#if OMEGA_H_DBG
+#ifdef OMEGA_H_DBG
 Omega_h::Comm *DBG_COMM;
 #endif
 
@@ -79,7 +79,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(this, world_dup));
 
-#if OMEGA_H_DBG
+#ifdef OMEGA_H_DBG
   DBG_COMM = world_.get();
 #endif
 

@@ -13,7 +13,6 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_surface.hpp"
-#include "Omega_h_dbg.hpp"
 
 namespace Omega_h {
 
@@ -200,8 +199,6 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
 Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol, bool verbose) {
   OMEGA_H_TIME_FUNCTION;
-
-  TRACK0(mesh->parting());
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   OMEGA_H_CHECK(max_rate > 0.0);
   auto comm = mesh->comm();

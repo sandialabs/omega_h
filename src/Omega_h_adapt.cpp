@@ -14,7 +14,6 @@
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_dbg.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -283,10 +282,8 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t3 = now();
   correct_integral_errors(mesh, opts);
   auto t4 = now();
-  PXOUTFL("srk adapt b4 set_parting: " << mesh->parting() << std::endl);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
-  PXOUTFL("srk adapt: " << mesh->parting() << std::endl);
   return true;
 }
 

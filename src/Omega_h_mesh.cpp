@@ -17,7 +17,6 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
-#include "Omega_h_dbg.hpp"
 
 namespace Omega_h {
 
@@ -501,11 +500,6 @@ Omega_h_Parting Mesh::parting() const {
 Int Mesh::nghost_layers() const { return nghost_layers_; }
 
 void Mesh::set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose) {
-  //PXOUTFL("srk set_parting: " << parting_in << " nlayers= " << nlayers << std::endl);
-  if (parting_in == 0) {
-    PXOUTFL("srk set_parting: " << parting_in << " nlayers= " << nlayers << std::endl);
-    
-  }
   if (verbose && comm_->rank() == 0) {
     std::cout << "going to ";
     switch (parting_in) {

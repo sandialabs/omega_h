@@ -30,7 +30,6 @@ set(Omega_h_SOURCES
   Omega_h_compare.cpp
   Omega_h_confined.cpp
   Omega_h_conserve.cpp
-  Omega_h_dbg.cpp
   Omega_h_dist.cpp
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
@@ -88,6 +87,7 @@ set(Omega_h_SOURCES
   Omega_h_shared_alloc.cpp
   Omega_h_simplify.cpp
   Omega_h_sort.cpp
+  Omega_h_stacktrace.cpp
   Omega_h_surface.cpp
   Omega_h_swap.cpp
   Omega_h_swap2d.cpp
@@ -526,6 +526,7 @@ set(Omega_h_HEADERS
   Omega_h_shared_alloc.hpp
   Omega_h_simplex.hpp
   Omega_h_sort.hpp
+  Omega_h_stacktrace.hpp
   Omega_h_std_vector.hpp
   Omega_h_svd.hpp
   Omega_h_table.hpp
