@@ -944,12 +944,9 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name
   auto mesh_field = get_array<T>(ent_dim, name);
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
-  // create a boundary_array for tag which will store values for only those
   Write<T> b_field(n_bEnts*ncomps);
   auto f = OMEGA_H_LAMBDA(LO i) {
-    // iterate over ab2b of CSR which will give mesh ent IDs
     auto id = boundary_ids[i];
-    // loop over ncomps
     for (LO n = 0; n < ncomps; ++n) {
       b_field[i*ncomps + n] = mesh_field[id*ncomps + n];
     }
