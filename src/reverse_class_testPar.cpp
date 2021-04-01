@@ -27,7 +27,7 @@ void call_print(LOs a) {
 void test_3d_p(Library *lib) {
 
   auto mesh = Mesh(lib);
-  binary::read ("/lore/joshia5/Meshes/oh-mfem/unitbox_cutTriCube_1k_4p.osh",
+  binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_1k_4p.osh",
                 lib->world(), &mesh);
 
   // test reverse class APIs

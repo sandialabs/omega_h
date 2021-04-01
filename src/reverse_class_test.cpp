@@ -27,7 +27,7 @@ void call_print(LOs a) {
 void test_2d(Library *lib) {
 
   auto mesh = Mesh(lib);
-  binary::read ("/lore/joshia5/Meshes/oh-mfem/plate_6elem.osh",
+  binary::read ("./../../omega_h/meshes/plate_6elem.osh",
                 lib->world(), &mesh);
 
   // test rc API
@@ -78,7 +78,7 @@ void test_2d(Library *lib) {
 void test_3d(Library *lib) {
 
   auto mesh = Mesh(lib);
-  binary::read ("/lore/joshia5/Meshes/oh-mfem/unitbox_cutTriCube_1k.osh",
+  binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_1k.osh",
                 lib->world(), &mesh);
 
   // test reverse class APIs
@@ -115,8 +115,8 @@ void test_3d(Library *lib) {
 
 int main(int argc, char** argv) {
 
-  auto temp = argc;
-  auto tempv = argv;
+  OMEGA_H_CHECK(argc != -1);
+  OMEGA_H_CHECK(std::string(argv[0]) != "");
 
   auto lib = Library();
 
