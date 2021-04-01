@@ -89,6 +89,8 @@ class Mesh {
   Adj ask_revClass (Int edim);
   bool has_revClass (Int edim) const;
   Adj get_revClass (Int edim) const;
+  template <typename T>
+  void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);
 
  public:
   typedef std::shared_ptr<TagBase> TagPtr;

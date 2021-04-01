@@ -152,7 +152,7 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     TagPtr ptr(tag);
     tags_[ent_dim].push_back(std::move(ptr));
   }
-  OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
+  //OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -169,7 +169,7 @@ void Mesh::set_tag(
         topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
-  OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
+  //OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -937,6 +937,29 @@ Adj Mesh::ask_revClass (Int edim) {
   Adj derived_rc = derive_revClass (edim);
   revClass_[edim] = std::make_shared<Adj>(derived_rc);
   return derived_rc;
+}
+
+template <typename T>
+void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name) {
+  auto mesh_field = get_array<T>(ent_dim, name);
+  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
+  auto n_bEnts = boundary_ids.size();
+  // create a boundary_array for tag which will store values for only those
+  Write<T> b_field(n_bEnts*ncomps);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    // iterate over ab2b of CSR which will give mesh ent IDs
+    auto id = boundary_ids[i];
+    // loop over ncomps
+    for (LO n = 0; n < ncomps; ++n) {
+      b_field[i*ncomps + n] = mesh_field[id*ncomps + n];
+    }
+  };
+  parallel_for(n_bEnts, f, "get_bdryField");
+  remove_tag(ent_dim, name);
+  std::string new_name = name;
+  new_name.append("_boundary");
+  OMEGA_H_CHECK(!has_tag(ent_dim, name));
+  add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
 }
 
 }  // end namespace Omega_h
