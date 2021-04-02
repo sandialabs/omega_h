@@ -11,7 +11,11 @@ extern Omega_h::Comm *DBG_COMM;
 
 #ifdef OMEGA_H_DBG
 
-#  define TASK_0_cout if(DBG_COMM && 0 == DBG_COMM->rank()) std::cout
+namespace Omega_h {
+inline std::string proc() { std::ostringstream oss; oss << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return oss.str(); }
+}
+
+#  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
 
 #  define TRACK0(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; TASK_0_cout << oss.str() << std::endl; } while(0)
 #  define TRACK1(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << a; TASK_0_cout << oss.str() << std::endl; } while(0)
@@ -38,6 +42,10 @@ extern Omega_h::Comm *DBG_COMM;
 
 
 #else // OMEGA_H_DBG
+
+namespace Omega_h {
+inline std::string proc() { return "P0: "; }
+}
 
 #  define TASK_0_cout std::cout
 

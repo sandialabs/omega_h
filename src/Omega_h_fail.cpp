@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <Omega_h_fail.hpp>
+#include <Omega_h_dbg.hpp>
 
 extern "C" void Omega_h_signal_handler(int s);
 
@@ -31,8 +32,14 @@ void fail(char const* format, ...) {
 #  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
   buf = buf + "\n" + Omega_h::Stacktrace::demangled_stacktrace();
 #  endif
+#  ifdef OMEGA_H_DBG
+  buf = proc() + buf;
+#  endif
   throw Omega_h::exception(buf);
 #else
+#  ifdef OMEGA_H_DBG
+  std::cerr << proc();
+#  endif
   std::vfprintf(stderr, format, vlist);
   va_end(vlist);
 #  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE

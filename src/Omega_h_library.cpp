@@ -13,7 +13,7 @@
 #include <string>
 
 #ifdef OMEGA_H_DBG
-Omega_h::Comm *DBG_COMM;
+Omega_h::Comm *DBG_COMM = 0;
 #endif
 
 namespace Omega_h {
