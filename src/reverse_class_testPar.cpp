@@ -63,12 +63,7 @@ void test_3d_p(Library *lib) {
 }
 
 int main(int argc, char** argv) {
-
-  OMEGA_H_CHECK(argc != -1);
-  OMEGA_H_CHECK(std::string(argv[0]) != "");
-
-  auto lib = Library();
-
+  auto lib = Library(&argc,&argv);
   test_3d_p(&lib);
   // using mfem adapt tests, it was confirmed that rc info is
   // destroyed during adapt
