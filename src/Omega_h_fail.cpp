@@ -27,10 +27,17 @@ void fail(char const* format, ...) {
   char buffer[2048];
   std::vsnprintf(buffer, sizeof(buffer), format, vlist);
   va_end(vlist);
-  throw Omega_h::exception(buffer);
+  std::string buf(buffer);
+#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
+  buf = buf + "\n" + Omega_h::Stacktrace::demangled_stacktrace();
+#  endif
+  throw Omega_h::exception(buf);
 #else
   std::vfprintf(stderr, format, vlist);
   va_end(vlist);
+#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
+  std::cerr << "\n" << Omega_h::Stacktrace::demangled_stacktrace() << std::endl;
+#  endif
   std::abort();
 #endif
 }
