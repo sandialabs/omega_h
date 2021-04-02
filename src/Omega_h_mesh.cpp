@@ -1205,4 +1205,69 @@ OMEGA_H_INST(I64)
 OMEGA_H_INST(Real)
 #undef OMEGA_H_INST
 
+bool Mesh::has_revClass (Int edim) const {
+  check_dim2 (edim);
+  return bool (revClass_[edim]);
+}
+
+Adj Mesh::get_revClass (Int edim) const {
+  check_dim2 (edim);
+  OMEGA_H_CHECK (has_revClass (edim));
+  return *(revClass_[edim]);
+}
+
+Adj Mesh::derive_revClass (Int edim) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim2 (edim);
+
+  HostRead<LO> class_ids_h(get_array<ClassId>(edim, "class_id"));
+  HostRead<I8> class_dim_h(get_array<I8>(edim, "class_dim"));
+  auto max_gents = get_max(get_array<ClassId>(edim, "class_id")) + 1;
+
+  HostWrite<LO> a2ab_h(max_gents + 1, 0, 0);
+  
+  std::vector<int> classified_ment_ids[max_gents];
+  LO count_rc_ments = 0;
+
+  for (LO i = 0; i < nents(edim); ++i) {
+    if (class_dim_h[i] == edim) {
+      auto gent_id = class_ids_h[i];
+      classified_ment_ids[gent_id].push_back(i);
+      ++a2ab_h[gent_id + 1];
+      ++count_rc_ments;
+    }
+  }
+ 
+  std::vector<int> ab2b_vec;
+  for (LO i = 0; i < max_gents; ++i) {
+    for (LO j = 0; j < a2ab_h[i + 1]; ++j) {
+      ab2b_vec.push_back(classified_ment_ids[i][j]);
+    }
+  }
+
+  LO offset = 0;
+  for (LO i = 1; i < a2ab_h.size(); ++i) {
+    offset += a2ab_h[i];
+    a2ab_h[i] = offset;
+  }
+
+  HostWrite<LO> ab2b_h(count_rc_ments);
+  for (LO i = 0; i < count_rc_ments; ++i) {
+    ab2b_h[i] =  ab2b_vec[static_cast<std::size_t>(i)];
+  }
+
+  return Adj(a2ab_h.write(), ab2b_h.write()); 
+}
+
+Adj Mesh::ask_revClass (Int edim) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim2 (edim);
+  if (has_revClass (edim)) {
+    return get_revClass (edim);
+  }
+  Adj derived_rc = derive_revClass (edim);
+  revClass_[edim] = std::make_shared<Adj>(derived_rc);
+  return derived_rc;
+}
+
 }  // end namespace Omega_h
