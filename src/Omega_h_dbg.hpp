@@ -4,30 +4,47 @@
 #include "Omega_h_fail.hpp"
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 extern Omega_h::Comm *DBG_COMM;
 
-#define ERROUTFL(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << a; OMEGA_H_CHECK(false); } while(0)
+#define ERROUTFL(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << a; OMEGA_H_CHECK(false); } while(0)
 
 #ifdef OMEGA_H_DBG
 
 namespace Omega_h {
-inline std::string proc() { std::ostringstream oss; oss << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return oss.str(); }
+inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return _oss_.str(); }
 }
 
 #  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
 
-#  define TRACK0(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; TASK_0_cout << oss.str() << std::endl; } while(0)
-#  define TRACK1(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << a; TASK_0_cout << oss.str() << std::endl; } while(0)
-#  define TRACK2(a) do { std::ostringstream oss; oss << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; \
-                        TASK_0_cout << oss.str() << std::endl; if(DBG_COMM) DBG_COMM->barrier(); } while(0)
+#  define TRACK0(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; TASK_0_cout << _oss_.str() << std::endl; } while(0)
+#  define TRACK1(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << a; TASK_0_cout << _oss_.str() << std::endl; } while(0)
+#  define TRACK2(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; \
+                        TASK_0_cout << _oss_.str() << std::endl; if(DBG_COMM) DBG_COMM->barrier(); } while(0)
 #  define TRACK() TRACK0("track")
+
+#  define PCOUT(a) do {                                             \
+    if (DBG_COMM) {                                                 \
+      DBG_COMM->barrier();                                          \
+      for (int _irank_=0; _irank_ < DBG_COMM->size(); _irank_++) {  \
+        if (DBG_COMM->rank() == _irank_) {                          \
+          std::ostringstream _oss_;                                 \
+          _oss_ << "P" << _irank_ << ":dbg: " << a;                 \
+          std::cout << _oss_.str() << std::flush;                   \
+        }                                                           \
+        DBG_COMM->barrier();                                        \
+      }                                                             \
+    }                                                               \
+  } while(0)
 
 #  define PCOUTFL(a) do {                                               \
     if (DBG_COMM) {                                                     \
-      for (int irank=0; irank < DBG_COMM->size(); irank++) {            \
-        if (DBG_COMM->rank() == irank) {                                \
-          std::cout << "P" << irank << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+      for (int _irank_=0; _irank_ < DBG_COMM->size(); _irank_++) {      \
+        if (DBG_COMM->rank() == _irank_) {                              \
+          std::ostringstream _oss_;                                     \
+          _oss_ << "P" << _irank_ << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+          std::cout << _oss_.str() << std::flush;                       \
         }                                                               \
         DBG_COMM->barrier();                                            \
       }                                                                 \
@@ -37,6 +54,7 @@ inline std::string proc() { std::ostringstream oss; oss << "P" << (DBG_COMM ? DB
 #  define PXOUTFL(a) do {                                               \
     if (DBG_COMM) {                                                     \
       std::cout << "P" << DBG_COMM->rank() << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+      std::cout << std::flush;                                          \
     }                                                                   \
   } while(0)
 
@@ -55,9 +73,45 @@ inline std::string proc() { return "P0: "; }
 
 #  define TRACK2(a) do { } while(0)
 
+#  define PCOUT(a) do { } while(0)
 #  define PCOUTFL(a) do { } while(0)
 #  define PXOUTFL(a) do { } while(0)
 
 #endif // OMEGA_H_DBG
+
+
+namespace Omega_h {
+template<class T=int, class U=int>
+std::vector<T> range(T start, T stop, bool inclusive=false, U step=1) {
+  std::vector<T> v;
+
+  while(1) {
+    if (inclusive && start > stop) break;
+    if (!inclusive && start >= stop) break;
+    v.push_back(start);
+    start += step;
+  }
+  return v;
+}
+
+template<class T=int, class U=int>
+std::vector<T> rangeInclusive(T start, T stop, U step=1) {
+  return range<T, U>(start, stop, true, step);
+}
+
+template<class T=int, class U=int>
+std::vector<T> rangeExclusive(T start, T stop, U step=1) {
+  return range<T, U>(start, stop, false, step);
+}
+
+template<class T=int>
+void print(const std::vector<T>& v) {
+  for(auto i: v) {
+    std::cout << i << ' ';
+  }
+  std::cout << std::endl;
+}
+
+} // namespace Omega_h
 
 #endif // OMEGA_H_DBG_HPP

@@ -84,6 +84,7 @@ namespace Omega_h {
 
   std::string Stacktrace::demangled_stacktrace(size_t sz, bool also_mangled, const std::string& msg)
   {
+    (void)msg;
     void *array[sz];
     size_t size;
 
@@ -92,7 +93,7 @@ namespace Omega_h {
 
     std::ostringstream str;
 #if DO_STACKTRACE_POS
-    str << "stacktrace: pos= " << s_position << " " << msg << "\n";
+    //str << "stacktrace: pos= " << s_position << " " << msg << "\n";
 #endif
     std::string ret = str.str();
     char ** syms = backtrace_symbols(array, size);
