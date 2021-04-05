@@ -228,7 +228,9 @@ __host__
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
-      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
+  extern template void Mesh::change_tagToBoundary<T>(                          \
+      Int ent_dim, Int ncomps, std::string const& name);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
