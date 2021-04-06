@@ -8,7 +8,7 @@ using namespace Omega_h;
 void test_2d(Library *lib) {
 
   auto mesh = Mesh(lib);
-  binary::read ("/lore/joshia5/Meshes/oh-mfem/plate_6elem.osh",
+  binary::read ("./../../omega_h/meshes/plate_6elem.osh",
                 lib->world(), &mesh);
 
   auto nvert = mesh.nverts();
@@ -22,10 +22,7 @@ void test_2d(Library *lib) {
 
 int main(int argc, char** argv) {
 
-  OMEGA_H_CHECK(argc != -1);
-  OMEGA_H_CHECK(std::string(argv[0]) != "");
-
-  auto lib = Library();
+  auto lib = Library (&argc, &argv);
 
   test_2d(&lib);
 
