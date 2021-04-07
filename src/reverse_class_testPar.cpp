@@ -59,15 +59,19 @@ void test_3d_p(Library *lib) {
   OMEGA_H_CHECK (vert_rc.ab2b == vert_rc_get.ab2b);
   OMEGA_H_CHECK (vert_rc.a2ab == vert_rc_get.a2ab);
 
+  auto rc_r2f = mesh.ask_revClass_downAdj (3, 2);
+  auto rc_r2e = mesh.ask_revClass_downAdj (3, 1);
+  auto rc_r2v = mesh.ask_revClass_downAdj (3, 0);
+  auto rc_face2vert = mesh.ask_revClass_downAdj (2, 0);
+  auto rc_face2e = mesh.ask_revClass_downAdj (2, 1);
+  auto rc_e2v = mesh.ask_revClass_downAdj (1, 0);
+
   return;
 }
 
 int main(int argc, char** argv) {
 
-  OMEGA_H_CHECK(argc != -1);
-  OMEGA_H_CHECK(std::string(argv[0]) != "");
-
-  auto lib = Library();
+  auto lib = Library(&argc, &argv);
 
   test_3d_p(&lib);
   // using mfem adapt tests, it was confirmed that rc info is
