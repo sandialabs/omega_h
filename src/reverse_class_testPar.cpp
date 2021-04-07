@@ -71,8 +71,8 @@ void test_3d_p(Library *lib) {
 
 int main(int argc, char** argv) {
 
-  auto lib = Library(&argc, &argv);
-
+  auto lib = Library(&argc,&argv);
+  
   test_3d_p(&lib);
   // using mfem adapt tests, it was confirmed that rc info is
   // destroyed during adapt

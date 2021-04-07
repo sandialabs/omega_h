@@ -1163,4 +1163,5 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_GMSH
   test_gmsh_parallel(&lib);
 #endif  // OMEGA_H_USE_GMSH
+  return 0;
 }

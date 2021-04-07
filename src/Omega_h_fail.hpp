@@ -31,7 +31,7 @@ void fail(char const* format, ...);
 
 #define Omega_h_fail Omega_h::fail
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
+#if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
 #define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
 #define OMEGA_H_CHECK(cond) assert(cond)

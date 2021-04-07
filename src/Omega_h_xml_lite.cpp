@@ -103,7 +103,8 @@ xml_lite::Tag read_tag(std::istream& stream) {
   std::string line;
   std::getline(stream, line);
   xml_lite::Tag st;
-  OMEGA_H_CHECK(parse_tag(line, &st));
+  auto check = parse_tag(line, &st);
+  OMEGA_H_CHECK(check);
   return st;
 }
 }  // namespace xml_lite
