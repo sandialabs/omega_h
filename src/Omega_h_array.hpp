@@ -29,6 +29,7 @@ class Write {
 #endif
 
  public:
+  typedef T value_type;
   OMEGA_H_INLINE Write()
       :
 #ifdef OMEGA_H_USE_KOKKOS
@@ -111,6 +112,7 @@ class Read {
   Write<T> write_;
 
  public:
+  typedef T value_type;
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
@@ -189,6 +191,7 @@ class HostRead {
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
+  typedef T value_type;
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
@@ -225,6 +228,7 @@ class HostWrite {
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
+  typedef T value_type;
   HostWrite() = default;
   HostWrite(LO size_in, std::string const& name = "");
   HostWrite(LO size_in, T offset, T stride, std::string const& name = "");

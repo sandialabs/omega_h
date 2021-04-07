@@ -14,6 +14,8 @@ extern Omega_h::Comm *DBG_COMM;
 
 namespace Omega_h {
 inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return _oss_.str(); }
+inline std::string rank() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->rank() : 0); return _oss_.str(); }
+inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->size() : 0); return _oss_.str(); }
 }
 
 #  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
@@ -32,6 +34,7 @@ inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM 
           std::ostringstream _oss_;                                 \
           _oss_ << "P" << _irank_ << ":dbg: " << a;                 \
           std::cout << _oss_.str() << std::flush;                   \
+          std::cout.rdbuf()->pubsync();                             \
         }                                                           \
         DBG_COMM->barrier();                                        \
       }                                                             \
@@ -45,6 +48,7 @@ inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM 
           std::ostringstream _oss_;                                     \
           _oss_ << "P" << _irank_ << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
           std::cout << _oss_.str() << std::flush;                       \
+          std::cout.rdbuf()->pubsync();                                 \
         }                                                               \
         DBG_COMM->barrier();                                            \
       }                                                                 \
@@ -63,6 +67,8 @@ inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM 
 
 namespace Omega_h {
 inline std::string proc() { return "P0: "; }
+inline std::string rank() { return "0"; }
+inline std::string size() { return "1"; }
 }
 
 #  define TASK_0_cout std::cout
@@ -105,11 +111,16 @@ std::vector<T> rangeExclusive(T start, T stop, U step=1) {
 }
 
 template<class T=int>
-void print(const std::vector<T>& v) {
-  for(auto i: v) {
-    std::cout << i << ' ';
+void print(std::ostream& out, const std::vector<T>& v) {
+  for(auto &i : v) {
+    out << (&i == v.data() ? "" : " ") << i;
   }
-  std::cout << std::endl;
+  //out << std::endl;
+}
+
+template<class T=int>
+void print(const std::vector<T>& v) {
+  print(std::cout, v);
 }
 
 } // namespace Omega_h

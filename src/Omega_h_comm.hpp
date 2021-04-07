@@ -82,6 +82,10 @@ class Comm {
   Future<T> ialltoallv(
       Read<T> sendbuf, Read<LO> sdispls, Read<LO> rdispls, Int width) const;
   void barrier() const;
+  template<typename T>
+  void send(int rank, const T& x);
+  template<typename T>
+  void recv(int rank, T& x);
 };
 
 #ifdef OMEGA_H_USE_MPI
@@ -145,7 +149,39 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
   }
   OMEGA_H_NORETURN(MPI_MIN);
 }
+
+
 #endif
+
+
+template<typename T>
+void Comm::send(int rank, const T& x) {
+#ifdef OMEGA_H_USE_MPI
+  size_t sz = x.size();
+  int omega_h_mpi_error = MPI_Send(&sz, 1, MpiTraits<size_t>::datatype(), rank, 0, impl_);
+  OMEGA_H_CHECK(MPI_SUCCESS == omega_h_mpi_error);
+  omega_h_mpi_error = MPI_Send(x.data(), x.size(), MpiTraits<typename T::value_type>::datatype(), rank, 0, impl_);;
+  OMEGA_H_CHECK(MPI_SUCCESS == omega_h_mpi_error);
+#else
+  (void)rank;
+  (void)x;
+#endif
+}
+
+template<typename T>
+void Comm::recv(int rank, T& x) {
+#ifdef OMEGA_H_USE_MPI
+  size_t sz = 0;
+  int omega_h_mpi_error = MPI_Recv(&sz, 1, MpiTraits<size_t>::datatype(), rank, 0, impl_, MPI_STATUS_IGNORE);
+  OMEGA_H_CHECK(MPI_SUCCESS == omega_h_mpi_error);
+  x.resize(sz);
+  omega_h_mpi_error = MPI_Recv(x.data(), x.size(), MpiTraits<typename T::value_type>::datatype(), rank, 0, impl_, MPI_STATUS_IGNORE);
+  OMEGA_H_CHECK(MPI_SUCCESS == omega_h_mpi_error);
+#else
+  (void)rank;
+  (void)x;
+#endif
+}
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
