@@ -1270,4 +1270,32 @@ Adj Mesh::ask_revClass (Int edim) {
   return derived_rc;
 }
 
+Adj Mesh::ask_revClass_downAdj (Int from, Int to) {
+  auto rc = ask_revClass (from);
+  auto ab2b = rc.ab2b;
+  auto a2ab = rc.a2ab;
+  auto n_gents = a2ab.size() - 1;
+  auto nhighs = ab2b.size();
+  auto down_ments = (ask_down(from, to)).ab2b;
+  auto h2l_degree = element_degree (family(), from, to);
+
+  Write<LO> g_hl2l (nhighs*h2l_degree);
+  Write<LO> g2g_hl (n_gents + 1);
+
+  auto f1 = OMEGA_H_LAMBDA(LO h) {
+    LO h_id = ab2b[h];
+    for (LO l = 0; l < h2l_degree; ++l) {
+      g_hl2l[h*h2l_degree + l] = down_ments[h_id*h2l_degree + l];
+    }
+  };
+  parallel_for(nhighs, f1, "createDownAb2b");
+
+  auto f2 = OMEGA_H_LAMBDA(LO g) {
+    g2g_hl[g] = a2ab[g]*h2l_degree;
+  };
+  parallel_for(n_gents + 1, f2, "createDownA2ab");
+
+  return Adj(LOs(g2g_hl), LOs(g_hl2l));
+}
+
 }  // end namespace Omega_h

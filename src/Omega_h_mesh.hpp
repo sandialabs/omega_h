@@ -128,6 +128,7 @@ class Mesh {
   Adj ask_revClass (Int edim);
   bool has_revClass (Int edim) const;
   Adj get_revClass (Int edim) const;
+  Adj ask_revClass_downAdj (Int from, Int to);
 
  public:
   typedef std::shared_ptr<TagBase> TagPtr;
