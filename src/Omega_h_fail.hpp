@@ -54,12 +54,17 @@ void fail(char const* format, ...);
 #endif
 
 #ifndef NDEBUG
-#  define OMEGA_H_CHECK_MSG(cond, a) do {               \
-     if (!(cond)) std::cout << "ERROR: " << a << std::endl; \
-     OMEGA_H_CHECK(cond) ; \
-   } while(0)
+#  define OMEGA_H_CHECK_MSG(cond, a) do {                   \
+    if (!(cond)) std::cout << "ERROR: " << a << std::endl;  \
+    OMEGA_H_CHECK(cond) ;                                   \
+  } while(0)
+#  define OMEGA_H_CHECK_OP(l,op,r) do {                                 \
+    if (!((l) op (r))) std::cout << "ERROR: " << #l << "!" << #op << " " << #r << " : " << #l << "= " << (l) << " " << #r << "= " << (r) << std::endl; \
+    OMEGA_H_CHECK((l) op (r));                                          \
+  } while(0)
 #else // NDEBUG
 #  define OMEGA_H_CHECK_MSG(cond,a) OMEGA_H_CHECK(cond)
+#  define OMEGA_H_CHECK_OP(l,op,r) OMEGA_H_CHECK((l) op (r))
 #endif // NDEBUG
 
 #if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
