@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <set>
 
 extern Omega_h::Comm *DBG_COMM;
 
@@ -111,16 +112,25 @@ std::vector<T> rangeExclusive(T start, T stop, U step=1) {
 }
 
 template<class T=int>
-void print(std::ostream& out, const std::vector<T>& v) {
-  for(auto &i : v) {
-    out << (&i == v.data() ? "" : " ") << i;
+std::string to_string(const std::vector<T>& v) {
+  std::ostringstream out; 
+  std::string sep = "";
+  for(auto i : v) {
+    out << sep << i;
+    sep = " ";
   }
-  //out << std::endl;
+  return out.str();
 }
 
 template<class T=int>
-void print(const std::vector<T>& v) {
-  print(std::cout, v);
+std::string to_string(const std::set<T>& v) {
+  std::ostringstream out; 
+  std::string sep = "";
+  for(auto i : v) {
+    out << sep << i;
+    sep = " ";
+  }
+  return out.str();
 }
 
 } // namespace Omega_h
