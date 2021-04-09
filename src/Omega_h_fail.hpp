@@ -59,7 +59,7 @@ void fail(char const* format, ...);
     OMEGA_H_CHECK(cond) ;                                   \
   } while(0)
 #  define OMEGA_H_CHECK_OP(l,op,r) do {                                 \
-    if (!((l) op (r))) std::cout << "ERROR: " << #l << "!" << #op << " " << #r << " : " << #l << "= " << (l) << " " << #r << "= " << (r) << std::endl; \
+    if (!((l) op (r))) std::cout << "ERROR: " << "!(" << #l << "  " << #op << " " << #r << ") : " << "! (" << (l) << " " << #op << " " << (r) << ")" << std::endl; \
     OMEGA_H_CHECK((l) op (r));                                          \
   } while(0)
 #else // NDEBUG
