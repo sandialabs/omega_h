@@ -862,13 +862,15 @@ __host__
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
-  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);   \
+  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);     \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
-  template void Mesh::change_tagToBoundary<T>(                          \
+  template void Mesh::change_tagToBoundary<T>(                                 \
+      Int ent_dim, Int ncomps, std::string const& name);                       \
+  template void Mesh::change_tagToMesh<T>(                                     \
       Int ent_dim, Int ncomps, std::string const& name);
 OMEGA_H_INST(I8)
 OMEGA_H_INST(I32)
@@ -958,7 +960,33 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name
   std::string new_name = name;
   new_name.append("_boundary");
   OMEGA_H_CHECK(!has_tag(ent_dim, name));
-  add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
+  add_tag<T>(ent_dim, new_name, ncomps, Read<T>(b_field));
+}
+
+template <typename T>
+void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
+  auto boundary_field = get_array<T>(ent_dim, name);
+  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
+  auto n_ents = nents (ent_dim);
+  auto n_bEnts = boundary_ids.size();
+  
+  Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto id = boundary_ids[i];
+    for (LO n = 0; n < ncomps; ++n) {
+      if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
+        fprintf(stderr, "for vert id %d comp %d\n", id, n);
+        mesh_field[id*ncomps + n] = boundary_field[i*ncomps + n];
+      }
+    }
+  };
+  parallel_for(n_bEnts, f, "get_fieldFromBdry");
+
+  remove_tag(ent_dim, name);
+  std::string new_name = name;
+  new_name.erase(new_name.end()-9, new_name.end());
+  OMEGA_H_CHECK(!has_tag(ent_dim, name));
+  add_tag<T>(ent_dim, new_name, ncomps, Read<T>(mesh_field));
 }
 
 }  // end namespace Omega_h

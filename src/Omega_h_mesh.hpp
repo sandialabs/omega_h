@@ -91,6 +91,8 @@ class Mesh {
   Adj get_revClass (Int edim) const;
   template <typename T>
   void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);
+  template <typename T>
+  void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name);
 
  public:
   typedef std::shared_ptr<TagBase> TagPtr;
@@ -230,6 +232,8 @@ __host__
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
   extern template void Mesh::change_tagToBoundary<T>(                          \
+      Int ent_dim, Int ncomps, std::string const& name);                       \
+  extern template void Mesh::change_tagToMesh<T>(                              \
       Int ent_dim, Int ncomps, std::string const& name);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
