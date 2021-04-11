@@ -25,20 +25,26 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK(mesh.has_tag(0, "field1"));
   OMEGA_H_CHECK(!mesh.has_tag(0, "field1_boundary"));
 
-  mesh.add_tag<Real>(0, "field2", 2);
-  Write<Real> vals2(nvert*2, 50);
+  mesh.add_tag<Real>(2, "field2", 2);
+  Write<Real> vals2(mesh.nfaces()*2, 50);
   Read<Real> vals_r2(vals2);
-  mesh.set_tag<Real>(0, "field2", vals_r2);
+  mesh.set_tag<Real>(2, "field2", vals_r2);
 
-  mesh.change_tagToBoundary<Real>(0, 2, "field2");
-  OMEGA_H_CHECK(!mesh.has_tag(0, "field2"));
-  OMEGA_H_CHECK(mesh.has_tag(0, "field2_boundary"));
+  mesh.change_tagToBoundary<Real>(2, 2, "field2");
+  OMEGA_H_CHECK(!mesh.has_tag(2, "field2"));
+  OMEGA_H_CHECK(mesh.has_tag(2, "field2_boundary"));
 
-  mesh.change_tagToMesh<Real>(0, 2, "field2_boundary");
-  OMEGA_H_CHECK(mesh.has_tag(0, "field2"));
-  OMEGA_H_CHECK(!mesh.has_tag(0, "field2_boundary"));
+  mesh.change_tagToMesh<Real>(2, 2, "field2_boundary");
+  OMEGA_H_CHECK(mesh.has_tag(2, "field2"));
+  OMEGA_H_CHECK(!mesh.has_tag(2, "field2_boundary"));
+
+  mesh.add_tag<Real>(0, "meshfield", 3);
+  Write<Real> vals3(mesh.nverts()*3, 500);
+  Read<Real> vals_r3(vals3);
+  mesh.set_tag<Real>(0, "meshfield", vals_r3);
+
   vtk::write_vtu ("./../../omega_h/meshes/plate_6elem.vtu",
-                       &mesh);
+                   &mesh);
   return;
 }
 

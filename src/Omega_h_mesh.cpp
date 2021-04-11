@@ -969,13 +969,19 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_ents = nents (ent_dim);
   auto n_bEnts = boundary_ids.size();
-  
+ 
+  fprintf(stderr, "\n tag %s, nbents %d nents %d\n", name.c_str(), n_bEnts, n_ents);
+
+  int waiting=0;
+  while(waiting);
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
-  auto f = OMEGA_H_LAMBDA(LO i) {
+
+  auto f = OMEGA_H_LAMBDA (LO i) {
     auto id = boundary_ids[i];
+    fprintf(stderr, "for iter %d vert id %d\n", i, id);
     for (LO n = 0; n < ncomps; ++n) {
       if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
-        fprintf(stderr, "for vert id %d comp %d\n", id, n);
+        fprintf(stderr, "change comp %d\n", n);
         mesh_field[id*ncomps + n] = boundary_field[i*ncomps + n];
       }
     }
