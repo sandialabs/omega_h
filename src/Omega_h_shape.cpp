@@ -8,6 +8,22 @@ template <Int mesh_dim, Int metric_dim>
 Reals measure_edges_metric_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
   MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh, metrics);
   auto ev2v = mesh->ask_verts_of(EDGE);
+  HostRead<LO> host_ev2v(ev2v);
+  for (int i = 0; i < host_ev2v.size(); ++i) {
+    if (host_ev2v[i] < 0) {
+      throw std::runtime_error(
+          "negative ev2v[" + std::to_string(i)
+          + "]=" + std::to_string(host_ev2v[i]));
+    }
+  }
+  HostRead<LO> host_a2e(a2e);
+  for (int i = 0; i < host_a2e.size(); ++i) {
+    if (host_a2e[i] < 0) {
+      throw std::runtime_error(
+          "negative a2e[" + std::to_string(i)
+          + "]=" + std::to_string(host_a2e[i]));
+    }
+  }
   auto na = a2e.size();
   Write<Real> lengths(na);
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -15,7 +31,13 @@ Reals measure_edges_metric_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
     auto v = gather_verts<2>(ev2v, e);
     lengths[a] = measurer.measure(v);
   };
+  if (cudaSuccess != cudaDeviceSynchronize()) {
+    throw std::runtime_error("sync error before measure edges");
+  }
   parallel_for(na, f, "measure_edges");
+  if (cudaSuccess != cudaDeviceSynchronize()) {
+    throw std::runtime_error("sync error after measure edges");
+  }
   return lengths;
 }
 

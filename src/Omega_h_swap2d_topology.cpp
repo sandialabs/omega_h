@@ -16,8 +16,8 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   auto et2t = e2t.ab2b;
   auto et_codes = e2t.codes;
   auto nkeys = keys2edges.size();
-  auto tri_verts2verts_w = Write<LO>(nkeys * 2 * 3);
-  auto edge_verts2verts_w = Write<LO>(nkeys * 1 * 2);
+  auto tri_verts2verts_w = Write<LO>(nkeys * 2 * 3, -42);
+  auto edge_verts2verts_w = Write<LO>(nkeys * 1 * 2, -42);
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto e = keys2edges[key];
     OMEGA_H_CHECK(e2et[e + 1] == 2 + e2et[e]);
@@ -41,7 +41,13 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
       ntv[2] = ov[1 - i];
     }
   };
+  if (cudaSuccess != cudaDeviceSynchronize()) {
+    throw std::runtime_error("CUDA error before swap2d_topology");
+  }
   parallel_for(nkeys, f, "swap2d_topology");
+  if (cudaSuccess != cudaDeviceSynchronize()) {
+    throw std::runtime_error("CUDA error after swap2d_topology");
+  }
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   keys2prods[EDGE] = LOs(nkeys + 1, 0, 1);

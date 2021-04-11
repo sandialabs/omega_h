@@ -37,6 +37,10 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
+  if (size_in < 0 || size_in > 100 * 1000 * 1000) {
+    throw std::runtime_error(
+        "Write(size_in=" + std::to_string(size_in) + ")");
+  }
   shared_alloc_ = decltype(shared_alloc_)(
       sizeof(T) * static_cast<std::size_t>(size_in), name_in);
 #endif
