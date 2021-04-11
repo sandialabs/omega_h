@@ -70,9 +70,6 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   auto nkeys = keys2edges.size();
   auto tri_verts2verts_w = Write<LO>(nkeys * 2 * 3, -42);
   auto edge_verts2verts_w = Write<LO>(nkeys * 1 * 2, -42);
-  if (cudaSuccess != cudaDeviceSynchronize()) {
-    throw std::runtime_error("CUDA error before swap2d_topology");
-  }
   parallel_for(nkeys,
       swap2d_topology_functor(
         keys2edges,
@@ -83,9 +80,6 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
         tv2v,
         ev2v,
         tri_verts2verts_w));
-  if (cudaSuccess != cudaDeviceSynchronize()) {
-    throw std::runtime_error("CUDA error after swap2d_topology");
-  }
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   keys2prods[EDGE] = LOs(nkeys + 1, 0, 1);
