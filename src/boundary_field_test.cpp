@@ -45,6 +45,8 @@ void test_2d(Library *lib) {
 
   vtk::write_vtu ("./../../omega_h/meshes/plate_6elem.vtu",
                    &mesh);
+  binary::write ("./../../omega_h/meshes/plate_6elem_withrctag.osh",
+                   &mesh);
   return;
 }
 

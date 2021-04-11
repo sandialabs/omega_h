@@ -271,7 +271,7 @@ static void read_meta(
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag,
-    bool is_compressed, bool needs_swapping) {
+    Int ent_dim, Mesh *mesh, bool is_compressed, bool needs_swapping) {
   std::string name = tag->name();
   write(stream, name, needs_swapping);
   auto ncomps = I8(tag->ncomps());
@@ -279,12 +279,36 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
   I8 type = tag->type();
   write_value(stream, type, needs_swapping);
   if (is<I8>(tag)) {
+
+    size_t found = (name).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I8> (ent_dim, ncomps, name);
+    }
+
     write_array(stream, as<I8>(tag)->array(), is_compressed, needs_swapping);
   } else if (is<I32>(tag)) {
+
+    size_t found = (name).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I32> (ent_dim, ncomps, name);
+    }
+
     write_array(stream, as<I32>(tag)->array(), is_compressed, needs_swapping);
   } else if (is<I64>(tag)) {
+
+    size_t found = (name).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I64> (ent_dim, ncomps, name);
+    }
+
     write_array(stream, as<I64>(tag)->array(), is_compressed, needs_swapping);
   } else if (is<Real>(tag)) {
+
+    size_t found = (name).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<Real> (ent_dim, ncomps, name);
+    }
+
     write_array(stream, as<Real>(tag)->array(), is_compressed, needs_swapping);
   } else {
     Omega_h_fail("unexpected tag type in binary write\n");
@@ -385,7 +409,7 @@ void write(std::ostream& stream, Mesh* mesh) {
     auto nsaved_tags = mesh->ntags(d);
     write_value(stream, nsaved_tags, needs_swapping);
     for (Int i = 0; i < mesh->ntags(d); ++i) {
-      write_tag(stream, mesh->get_tag(d, i), is_compressed, needs_swapping);
+      write_tag(stream, mesh->get_tag(d, i), d, mesh, is_compressed, needs_swapping);
     }
     if (mesh->comm()->size() > 1) {
       auto owners = mesh->ask_owners(d);

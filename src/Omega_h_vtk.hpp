@@ -57,7 +57,7 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim);
 
 void write_tag(
     std::ostream& stream, TagBase const* tag, Int space_dim, Int ent_dim, 
-    bool compress);
+    Mesh *mesh, bool compress);
 
 template <typename T>
 void write_p_data_array(
