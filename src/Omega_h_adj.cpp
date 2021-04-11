@@ -605,7 +605,7 @@ class elements_across_sides_count_functor {
     ,side_is_exposed(side_is_exposed_arg)
     ,degrees(degrees_arg)
   {}
-  __device__ inline void operator()(LO elem) const {
+  OMEGA_H_DEVICE void operator()(LO elem) const {
     auto const begin = elem * nsides_per_elem;
     auto const end = begin + nsides_per_elem;
     Int n = 0;
