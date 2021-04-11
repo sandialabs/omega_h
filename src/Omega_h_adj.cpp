@@ -598,7 +598,7 @@ Graph elements_across_sides(Int const dim, Adj const elems2sides,
   auto const nelems =
       divide_no_remainder(elem_side2side.size(), nsides_per_elem);
   Write<LO> degrees(nelems);
-  auto count = OMEGA_H_LAMBDA(LO elem) {
+  auto elements_across_sides_count = OMEGA_H_LAMBDA(LO elem) {
     auto const begin = elem * nsides_per_elem;
     auto const end = begin + nsides_per_elem;
     Int n = 0;
@@ -611,7 +611,7 @@ Graph elements_across_sides(Int const dim, Adj const elems2sides,
     }
     degrees[elem] = n;
   };
-  parallel_for(nelems, std::move(count));
+  parallel_for(nelems, elements_across_sides_count);
   auto const elem2elem_elems = offset_scan(LOs(degrees));
   auto const nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);

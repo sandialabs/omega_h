@@ -53,7 +53,6 @@ T ceildiv(T a, T b) {
 }
 
 template <class ForwardIt, class UnaryFunction>
-P3A_NEVER_INLINE
 void for_each(
     ForwardIt first,
     ForwardIt last,
@@ -97,32 +96,22 @@ void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
 
 #endif
 
-template <typename UnaryFunction>
-void parallel_for(LO n, UnaryFunction&& f) {
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(n);
-  ::Omega_h::for_each(first, last, f);
-}
-
 template <typename T>
 void parallel_for(LO n, T const& f, char const* name = "") {
 #if defined(OMEGA_H_USE_KOKKOS)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
   (void)name;
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(n);
   auto f2 = f;
-  parallel_for(n, std::move(f));
+  ::Omega_h::for_each(first, last, std::move(f2));
 #endif
 }
 
 template <typename T>
-void parallel_for(char const* name, LO n, T&& f) {
-#if defined(OMEGA_H_USE_KOKKOS)
-  if (n > 0) Kokkos::parallel_for(name, policy(n), f);
-#else
-  (void)name;
-  parallel_for(n, std::move(f));
-#endif
+void parallel_for(char const* name, LO n, T const& f) {
+  parallel_for(n, f, name);
 }
 
 }  // end namespace Omega_h
