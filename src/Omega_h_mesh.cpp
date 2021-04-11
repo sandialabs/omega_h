@@ -945,7 +945,10 @@ Adj Mesh::ask_revClass (Int edim) {
 
 template <typename T>
 void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name) {
+
   auto mesh_field = get_array<T>(ent_dim, name);
+  OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
+
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
@@ -965,9 +968,15 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name
 
 template <typename T>
 void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
+
+  fprintf(stderr, "ok2 change to mesh\n");
+
   auto boundary_field = get_array<T>(ent_dim, name);
-  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
+  fprintf(stderr, "ok3\n");
   auto n_ents = nents (ent_dim);
+  OMEGA_H_CHECK (boundary_field.size() <= n_ents*ncomps);
+
+  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
  
   fprintf(stderr, "\n tag %s, nbents %d nents %d\n", name.c_str(), n_bEnts, n_ents);
@@ -988,11 +997,16 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
   };
   parallel_for(n_bEnts, f, "get_fieldFromBdry");
 
+  fprintf(stderr, "ok4\n");
   remove_tag(ent_dim, name);
+  fprintf(stderr, "ok5\n");
   std::string new_name = name;
   new_name.erase(new_name.end()-9, new_name.end());
+  fprintf(stderr, "ok6\n");
   OMEGA_H_CHECK(!has_tag(ent_dim, name));
+  fprintf(stderr, "ok7\n");
   add_tag<T>(ent_dim, new_name, ncomps, Read<T>(mesh_field));
+  fprintf(stderr, "ok8\n");
 }
 
 }  // end namespace Omega_h

@@ -240,18 +240,46 @@ static Read<T> read_array(
 }
 
 void write_tag(
-    std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
+    std::ostream& stream, TagBase const* tag, Int space_dim, Int ent_dim, 
+    Mesh *mesh, bool compress) {
   OMEGA_H_TIME_FUNCTION;
+
   if (is<I8>(tag)) {
+
+    size_t found = (tag->name()).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
   } else if (is<I32>(tag)) {
+
+    size_t found = (tag->name()).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
   } else if (is<I64>(tag)) {
+
+    size_t found = (tag->name()).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
   } else if (is<Real>(tag)) {
+  
+    fprintf(stderr, "ok1\n");
+
+    size_t found = (tag->name()).find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name());
+    }
+
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
       if (tag->ncomps() == space_dim) {
@@ -618,14 +646,15 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "<PointData>\n";
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), VERT, 
+              mesh, compress);
   }
   write_locals_and_owners(stream, mesh, VERT, tags, compress);
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
         tags[VERT].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), VERT, mesh, compress);
     }
   }
   stream << "</PointData>\n";
@@ -634,7 +663,8 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
     write_tag(
-        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), cell_dim,
+        mesh, compress);
   }
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
@@ -643,7 +673,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
     if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
     }
   }
   stream << "</CellData>\n";

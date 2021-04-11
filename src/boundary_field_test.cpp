@@ -21,9 +21,9 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK(!mesh.has_tag(0, "field1"));
   OMEGA_H_CHECK(mesh.has_tag(0, "field1_boundary"));
 
-  mesh.change_tagToMesh<Real>(0, 1, "field1_boundary");
-  OMEGA_H_CHECK(mesh.has_tag(0, "field1"));
-  OMEGA_H_CHECK(!mesh.has_tag(0, "field1_boundary"));
+  //mesh.change_tagToMesh<Real>(0, 1, "field1_boundary");
+  //OMEGA_H_CHECK(mesh.has_tag(0, "field1"));
+  //OMEGA_H_CHECK(!mesh.has_tag(0, "field1_boundary"));
 
   mesh.add_tag<Real>(2, "field2", 2);
   Write<Real> vals2(mesh.nfaces()*2, 50);
@@ -34,9 +34,9 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK(!mesh.has_tag(2, "field2"));
   OMEGA_H_CHECK(mesh.has_tag(2, "field2_boundary"));
 
-  mesh.change_tagToMesh<Real>(2, 2, "field2_boundary");
-  OMEGA_H_CHECK(mesh.has_tag(2, "field2"));
-  OMEGA_H_CHECK(!mesh.has_tag(2, "field2_boundary"));
+  //mesh.change_tagToMesh<Real>(2, 2, "field2_boundary");
+  //OMEGA_H_CHECK(mesh.has_tag(2, "field2"));
+  //OMEGA_H_CHECK(!mesh.has_tag(2, "field2_boundary"));
 
   mesh.add_tag<Real>(0, "meshfield", 3);
   Write<Real> vals3(mesh.nverts()*3, 500);
