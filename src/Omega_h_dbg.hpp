@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <map>
 
 extern Omega_h::Comm *DBG_COMM;
 
@@ -128,6 +129,17 @@ std::string to_string(const std::set<T>& v) {
   std::string sep = "";
   for(auto i : v) {
     out << sep << i;
+    sep = " ";
+  }
+  return out.str();
+}
+
+template<class K, class V>
+std::string to_string(const std::map<K,V>& v) {
+  std::ostringstream out; 
+  std::string sep = "";
+  for(auto i : v) {
+    out << sep << "{" << i.first << " : " << i.second << "}";
     sep = " ";
   }
   return out.str();
