@@ -69,8 +69,8 @@ class Comm {
   template <typename T>
   T exscan(T x, Omega_h_Op op) const;
   template <typename T>
-  void bcast(T& x) const;
-  void bcast_string(std::string& s) const;
+  void bcast(T& x, int root_rank=0) const;
+  void bcast_string(std::string& s, int root_rank=0) const;
   template <typename T>
   Read<T> allgather(T x) const;
   template <typename T>
@@ -186,7 +186,7 @@ void Comm::recv(int rank, T& x) {
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
-  extern template void Comm::bcast(T& x) const;                                \
+  extern template void Comm::bcast(T& x, int root_rank) const;                 \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
   extern template Read<T> Comm::alltoallv(                                     \
