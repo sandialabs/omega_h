@@ -129,21 +129,65 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
+
+      size_t found = (tag->name()).find("_boundary");
+      if (found != std::string::npos) {
+        mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name());
+      }
+
       auto array = as<I8>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
       new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), array, true);
+
+      if (found != std::string::npos) {
+        new_mesh->change_tagToBoundary<I8> (ent_dim, tag->ncomps(), tag->name());
+      }
+
     } else if (is<I32>(tag)) {
+
+      size_t found = (tag->name()).find("_boundary");
+      if (found != std::string::npos) {
+        mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name());
+      }
+
       auto array = as<I32>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
       new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), array, true);
+
+      if (found != std::string::npos) {
+        new_mesh->change_tagToBoundary<I32> (ent_dim, tag->ncomps(), tag->name());
+      }
+
     } else if (is<I64>(tag)) {
+
+      size_t found = (tag->name()).find("_boundary");
+      if (found != std::string::npos) {
+        mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name());
+      }
+
       auto array = as<I64>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
       new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), array, true);
+
+      if (found != std::string::npos) {
+        new_mesh->change_tagToBoundary<I64> (ent_dim, tag->ncomps(), tag->name());
+      }
+
     } else if (is<Real>(tag)) {
+
+      size_t found = (tag->name()).find("_boundary");
+      if (found != std::string::npos) {
+        mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name());
+      }
+
       auto array = as<Real>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array, true);
+
+      if (found != std::string::npos) {
+        new_mesh->change_tagToBoundary<Real> (ent_dim, tag->ncomps(), tag->name());
+      }
+
     }
   }
 }
