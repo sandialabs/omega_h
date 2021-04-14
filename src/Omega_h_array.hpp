@@ -120,6 +120,10 @@ class Read {
   Read(std::initializer_list<T> l, std::string const& name = "");
   OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT { return write_.size(); }
   OMEGA_H_DEVICE T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
+#endif
     return write_[i];
   }
   OMEGA_H_INLINE T const* data() const OMEGA_H_NOEXCEPT {
@@ -196,18 +200,14 @@ class HostRead {
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_USE_KOKKOS
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
 #endif
+#ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
-#endif
     return mirror_[i];
 #else
     return read_[i];
@@ -237,18 +237,14 @@ class HostWrite {
   Write<T> write() const;
   LO size() const OMEGA_H_NOEXCEPT;
   inline T& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_USE_KOKKOS
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
 #endif
+#ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
-#endif
     return mirror_[i];
 #else
     return write_[i];
