@@ -971,10 +971,10 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name
 
   remove_tag(ent_dim, name);
 
-  std::string new_name = name;
-  new_name.append("_boundary");
+  //std::string new_name = name;
+  //new_name.append("_boundary");
   OMEGA_H_CHECK(!has_tag(ent_dim, name));
-  add_tag<T>(ent_dim, new_name, ncomps, Read<T>(b_field));
+  add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
 
   return;
 }
@@ -1022,7 +1022,13 @@ Read<T> Mesh::get_boundaryField_array
 template <typename T>
 void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps) {  
 
-  add_tag<T>(dim, name, ncomps);
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    add_tag<T>(dim, name, ncomps);
+  }
+  else {
+    Omega_h_fail("can't find suffix '_boundary' at end of field name\n");
+  }
 
   return;
 }
@@ -1031,7 +1037,13 @@ template <typename T>
 void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps,
   Read<T> array, bool internal) {  
 
-  add_tag<T>(dim, name, ncomps, array, internal);
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    add_tag<T>(dim, name, ncomps, array, internal);
+  }
+  else {
+    Omega_h_fail("can't find suffix '_boundary' at end of field name\n");
+  }
 
   return;
 }
