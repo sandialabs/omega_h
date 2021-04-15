@@ -1024,10 +1024,13 @@ void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
-    add_tag<T>(dim, name, ncomps);
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
   else {
-    Omega_h_fail("can't find suffix '_boundary' at end of field name\n");
+    std::string new_name = name;
+    new_name.append("_boundary");
+    OMEGA_H_CHECK(!has_tag(dim, new_name));
+    add_tag<T>(dim, new_name, ncomps);
   }
 
   return;
@@ -1039,10 +1042,13 @@ void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps,
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
-    add_tag<T>(dim, name, ncomps, array, internal);
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
   else {
-    Omega_h_fail("can't find suffix '_boundary' at end of field name\n");
+    std::string new_name = name;
+    new_name.append("_boundary");
+    OMEGA_H_CHECK(!has_tag(dim, new_name));
+    add_tag<T>(dim, new_name, ncomps, array, internal);
   }
 
   return;
