@@ -321,12 +321,30 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+    }
+
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+    }
+
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+    }
+
   } else {
     auto array = read_array<Real>(stream, size, needs_swapping, is_compressed);
     // undo the resizes done in write_tag()
@@ -340,6 +358,12 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
       }
     }
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+    }
+
   }
   auto et = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
