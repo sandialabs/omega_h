@@ -335,18 +335,42 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
     Read<I8> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I8> (d, ncomps, name);
+    }
+
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I32> (d, ncomps, name);
+    }
+
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I64> (d, ncomps, name);
+    }
+
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_boundary");
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<Real> (d, ncomps, name);
+    }
+
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
