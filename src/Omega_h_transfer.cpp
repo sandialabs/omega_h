@@ -161,10 +161,21 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
+
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    old_mesh->change_tagToMesh<T> (ent_dim, ncomps, name);
+  }
+
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
   transfer_common3(new_mesh, ent_dim, tagbase, new_data);
+
+  if (found != std::string::npos) {
+    new_mesh->change_tagToBoundary<T> (ent_dim, ncomps, name);
+  }
+
 }
 
 template <typename T>
@@ -623,12 +634,24 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
 
 template <typename T>
 static void transfer_copy_tmpl(
-    Mesh* new_mesh, Int prod_dim, TagBase const* tagbase) {
+    Mesh *old_mesh, Mesh* new_mesh, Int prod_dim, TagBase const* tagbase) {
+
   auto old_tag = as<T>(tagbase);
   auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();
+
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    old_mesh->change_tagToMesh<T> (prod_dim, ncomps, name);
+  }
+
   auto old_data = old_tag->array();
   new_mesh->add_tag(prod_dim, name, ncomps, old_data, true);
+
+  if (found != std::string::npos) {
+    new_mesh->change_tagToBoundary<T> (prod_dim, ncomps, name);
+  }
+
 }
 
 void transfer_copy(
@@ -638,16 +661,16 @@ void transfer_copy(
     if (should_transfer_copy(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
-          transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
+          transfer_copy_tmpl<I8>(old_mesh, new_mesh, prod_dim, tagbase);
           break;
         case OMEGA_H_I32:
-          transfer_copy_tmpl<I32>(new_mesh, prod_dim, tagbase);
+          transfer_copy_tmpl<I32>(old_mesh, new_mesh, prod_dim, tagbase);
           break;
         case OMEGA_H_I64:
-          transfer_copy_tmpl<I64>(new_mesh, prod_dim, tagbase);
+          transfer_copy_tmpl<I64>(old_mesh, new_mesh, prod_dim, tagbase);
           break;
         case OMEGA_H_F64:
-          transfer_copy_tmpl<Real>(new_mesh, prod_dim, tagbase);
+          transfer_copy_tmpl<Real>(old_mesh, new_mesh, prod_dim, tagbase);
           break;
       }
     }
