@@ -3,6 +3,8 @@
 
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_array_ops.hpp"
+
 using namespace Omega_h;
 
 void test_2d(Library *lib) {
@@ -11,34 +13,32 @@ void test_2d(Library *lib) {
   binary::read ("./../../omega_h/meshes/plate_6elem.osh",
                 lib->world(), &mesh);
 
-  auto nvert = mesh.nverts();
-  mesh.add_tag<Real>(0, "field1", 1);
-  Write<Real> vals(nvert, 50);
+  auto nverts = mesh.nverts();
+  auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
+  auto nbvert = boundary_ids.size();
+  Write<Real> vals(nbvert, 50);
   Read<Real> vals_r(vals);
-  mesh.set_tag<Real>(0, "field1", vals_r);
 
-  mesh.change_tagToBoundary<Real>(0, 1, "field1");
-  OMEGA_H_CHECK(!mesh.has_tag(0, "field1"));
-  OMEGA_H_CHECK(mesh.has_tag(0, "field1_boundary"));
+  mesh.add_boundaryField<Real>(0, "field1", 1, vals_r);
 
-  mesh.add_tag<Real>(2, "field2", 2);
   Write<Real> vals2(mesh.nfaces()*2, 50);
   Read<Real> vals_r2(vals2);
-  mesh.set_tag<Real>(2, "field2", vals_r2);
 
-  mesh.change_tagToBoundary<Real>(2, 2, "field2");
-  OMEGA_H_CHECK(!mesh.has_tag(2, "field2"));
-  OMEGA_H_CHECK(mesh.has_tag(2, "field2_boundary"));
-
-  mesh.add_tag<Real>(0, "meshfield", 3);
   Write<Real> vals3(mesh.nverts()*3, 500);
   Read<Real> vals_r3(vals3);
-  mesh.set_tag<Real>(0, "meshfield", vals_r3);
 
   vtk::write_vtu ("./../../omega_h/meshes/plate_6elem.vtu",
                    &mesh);
-  binary::write ("./../../omega_h/meshes/plate_6elem_withrctag.osh",
+  binary::write ("./../../omega_h/meshes/plate_6elem_bField.osh",
                    &mesh);
+
+  auto new_mesh = Mesh(lib);
+  binary::read ("./../../omega_h/meshes/plate_6elem_bField.osh",
+                lib->world(), &new_mesh);
+  auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1"); 
+  OMEGA_H_CHECK(new_bField == vals_r);
+  OMEGA_H_CHECK(new_bField.size() < nverts);
+
   return;
 }
 
