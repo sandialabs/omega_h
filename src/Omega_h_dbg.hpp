@@ -9,6 +9,7 @@
 #include <map>
 
 extern Omega_h::Comm *DBG_COMM;
+extern bool dbg_print_global;
 
 #define ERROUTFL(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << a; OMEGA_H_CHECK(false); } while(0)
 

@@ -59,8 +59,8 @@ class Write {
   }
   OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
     return view_(i);
@@ -121,8 +121,8 @@ class Read {
   OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT { return write_.size(); }
   OMEGA_H_DEVICE T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
     return write_[i];
   }
@@ -201,8 +201,8 @@ class HostRead {
   LO size() const;
   inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
@@ -238,8 +238,8 @@ class HostWrite {
   LO size() const OMEGA_H_NOEXCEPT;
   inline T& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
