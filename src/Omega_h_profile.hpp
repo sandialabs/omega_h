@@ -43,7 +43,10 @@ struct History {
   std::size_t current_frame;
   std::size_t last_root;
   Strings names;
-  History();
+  Now start_time;
+  bool do_percent;
+  double chop;
+  History(bool dopercent=false, double chop=0.0);
   inline const char* get_name(std::size_t frame) const {
     return names.get(frames[frame].name_ptr);
   }

@@ -2,13 +2,14 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
+#include <iomanip>
 
 namespace Omega_h {
 namespace profile {
 
 OMEGA_H_DLL History* global_singleton_history = nullptr;
 
-History::History() : current_frame(invalid), last_root(invalid) {}
+  History::History(bool dopercent, double chop_in) : current_frame(invalid), last_root(invalid), start_time(now()), do_percent(dopercent), chop(chop_in) {}
 
 std::size_t History::first(std::size_t parent_index) const {
   if (parent_index != invalid) return frames[parent_index].first_child;
@@ -131,7 +132,13 @@ History invert(History const& h) {
 }
 
 static void print_time_sorted_recursive(History const& h, std::size_t frame,
-    std::vector<std::size_t> const& depths) {
+    std::vector<std::size_t> const& depths, bool do_percent, double total_runtime, double chop) {
+  std::string percent = " ";
+  double scale = 1.0;
+  if (do_percent) {
+    percent = "% ";
+    scale = 100.0/total_runtime;
+  }
   std::vector<std::size_t> child_frames;
   for (std::size_t child = h.first(frame); child != invalid;
        child = h.next(child)) {
@@ -141,28 +148,37 @@ static void print_time_sorted_recursive(History const& h, std::size_t frame,
       [&](std::size_t a, std::size_t b) { return h.time(a) > h.time(b); });
   for (auto child : child_frames) {
     std::size_t depth = depths[child];
-    for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
-    std::cout << h.get_name(child) << ' ' << h.time(child) << ' '
-              << h.calls(child) << '\n';
-    print_time_sorted_recursive(h, child, depths);
+    if (h.time(child)*100.0/total_runtime >= chop) {
+      for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
+      std::cout << h.get_name(child) << ' ' << h.time(child)*scale << percent
+                << h.calls(child) << '\n';
+    }
+    print_time_sorted_recursive(h, child, depths, do_percent, total_runtime, chop);
   }
 }
 
-void print_time_sorted(History const& h) {
+void print_time_sorted(History const& h, bool do_percent, double total_runtime, double chop) {
   auto depths = compute_depths(h);
-  print_time_sorted_recursive(h, invalid, depths);
+  print_time_sorted_recursive(h, invalid, depths, do_percent, total_runtime, chop);
 }
 
 void print_top_down_and_bottom_up(History const& h) {
+  auto coutflags( std::cout.flags() );
+  if (h.do_percent) {
+    std::cout << std::setprecision(2) << std::fixed;
+  }
+  double total_runtime = now() - h.start_time;
   std::cout << "\n";
+  std::cout << "runtime = " << get_runtime() << "\n";
   std::cout << "TOP-DOWN:\n";
   std::cout << "=========\n";
-  print_time_sorted(h);
+  print_time_sorted(h, h.do_percent, total_runtime, h.chop);
   auto h_inv = invert(h);
   std::cout << "\n";
   std::cout << "BOTTOM-UP:\n";
   std::cout << "==========\n";
-  print_time_sorted(h_inv);
+  print_time_sorted(h_inv, h.do_percent, total_runtime, h.chop);
+  std::cout.flags(coutflags);
 }
 
 }  // namespace profile
