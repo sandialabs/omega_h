@@ -2,6 +2,7 @@
 #define OMEGA_H_STACK_HPP
 
 #include <Omega_h_timer.hpp>
+#include <Omega_h_filesystem.hpp>
 #include <cstring>
 #include <vector>
 #ifdef OMEGA_H_USE_KOKKOS
@@ -166,6 +167,7 @@ void simple_print(profile::History const& history);
 History invert(History const& h);
 void print_time_sorted(History const& h);
 void print_top_down_and_bottom_up(History const& h);
+void print_top_sorted(History const& h);
 
 }  // namespace profile
 }  // namespace Omega_h
@@ -212,5 +214,8 @@ struct ScopedTimer {
 
 #define OMEGA_H_TIME_FUNCTION                                                  \
   ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__)
+
+#define OMEGA_H_TIME_FILE_FUNCTION                                             \
+  ::Omega_h::ScopedTimer omega_h_scoped_function_timer((::Omega_h::filesystem::path(__FILE__).filename().string()+"::"+__FUNCTION__).c_str())
 
 #endif

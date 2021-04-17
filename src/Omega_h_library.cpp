@@ -183,6 +183,8 @@ Library::~Library() {
     if (world_->rank() == 0) {
       Omega_h::profile::print_top_down_and_bottom_up(
           *Omega_h::profile::global_singleton_history);
+      Omega_h::profile::print_top_sorted(
+          *Omega_h::profile::global_singleton_history);
     }
     delete Omega_h::profile::global_singleton_history;
     Omega_h::profile::global_singleton_history = nullptr;

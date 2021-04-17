@@ -3,6 +3,7 @@
 #include <iostream>
 #include <queue>
 #include <iomanip>
+#include <map>
 
 namespace Omega_h {
 namespace profile {
@@ -132,10 +133,10 @@ History invert(History const& h) {
 }
 
 static void print_time_sorted_recursive(History const& h, std::size_t frame,
-    std::vector<std::size_t> const& depths, bool do_percent, double total_runtime, double chop) {
+    std::vector<std::size_t> const& depths, double total_runtime) {
   std::string percent = " ";
   double scale = 1.0;
-  if (do_percent) {
+  if (h.do_percent) {
     percent = "% ";
     scale = 100.0/total_runtime;
   }
@@ -148,18 +149,26 @@ static void print_time_sorted_recursive(History const& h, std::size_t frame,
       [&](std::size_t a, std::size_t b) { return h.time(a) > h.time(b); });
   for (auto child : child_frames) {
     std::size_t depth = depths[child];
-    if (h.time(child)*100.0/total_runtime >= chop) {
+    if (h.time(child)*100.0/total_runtime >= h.chop) {
       for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
       std::cout << h.get_name(child) << ' ' << h.time(child)*scale << percent
                 << h.calls(child) << '\n';
     }
-    print_time_sorted_recursive(h, child, depths, do_percent, total_runtime, chop);
+    print_time_sorted_recursive(h, child, depths, total_runtime);
   }
 }
 
-void print_time_sorted(History const& h, bool do_percent, double total_runtime, double chop) {
+void print_time_sorted(History const& h, double total_runtime) {
   auto depths = compute_depths(h);
-  print_time_sorted_recursive(h, invalid, depths, do_percent, total_runtime, chop);
+  print_time_sorted_recursive(h, invalid, depths, total_runtime);
+}
+
+static void gather_recursive(History const& h, std::size_t frame, std::map<std::string,double>& result) {
+  for (std::size_t child = h.first(frame); child != invalid;
+       child = h.next(child)) {
+    result[h.get_name(child)] += h.time(child);
+    gather_recursive(h, child, result);
+  }
 }
 
 void print_top_down_and_bottom_up(History const& h) {
@@ -169,15 +178,44 @@ void print_top_down_and_bottom_up(History const& h) {
   }
   double total_runtime = now() - h.start_time;
   std::cout << "\n";
-  std::cout << "runtime = " << get_runtime() << "\n";
   std::cout << "TOP-DOWN:\n";
   std::cout << "=========\n";
-  print_time_sorted(h, h.do_percent, total_runtime, h.chop);
+  print_time_sorted(h, total_runtime);
   auto h_inv = invert(h);
   std::cout << "\n";
   std::cout << "BOTTOM-UP:\n";
   std::cout << "==========\n";
-  print_time_sorted(h_inv, h.do_percent, total_runtime, h.chop);
+  print_time_sorted(h_inv, total_runtime);
+  std::cout.flags(coutflags);
+}
+
+void print_top_sorted(History const& h) {
+  auto coutflags( std::cout.flags() );
+  if (h.do_percent) {
+    std::cout << std::setprecision(2) << std::fixed;
+  }
+  double total_runtime = now() - h.start_time;
+  std::cout << "\n";
+  std::cout << "TOP FUNCTIONS:\n";
+  std::cout << "=============\n";
+  std::map<std::string, double> result;
+  gather_recursive(h, invalid, result);
+  std::map<double, std::string> sorted_result;
+  for (auto i : result) {
+    sorted_result[-i.second] = i.first;
+  }
+  std::string percent = " ";
+  double scale = 1.0;
+  if (h.do_percent) {
+    percent = "% ";
+    scale = 100.0/total_runtime;
+  }
+  for (auto i : sorted_result) {
+    auto cflags( std::cout.flags() );
+    std::cout<< std::setw(5) << -i.first*scale;
+    std::cout.flags(cflags);
+    std::cout << percent << i.second << std::endl;
+  }
   std::cout.flags(coutflags);
 }
 
