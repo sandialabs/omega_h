@@ -4,6 +4,7 @@
 #include <queue>
 #include <iomanip>
 #include <map>
+#include <utility>
 
 namespace Omega_h {
 namespace profile {
@@ -160,7 +161,7 @@ static void print_time_sorted_recursive(History const& h, std::size_t frame,
     std::size_t depth = depths[child];
     if (h.time(child)*100.0/total_runtime >= h.chop) {
       for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
-      std::cout << h.get_name(child) << ' ' << h.time(child)*scale << percent
+      std::cout << h.time(child)*scale << percent << h.get_name(child) << ' '
                 << h.calls(child) << '\n';
     }
     print_time_sorted_recursive(h, child, depths, total_runtime);
@@ -210,14 +211,20 @@ void print_top_sorted(History const& h_in) {
   std::cout << "=============\n";
   std::map<std::string, double> result;
   gather_recursive(h, invalid, result);
-  std::map<double, std::string> sorted_result;
+  typedef std::pair<std::string, double> my_pair;
+  std::vector<my_pair> sorted_result;
   double sum = 0.0;
   for (auto i : result) {
     sum += i.second;
-    sorted_result[-i.second] = i.first;
+    sorted_result.push_back(std::make_pair(i.first, i.second));
   }
-  std::cout << "total_runtime= " << total_runtime << " monitored functions= " << sum << " unmonitored= " << (total_runtime - sum)/total_runtime << "%" << std::endl;
-  sorted_result[-(total_runtime-sum)] = "unmonitored functions";
+  std::cout << "total_runtime= " << total_runtime << " [s] monitored functions= " << sum << " [s] unmonitored= " << 100.0*(total_runtime - sum)/total_runtime << "%" << std::endl;
+  sorted_result.push_back(std::make_pair("unmonitored functions", (total_runtime-sum)));
+  std::stable_sort(sorted_result.begin(), sorted_result.end(),
+            [](const my_pair& a, const my_pair& b) -> bool
+            { 
+              return a.second > b.second;
+            });  
   std::string percent = " ";
   double scale = 1.0;
   if (h.do_percent) {
@@ -226,11 +233,11 @@ void print_top_sorted(History const& h_in) {
   }
   for (auto i : sorted_result) {
     auto cflags( std::cout.flags() );
-    double val = -i.first;
+    double val = i.second;
     if (val*100.0/total_runtime >= h.chop) {
         std::cout<< std::setw(5) << val*scale;
         std::cout.flags(cflags);
-        std::cout << percent << i.second << std::endl;
+        std::cout << percent << i.first << std::endl;
     }
   }
   std::cout.flags(coutflags);
