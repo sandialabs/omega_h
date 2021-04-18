@@ -10,7 +10,16 @@ namespace profile {
 
 OMEGA_H_DLL History* global_singleton_history = nullptr;
 
-  History::History(bool dopercent, double chop_in) : current_frame(invalid), last_root(invalid), start_time(now()), do_percent(dopercent), chop(chop_in) {}
+History::History(bool dopercent, double chop_in, bool add_filename_in) : 
+  current_frame(invalid), last_root(invalid), start_time(now()), 
+  do_percent(dopercent), chop(chop_in), add_filename(add_filename_in) {}
+
+History::History(const History& h) {
+  start_time = h.start_time;
+  do_percent = h.do_percent;
+  chop = h.chop;
+  add_filename = h.add_filename;
+}
 
 std::size_t History::first(std::size_t parent_index) const {
   if (parent_index != invalid) return frames[parent_index].first_child;
@@ -105,7 +114,7 @@ void simple_print(History const& history) {
 }
 
 History invert(History const& h) {
-  History invh;
+  History invh(h);
   std::queue<std::size_t> q;
   for (std::size_t s = h.first(invalid); s != invalid; s = h.next(s)) {
     q.push(s);
@@ -166,7 +175,7 @@ void print_time_sorted(History const& h, double total_runtime) {
 static void gather_recursive(History const& h, std::size_t frame, std::map<std::string,double>& result) {
   for (std::size_t child = h.first(frame); child != invalid;
        child = h.next(child)) {
-    result[h.get_name(child)] += h.time(child);
+    result[h.get_name(child)] = h.time(child);
     gather_recursive(h, child, result);
   }
 }
@@ -189,7 +198,8 @@ void print_top_down_and_bottom_up(History const& h) {
   std::cout.flags(coutflags);
 }
 
-void print_top_sorted(History const& h) {
+void print_top_sorted(History const& h_in) {
+  auto h = invert(h_in);
   auto coutflags( std::cout.flags() );
   if (h.do_percent) {
     std::cout << std::setprecision(2) << std::fixed;
@@ -201,9 +211,13 @@ void print_top_sorted(History const& h) {
   std::map<std::string, double> result;
   gather_recursive(h, invalid, result);
   std::map<double, std::string> sorted_result;
+  double sum = 0.0;
   for (auto i : result) {
+    sum += i.second;
     sorted_result[-i.second] = i.first;
   }
+  std::cout << "total_runtime= " << total_runtime << " monitored functions= " << sum << " unmonitored= " << (total_runtime - sum)/total_runtime << "%" << std::endl;
+  sorted_result[-(total_runtime-sum)] = "unmonitored functions";
   std::string percent = " ";
   double scale = 1.0;
   if (h.do_percent) {
@@ -212,9 +226,12 @@ void print_top_sorted(History const& h) {
   }
   for (auto i : sorted_result) {
     auto cflags( std::cout.flags() );
-    std::cout<< std::setw(5) << -i.first*scale;
-    std::cout.flags(cflags);
-    std::cout << percent << i.second << std::endl;
+    double val = -i.first;
+    if (val*100.0/total_runtime >= h.chop) {
+        std::cout<< std::setw(5) << val*scale;
+        std::cout.flags(cflags);
+        std::cout << percent << i.second << std::endl;
+    }
   }
   std::cout.flags(coutflags);
 }

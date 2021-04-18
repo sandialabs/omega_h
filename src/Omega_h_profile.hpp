@@ -47,7 +47,9 @@ struct History {
   Now start_time;
   bool do_percent;
   double chop;
-  History(bool dopercent=false, double chop=0.0);
+  bool add_filename;
+  History(bool dopercent=false, double chop=0.0, bool add_filename=false);
+  History(const History& h);
   inline const char* get_name(std::size_t frame) const {
     return names.get(frames[frame].name_ptr);
   }
@@ -174,12 +176,20 @@ void print_top_sorted(History const& h);
 
 namespace Omega_h {
 
-inline void begin_code(char const* name) {
+inline void begin_code(char const* name, char const* file=0) {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::Profiling::pushRegion(name);
 #endif
   if (profile::global_singleton_history) {
-    profile::global_singleton_history->start(name);
+    if (file == 0) {
+      file = "Omega_h";
+    }
+    if (profile::global_singleton_history->add_filename) {
+      std::string str = ::Omega_h::filesystem::path(file).filename().string()+"::"+std::string(name);
+      profile::global_singleton_history->start(str.c_str());
+    } else {
+      profile::global_singleton_history->start(name);
+    }
   }
 }
 
@@ -201,7 +211,7 @@ inline void end_code() {
 }
 
 struct ScopedTimer {
-  ScopedTimer(char const* name) { begin_code(name); }
+  ScopedTimer(char const* name, char const *file=0) { begin_code(name, file); }
   ~ScopedTimer() { end_code(); }
   ScopedTimer(ScopedTimer const&) = delete;
   ScopedTimer(ScopedTimer&&) = delete;
@@ -213,9 +223,6 @@ struct ScopedTimer {
 }  // namespace Omega_h
 
 #define OMEGA_H_TIME_FUNCTION                                                  \
-  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__)
-
-#define OMEGA_H_TIME_FILE_FUNCTION                                             \
-  ::Omega_h::ScopedTimer omega_h_scoped_function_timer((::Omega_h::filesystem::path(__FILE__).filename().string()+"::"+__FUNCTION__).c_str())
+  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__, __FILE__)
 
 #endif

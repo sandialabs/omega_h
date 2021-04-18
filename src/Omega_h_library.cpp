@@ -98,6 +98,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   auto& osh_time_chop_flag = cmdline.add_flag(
       "--osh-time-chop", "only print functions whose percent time is greater than given value (e.g. --osh-time-chop=2)");
   osh_time_chop_flag.add_arg<double>("0.0");
+  cmdline.add_flag("--osh-time-with-filename", "add file name to function name in profile output");
 
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
   cmdline.add_flag("--osh-fpe", "enable floating-point exceptions");
@@ -112,15 +113,18 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
+  bool add_filename = false;
+  if (cmdline.parsed("--osh-time-with-filename")) {
+    add_filename = true;
+  }
   double chop = cmdline.get<double>("--osh-time-chop", "0.0");
   if (cmdline.parsed("--osh-time")) {
-
     Omega_h::profile::global_singleton_history =
-      new Omega_h::profile::History(false, chop);
+      new Omega_h::profile::History(false, chop, add_filename);
   }
   if (cmdline.parsed("--osh-time-percent")) {
     Omega_h::profile::global_singleton_history =
-      new Omega_h::profile::History(true, chop);
+      new Omega_h::profile::History(true, chop, add_filename);
   }
   if (cmdline.parsed("--osh-fpe")) {
     enable_floating_point_exceptions();
