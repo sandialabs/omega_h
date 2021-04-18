@@ -983,6 +983,7 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
   auto boundary_field = get_array<T>(ent_dim, name);
   auto n_ents = nents (ent_dim);
   OMEGA_H_CHECK (boundary_field.size() <= n_ents*ncomps);
+  printf("bents %d nents %d\n", boundary_field.size()/ncomps, n_ents);
 
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
@@ -1046,7 +1047,7 @@ void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps) {
 
 template <typename T>
 void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps,
-  Read<T> array, bool internal) {  
+  Read<T> array, bool internal) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
