@@ -164,7 +164,8 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
-    old_mesh->change_tagToMesh<T> (ent_dim, ncomps, name);
+    if (old_mesh->nents(ent_dim))
+      old_mesh->change_tagToMesh<T> (ent_dim, ncomps, name);
   }
 
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
@@ -642,7 +643,8 @@ static void transfer_copy_tmpl(
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
-    old_mesh->change_tagToMesh<T> (prod_dim, ncomps, name);
+    if (old_mesh->nents(prod_dim))
+      old_mesh->change_tagToMesh<T> (prod_dim, ncomps, name);
   }
 
   auto old_data = old_tag->array();

@@ -135,7 +135,8 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
       size_t found = name.find("_boundary");
       if (found != std::string::npos) {
-        old_mesh->change_tagToMesh<I8> (ent_dim, ncomps, name);
+        if (old_mesh->nents(ent_dim)) 
+          old_mesh->change_tagToMesh<I8> (ent_dim, ncomps, name);
       }
 
       auto array = as<I8>(tag)->array();
@@ -150,7 +151,8 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
       size_t found = (tag->name()).find("_boundary");
       if (found != std::string::npos) {
-        old_mesh->change_tagToMesh<I32> (ent_dim, ncomps, name);
+        if (old_mesh->nents(ent_dim)) 
+          old_mesh->change_tagToMesh<I32> (ent_dim, ncomps, name);
       }
 
       auto array = as<I32>(tag)->array();
@@ -165,7 +167,8 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
       size_t found = (tag->name()).find("_boundary");
       if (found != std::string::npos) {
-        old_mesh->change_tagToMesh<I64> (ent_dim, ncomps, name);
+        if (old_mesh->nents(ent_dim)) 
+          old_mesh->change_tagToMesh<I64> (ent_dim, ncomps, name);
       }
 
       auto array = as<I64>(tag)->array();
