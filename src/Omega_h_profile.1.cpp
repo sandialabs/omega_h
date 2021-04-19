@@ -227,6 +227,13 @@ void sendrecv(History const& h, std::map<std::string, std::vector<double> >& res
   if (h.comm.get()) {
     std::vector<char> cvec;
     std::vector<double> dvec;
+    double sz = h.comm->size();
+      for (auto i : result) {
+        if (i.first == "Omega_h_input.cpp::read_input") {
+          PXOUTFL( "0i.second= " << ::Omega_h::to_string(i.second) << std::endl);
+        }
+      }
+
     if (h.comm->rank()) {
       for (auto i : result) {
         cvec.insert(cvec.end(), i.first.c_str(), i.first.c_str()+i.first.length()+1);
@@ -235,6 +242,15 @@ void sendrecv(History const& h, std::map<std::string, std::vector<double> >& res
       h.comm->send(0, cvec);
       h.comm->send(0, dvec);
     } else {
+      for (auto& i : result) {
+        if (i.first == "Omega_h_input.cpp::read_input") {
+          TASK_0_cout << "i.second= " << ::Omega_h::to_string(i.second) << std::endl;
+        }
+        i.second[0] /= sz;
+        if (i.first == "Omega_h_input.cpp::read_input") {
+          TASK_0_cout << "i.second= " << ::Omega_h::to_string(i.second) << std::endl;
+        }
+      }
       for (int irank = 1; irank < h.comm->size(); ++irank) {
         cvec.clear();
         dvec.clear();
@@ -244,7 +260,13 @@ void sendrecv(History const& h, std::map<std::string, std::vector<double> >& res
         split_char_vec(cvec, res);
         OMEGA_H_CHECK_OP(res.size(), ==, dvec.size());
         for (size_t i = 0; i < res.size(); ++i) {
-          result[res[i]][0] += dvec[i];
+          // if (result[res[i]].size() == 0) {
+          //   result[res[i]].resize(3);
+          //   result[res[i]][0] = 0.0;
+          //   result[res[i]][1] = std::numeric_limits<double>::max;
+          //   result[res[i]][2] = 0.0;
+          // }
+          result[res[i]][0] += dvec[i] / sz;
           result[res[i]][1] = std::min(result[res[i]][1], dvec[i]);
           result[res[i]][2] = std::max(result[res[i]][2], dvec[i]);
         }
@@ -267,15 +289,33 @@ void print_top_sorted(History const& h_in) {
   TASK_0_cout << "=============\n";
   std::map<std::string, std::vector<double>> result;
   gather_recursive(h, invalid, result);
+  for (int irank=0; irank < h.comm->size(); ++irank) {
+    if (h.comm->rank() == irank) {
+      std::ostringstream oss;
+      for (auto i : result) {
+        oss << "result= " << i.first << " " << ::Omega_h::to_string(i.second) << std::endl;
+      }
+      PXOUTFL(oss.str());
+    }
+  }
   sendrecv(h, result);
+  for (int irank=0; irank < h.comm->size(); ++irank) {
+    if (h.comm->rank() == irank) {
+      std::ostringstream oss;
+      for (auto i : result) {
+        oss << "2result= " << i.first << " " << ::Omega_h::to_string(i.second) << std::endl;
+      }
+      PXOUTFL(oss.str());
+    }
+  }
   typedef std::pair<std::string, std::vector<double>> my_pair;
   std::vector<my_pair> sorted_result;
   double sum = 0.0;
-  for (auto& i : result) {
-    i.second[0] /= sz;
+  for (auto i : result) {
     sum += i.second[0];
     sorted_result.push_back(std::make_pair(i.first, i.second));
   }
+  sum /= sz;
   TASK_0_cout << "total_runtime= " << total_runtime << " [s] monitored functions= " << sum 
               << " [s] unmonitored= " << 100.0*(total_runtime - sum)/total_runtime << "%" << std::endl;
   std::vector<double> vv(3, (total_runtime-sum));
@@ -285,46 +325,26 @@ void print_top_sorted(History const& h_in) {
             { 
               return a.second[0] > b.second[0];
             });  
-
-  auto cflags( std::cout.flags() );
-  std::string percent = "  ";
-  std::string ul = "  ";
+  std::string percent = " ";
   double scale = 1.0;
-  int width = 14;
   if (h.do_percent) {
     percent = "% ";
-    ul = "- ";
     scale = 100.0/total_runtime;
-    width = 8;
   }
-  TASK_0_cout << std::right 
-              << std::setw(width) << "Ave" << percent 
-              << std::setw(width) << "Min" << percent
-              << std::setw(width) << "Max" << percent
-              << " Name"
-              << std::endl;
-  TASK_0_cout << std::right 
-              << std::setw(width) << "---" << ul
-              << std::setw(width) << "---" << ul
-              << std::setw(width) << "---" << ul
-              << " ----"
-              << std::endl;
-  std::cout.flags(cflags);
-
+  TASK_0_cout << "Average " << percent << "\tMin" << "\tMax" << std::endl;
   for (auto i : sorted_result) {
     auto cflags( std::cout.flags() );
     double val = i.second[0];
     if (val*100.0/total_runtime >= h.chop) {
-      TASK_0_cout << std::right
-                  << std::setw(width) << val*scale << percent 
-                  << std::setw(width) << i.second[1]*scale << percent
-                  << std::setw(width) << i.second[2]*scale << percent << " ";
-      std::cout.flags(cflags);
-      TASK_0_cout << i.first << std::endl;
+        TASK_0_cout << std::setw(5) << val*scale;
+        std::cout.flags(cflags);
+        TASK_0_cout << percent << i.first << "\t" << i.second[1]*scale << percent 
+                    << "\t" << i.second[2]*scale << percent << std::endl;
     }
-    std::cout.flags(coutflags);
   }
+  std::cout.flags(coutflags);
 }
 
 }  // namespace profile
 }  // namespace Omega_h
+

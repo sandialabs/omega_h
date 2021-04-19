@@ -5,11 +5,16 @@
 #include <Omega_h_filesystem.hpp>
 #include <cstring>
 #include <vector>
+#include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
 #endif
 
 namespace Omega_h {
+
+class Comm;
+typedef std::shared_ptr<Comm> CommPtr;
+
 namespace profile {
 
 struct Strings {
@@ -48,7 +53,8 @@ struct History {
   bool do_percent;
   double chop;
   bool add_filename;
-  History(bool dopercent=false, double chop=0.0, bool add_filename=false);
+  CommPtr comm;
+  History(CommPtr comm = nullptr, bool dopercent=false, double chop=0.0, bool add_filename=false);
   History(const History& h);
   inline const char* get_name(std::size_t frame) const {
     return names.get(frames[frame].name_ptr);

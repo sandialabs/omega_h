@@ -120,11 +120,11 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   double chop = cmdline.get<double>("--osh-time-chop", "0.0");
   if (cmdline.parsed("--osh-time")) {
     Omega_h::profile::global_singleton_history =
-      new Omega_h::profile::History(false, chop, add_filename);
+      new Omega_h::profile::History(world_, false, chop, add_filename);
   }
   if (cmdline.parsed("--osh-time-percent")) {
     Omega_h::profile::global_singleton_history =
-      new Omega_h::profile::History(true, chop, add_filename);
+      new Omega_h::profile::History(world_, true, chop, add_filename);
   }
   if (cmdline.parsed("--osh-fpe")) {
     enable_floating_point_exceptions();
@@ -185,11 +185,12 @@ Library::Library(Library const& other)
 Library::~Library() {
   if (Omega_h::profile::global_singleton_history) {
     if (world_->rank() == 0) {
+      // FIXME - parallelize?
       Omega_h::profile::print_top_down_and_bottom_up(
           *Omega_h::profile::global_singleton_history);
-      Omega_h::profile::print_top_sorted(
-          *Omega_h::profile::global_singleton_history);
     }
+    Omega_h::profile::print_top_sorted(
+          *Omega_h::profile::global_singleton_history);
     delete Omega_h::profile::global_singleton_history;
     Omega_h::profile::global_singleton_history = nullptr;
   }
