@@ -35,7 +35,7 @@ inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_C
       for (int _irank_=0; _irank_ < DBG_COMM->size(); _irank_++) {  \
         if (DBG_COMM->rank() == _irank_) {                          \
           std::ostringstream _oss_;                                 \
-          _oss_ << "P" << _irank_ << ":dbg: " << a;                 \
+          _oss_ << "\nP" << _irank_ << ":dbg: " << a;                 \
           std::cout << _oss_.str() << std::flush;                   \
           std::cout.rdbuf()->pubsync();                             \
         }                                                           \
@@ -49,7 +49,7 @@ inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_C
       for (int _irank_=0; _irank_ < DBG_COMM->size(); _irank_++) {      \
         if (DBG_COMM->rank() == _irank_) {                              \
           std::ostringstream _oss_;                                     \
-          _oss_ << "P" << _irank_ << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+          _oss_ << "\nP" << _irank_ << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
           std::cout << _oss_.str() << std::flush;                       \
           std::cout.rdbuf()->pubsync();                                 \
         }                                                               \
@@ -60,7 +60,14 @@ inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_C
 
 #  define PXOUTFL(a) do {                                               \
     if (DBG_COMM) {                                                     \
-      std::cout << "P" << DBG_COMM->rank() << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+      std::cout << "\nP" << DBG_COMM->rank() << ": " << __FILE__ << ":" << __LINE__ << " :dbg: " << a; \
+      std::cout << std::flush;                                          \
+    }                                                                   \
+  } while(0)
+
+#  define PXOUT(a) do {                                                 \
+    if (DBG_COMM) {                                                     \
+      std::cout << "\nP" << DBG_COMM->rank() << ":dbg: " << a;            \
       std::cout << std::flush;                                          \
     }                                                                   \
   } while(0)
@@ -85,6 +92,7 @@ inline std::string size() { return "1"; }
 #  define PCOUT(a) do { } while(0)
 #  define PCOUTFL(a) do { } while(0)
 #  define PXOUTFL(a) do { } while(0)
+#  define PXOUT(a) do { } while(0)
 
 #endif // OMEGA_H_DBG
 
