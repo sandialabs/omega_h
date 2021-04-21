@@ -65,12 +65,21 @@ void test_3d(Library *lib) {
 
   auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
   auto nbvert = boundary_ids.size();
-  Write<Real> vals(nbvert, 50.45632);
-  Read<Real> vals_r(vals);
 
-  mesh.add_boundaryField<Real>(0, "field1", 1, vals_r);
+  mesh.add_boundaryField<Real>(0, "field1", 1);
+  const auto rank = lib->world()->rank();
+  if (!rank) {
+    Write<Real> vals(nbvert, 100);
+    Read<Real> vals_r(vals);
+    mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
+  }
+  else {
+    Write<Real> vals(nbvert, 50.45632);
+    Read<Real> vals_r(vals);
+    mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
+  }
 
-  vtk::write_vtu ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.vtu",
+  vtk::write_parallel ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.vtk",
                    &mesh);
   binary::write ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
                    &mesh);
@@ -79,12 +88,17 @@ void test_3d(Library *lib) {
   binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
                 lib->world(), &new_mesh);
   auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1");
+  auto vals_r = mesh.get_boundaryField_array<Real>(0, "field1");
   OMEGA_H_CHECK(new_bField == vals_r);
   auto nverts = mesh.nverts();
   OMEGA_H_CHECK(new_bField.size() <= nverts);
 
   mesh.sync_boundaryField(0, "field1");
+  vtk::write_parallel 
+    ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_sync.vtk", &mesh);
   mesh.reduce_boundaryField(0, "field1", OMEGA_H_SUM);
+  vtk::write_parallel 
+    ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_reduce.vtk", &mesh);
 
   //run_case<3>(&mesh, "./../../omega_h/meshes/adapt/3d_4k_4pbField.vtk");
 
