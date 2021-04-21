@@ -637,27 +637,75 @@ void Mesh::sync_tag(Int ent_dim, std::string const& name) {
   auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out =
           sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I8> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_I32: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out =
           sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I32> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_I64: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out =
           sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I64> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_F64: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim))
+          change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out =
           sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
   }
@@ -667,27 +715,75 @@ void Mesh::reduce_tag(Int ent_dim, std::string const& name, Omega_h_Op op) {
   auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out = reduce_array(
           ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I8> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_I32: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out = reduce_array(
           ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I32> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_I64: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out = reduce_array(
           ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I64> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
     case OMEGA_H_F64: {
+
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), name);
+      }
+
       auto out = reduce_array(
           ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), name);
+      }
+
       break;
     }
   }
@@ -1079,6 +1175,96 @@ void Mesh::set_boundaryField_array
   }
 
   return;
+}
+
+void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
+     Omega_h_Op op) {
+
+  size_t found = name.find("_boundary");
+  std::string new_name = name;
+  new_name.append("_boundary");
+  if (found != std::string::npos) {
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+  }
+  else {
+    OMEGA_H_CHECK(has_tag(dim, new_name));
+  }
+
+  auto tagbase = get_tagbase(ent_dim, new_name);
+  switch (tagbase->type()) {
+    case OMEGA_H_I8: {
+
+      size_t found = new_name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      auto out = reduce_array(
+          ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, new_name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I8> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      break;
+    }
+    case OMEGA_H_I32: {
+
+      size_t found = new_name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      auto out = reduce_array(
+          ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, new_name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I32> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      break;
+    }
+    case OMEGA_H_I64: {
+
+      size_t found = new_name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      auto out = reduce_array(
+          ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, new_name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<I64> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      break;
+    }
+    case OMEGA_H_F64: {
+
+      size_t found = new_name.find("_boundary");
+      if (found != std::string::npos) {
+        if (nents(ent_dim)) 
+          change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      auto out = reduce_array(
+          ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, new_name, out);
+
+      if (found != std::string::npos) {
+        change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), new_name);
+      }
+
+      break;
+    }
+  }
 }
 
 }  // end namespace Omega_h
