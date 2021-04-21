@@ -22,7 +22,6 @@ set(Omega_h_SOURCES
   Omega_h_class.cpp
   Omega_h_cmdline.cpp
   Omega_h_coarsen.cpp
-  Omega_h_coarsen_flip.cpp
   Omega_h_coarsen_overshoot.cpp
   Omega_h_coarsen_qualities.cpp
   Omega_h_coarsen_topology.cpp
@@ -74,7 +73,6 @@ set(Omega_h_SOURCES
   Omega_h_print.cpp
   Omega_h_profile.cpp
   Omega_h_quality.cpp
-  Omega_h_random.cpp
   Omega_h_reader.cpp
   Omega_h_recover.cpp
   Omega_h_refine.cpp
@@ -107,6 +105,14 @@ set(Omega_h_SOURCES
   Omega_h_xml_lite.cpp
   Omega_h_yaml.cpp
   )
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+else()
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+    Omega_h_random.cpp
+    Omega_h_coarsen_flip.cpp
+	)
+endif()
 
 if (Omega_h_USE_CUDA)
   if (NOT Omega_h_USE_Kokkos)
@@ -145,6 +151,17 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
+  #Is there a better way? I assume CMAKE_MODULE_PATH was purposely not set in
+  # the top level CMakeLists.txt
+  set(OLD_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+  find_package(SimModSuite MODULE REQUIRED)
+  set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
+endif()
+
 if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
@@ -153,25 +170,83 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
+if (Omega_h_USE_CUDA)
+  set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
+endif()
+
 add_library(omega_h ${Omega_h_SOURCES})
+
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "14")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
 bob_library_includes(omega_h)
 
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
 target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
+if (Omega_h_USE_OpenMP)
+  target_compile_options(omega_h PUBLIC -fopenmp)
+endif()
+
+if (Omega_h_USE_CUDA)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(omega_h PUBLIC
+        "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
+        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
+        --expt-extended-lambda)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(omega_h PUBLIC
+        "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
+        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
+        --expt-extended-lambda)
+  endif()
+else()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(omega_h PRIVATE
+        -W
+        -Wall
+        -Wextra
+        -Werror
+        -Wimplicit-fallthrough
+        )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(omega_h PRIVATE
+        -W
+        -Wall
+        -Wextra
+        -Werror
+        )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(omega_h PUBLIC
+        "/wd26451" #arithmetic overflow, long(int * int), shows up in much vector access
+		    "/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
+        )
+  endif()
+endif()
+
 bob_link_dependency(omega_h PUBLIC Kokkos)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
+
+bob_link_dependency(omega_h PUBLIC Gmsh)
 
 if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  target_include_directories(omega_h PUBLIC "${SIMMODSUITE_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${SIMMODSUITE_LIBS}")
+endif()
+
+
 bob_link_dependency(omega_h PUBLIC SEACASExodus)
 
 bob_link_dependency(omega_h PUBLIC ZLIB)
+
+bob_link_dependency(omega_h PUBLIC MPI)
 
 if (Omega_h_USE_dwarf)
   target_include_directories(omega_h PRIVATE "${LIBDWARF_INCLUDE_DIRS}")
@@ -184,10 +259,20 @@ if(Omega_h_USE_DOLFIN)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set_target_properties(omega_h PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
+  if (Omega_h_USE_CUDA)
+    set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
+  endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(osh_add_exe)
 
@@ -221,6 +306,10 @@ endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
+  osh_add_util(osh_class_morph)
+endif()
+if(Omega_h_USE_SimModSuite)
+  osh_add_util(meshsim2osh)
 endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
@@ -248,11 +337,24 @@ if(BUILD_TESTING)
       set(TEST_STR ${VALGRIND} ${ARGN})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}\\bin;$ENV{PATH}" )
+    endif()
   endfunction(test_func)
 
   osh_add_exe(unit_math)
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_func(run_unit_math 1 ./unit_math)
+
+  if(Omega_h_USE_SimModSuite)
+    osh_add_exe(mixed_writeMesh)
+    set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
+    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh)
+    osh_add_exe(mixed_test)
+    set(TEST_EXES ${TEST_EXES} mixed_test)
+    test_func(run_mixed_test 1 ./mixed_test)
+  endif()
+
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_func(run_unit_array_algs 1 ./unit_array_algs)
@@ -278,14 +380,12 @@ if(BUILD_TESTING)
   test_func(serial_1d_test 1 ./1d_test)
   if(Omega_h_USE_MPI)
     test_func(parallel_1d_test 2 ./1d_test)
+    test_func(run_mpi_unit_io 2 ./unit_io)
   endif()
   osh_add_exe(corner_test)
   test_func(run_corner_test 1 ./corner_test)
   osh_add_exe(coarsen_test)
   test_func(run_coarsen_test 1 ./coarsen_test)
-
-  osh_add_exe(face_flux_test)
-  test_func(run_face_flux_test 1 ./face_flux_test)
 
   osh_add_exe(2d_conserve_test)
   test_func(serial_2d_conserve 1 ./2d_conserve_test)
@@ -361,9 +461,12 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(random_test)
-  target_include_directories(random_test PRIVATE ${TPL_PATH})
-  test_func(run_random_test 1 ./random_test)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  else()
+    osh_add_exe(random_test)
+    target_include_directories(random_test PRIVATE ${TPL_PATH})
+    test_func(run_random_test 1 ./random_test)
+  endif()
   osh_add_exe(hypercube_test)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
@@ -371,6 +474,12 @@ if(BUILD_TESTING)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
+  osh_add_exe(reverse_class_test)
+  test_func(reverse_class_test 1 ./reverse_class_test)
+  if(Omega_h_USE_MPI)
+    osh_add_exe(reverse_class_testPar)
+    test_func(reverse_class_testPar 4 ./reverse_class_testPar)
+  endif()
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -385,6 +494,7 @@ set(Omega_h_HEADERS
   Omega_h_array.hpp
   Omega_h_array_ops.hpp
   Omega_h_assoc.hpp
+  Omega_h_atomics.hpp
   Omega_h_base64.hpp
   Omega_h_bbox.hpp
   Omega_h_box.hpp
@@ -458,6 +568,7 @@ set(Omega_h_HEADERS
   Omega_h_vector.hpp
   Omega_h_vtk.hpp
   Omega_h_xml_lite.hpp
+  Omega_h_xml.hpp
   r3d.hpp
   )
 

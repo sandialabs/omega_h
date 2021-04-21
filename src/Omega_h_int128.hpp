@@ -11,12 +11,10 @@ namespace Omega_h {
 struct Int128 {
   std::int64_t high;
   std::uint64_t low;
-  OMEGA_H_INLINE Int128();
+  inline Int128() = default;
   OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
   OMEGA_H_INLINE Int128(std::int64_t value);
-  OMEGA_H_INLINE void operator=(Int128 const& rhs) volatile;
-  OMEGA_H_INLINE Int128(Int128 const& rhs);
-  OMEGA_H_INLINE Int128(const volatile Int128& rhs);
+  inline Int128(Int128 const& rhs) = default;
   double to_double(double unit) const;
   void print(std::ostream& o) const;
   static OMEGA_H_INLINE Int128 from_double(double value, double unit);
@@ -28,32 +26,11 @@ struct Int128 {
    TODO: wrap built-in types when they are available
 */
 
-OMEGA_H_INLINE Int128::Int128() {}
-
 OMEGA_H_INLINE Int128::Int128(std::int64_t h, std::uint64_t l)
     : high(h), low(l) {}
 
 OMEGA_H_INLINE Int128::Int128(std::int64_t value)
     : Int128(std::int64_t(-1) * (value < 0), std::uint64_t(value)) {}
-
-/* volatile... why is this not done by default...
- * returning void instead of reference to *this
- * to silence GCC's warning that the reference
- * is unused.
- */
-OMEGA_H_INLINE void Int128::operator=(Int128 const& rhs) volatile {
-  high = rhs.high;
-  low = rhs.low;
-}
-
-/* which implies we have to declare a regular copy
-   constructor */
-OMEGA_H_INLINE Int128::Int128(Int128 const& rhs)
-    : high(rhs.high), low(rhs.low) {}
-
-/* and a volatile rhs one ? */
-OMEGA_H_INLINE Int128::Int128(const volatile Int128& rhs)
-    : high(rhs.high), low(rhs.low) {}
 
 OMEGA_H_INLINE Int128 Int128::from_double(double value, double unit) {
   double normalized = value / unit;

@@ -25,7 +25,7 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
   return keys2verts_onto_w;
 }
 
-static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
+void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
     Int cell_dim, Write<I8>& dead_cells, Write<I8>& dead_sides) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
@@ -58,7 +58,7 @@ HostFew<Read<I8>, 4> mark_dead_ents(
     Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
   HostFew<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh->nedges()));
-  for (Int dim = EDGE + 1; dim <= mesh->dim(); ++dim)
+  for (Int dim = Int(EDGE) + 1; dim <= mesh->dim(); ++dim)
     writes[dim] = Write<I8>(mesh->nents(dim), 0);
   for (Int dim = mesh->dim(); dim > EDGE; --dim)
     mark_dead_ents(

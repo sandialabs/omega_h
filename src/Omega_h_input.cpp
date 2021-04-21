@@ -7,6 +7,7 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
+#include <cctype>
 
 namespace Omega_h {
 

@@ -22,7 +22,7 @@ OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
 }
 
 template <int dim>
-static Omega_h::Bytes mark(Omega_h::Mesh* m, int level) {
+Omega_h::Bytes mark(Omega_h::Mesh* m, int level) {
   auto coords = m->coords();
   auto mids = Omega_h::average_field(m, dim, dim, coords);
   auto is_leaf = m->ask_leaves(dim);
@@ -58,7 +58,7 @@ static void run_2D_adapt(Omega_h::Library* lib) {
   writer.write();
 }
 
-static void run_3D_adapt(Omega_h::Library* lib) {
+void run_3D_adapt(Omega_h::Library* lib) {
   auto w = lib->world();
   auto f = OMEGA_H_HYPERCUBE;
   auto m = Omega_h::build_box(w, f, 1.0, 1.0, 1.0, 2, 2, 2);

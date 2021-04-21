@@ -11,7 +11,7 @@
 
 using namespace Omega_h;
 
-static Reals logistic_function(Reals x, Real x0, Real L, Real k) {
+Reals logistic_function(Reals x, Real x0, Real L, Real k) {
   Write<Real> out(x.size());
   auto f = OMEGA_H_LAMBDA(LO i) {
     out[i] = L / (1 + std::exp(-k * (x[i] - x0)));

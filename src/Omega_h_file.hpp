@@ -14,7 +14,7 @@
 
 namespace Omega_h {
 
-Mesh read_mesh_file(filesystem::path const& path, CommPtr comm);
+OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm);
 
 bool is_little_endian_cpu();
 
@@ -27,6 +27,14 @@ void read_sol(
 void write_sol(Mesh* mesh, std::string const& filepath,
     std::string const& sol_name, int version = 2);
 }  // namespace meshb
+#endif
+
+#ifdef OMEGA_H_USE_SIMMODSUITE
+namespace meshsim {
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+    CommPtr comm);
+void call_print(LOs a);
+}  // namespace meshsim
 #endif
 
 #ifdef OMEGA_H_USE_SEACASEXODUS
@@ -56,6 +64,28 @@ Mesh read(std::istream& stream, CommPtr comm);
 Mesh read(filesystem::path const& filename, CommPtr comm);
 void write(std::ostream& stream, Mesh* mesh);
 void write(filesystem::path const& filepath, Mesh* mesh);
+
+#ifdef OMEGA_H_USE_GMSH
+
+/**
+ * Load a parallel MSH file specified in format version 4.1 or higher.
+ *
+ * \param filename path to mesh prefix. If "/path/to/square" is passed,
+ * then the loader looks for parts "/path/to/square_$((RANK+1)).msh"
+ * \note The caller has the responsibility to initialize Gmsh library
+ * before calling this function with \c ::gmsh::initialize
+ */
+Mesh read_parallel(filesystem::path filename, CommPtr comm);
+
+/**
+ * Write the specified mesh in MSH format version 4.1
+ *
+ * \note The caller has the responsibility to initialize Gmsh library
+ * before calling this function with \c ::gmsh::initialize
+ */
+void write_parallel(filesystem::path const& filename, Mesh& mesh);
+#endif  // OMEGA_H_USE_GMSH
+
 }  // namespace gmsh
 
 namespace vtk {
@@ -67,6 +97,7 @@ static constexpr bool dont_compress = false;
 #define OMEGA_H_DEFAULT_COMPRESS false
 #endif
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
+TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
@@ -75,6 +106,10 @@ void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
+
+void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
+
 void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,

@@ -1,13 +1,21 @@
 #include "Omega_h_file.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <cctype>
+#include <sstream>
+#include <unordered_map>
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
+
+#ifdef OMEGA_H_USE_GMSH
+#include <gmsh.h>
+#endif  // OMEGA_H_USE_GMSH
 
 namespace Omega_h {
 
@@ -97,6 +105,30 @@ void seek_line(std::istream& stream, std::string const& want) {
   OMEGA_H_CHECK(stream);
 }
 
+static bool seek_optional_section(
+    std::istream& stream, std::string const& want) {
+  OMEGA_H_CHECK(stream);
+  std::string line;
+  auto const pos = stream.tellg();
+  bool found = false;
+  while (std::getline(stream, line)) {
+    if (line == want) {
+      found = true;
+      break;
+    }
+    if (!line.empty() && line.rfind("$End") != 0 && line[0] == '$') {
+      // found the beginning of a new section that is not the one expected
+      break;
+    }
+  }
+  if (!found) {
+    stream.clear();
+    stream.seekg(pos);
+  }
+  OMEGA_H_CHECK(stream);
+  return found;
+}
+
 static void eat_newlines(std::istream& stream) {
   while (stream.peek() == int('\n')) stream.get();
 }
@@ -108,6 +140,75 @@ static void read(
     binary::read_value(stream, value, needs_swapping);
   } else {
     stream >> value;
+  }
+}
+
+static void read_internal_entities_section(Mesh& mesh, Real format,
+    std::vector<std::string>& physical_names, std::istream& stream,
+    bool is_binary, bool needs_swapping) {
+  Int num_points, num_curves, num_surfaces, num_volumes;
+  read(stream, num_points, is_binary, needs_swapping);
+  read(stream, num_curves, is_binary, needs_swapping);
+  read(stream, num_surfaces, is_binary, needs_swapping);
+  read(stream, num_volumes, is_binary, needs_swapping);
+  while (num_points-- > 0) {
+    Int tag;
+    Vector<3> point;
+    Int num_physicals;
+    read(stream, tag, is_binary, needs_swapping);
+    read(stream, point[0], is_binary, needs_swapping);
+    read(stream, point[1], is_binary, needs_swapping);
+    read(stream, point[2], is_binary, needs_swapping);
+    if (format == 4.0) {
+      // strangely, the point is specified twice in 4.0, not 4.1
+      read(stream, point[0], is_binary, needs_swapping);
+      read(stream, point[1], is_binary, needs_swapping);
+      read(stream, point[2], is_binary, needs_swapping);
+    }
+    read(stream, num_physicals, is_binary, needs_swapping);
+    while (num_physicals-- > 0) {
+      Int physical;
+      read(stream, physical, is_binary, needs_swapping);
+      OMEGA_H_CHECK(physical != 0);
+      if (physical > 0) {
+        const auto& physicalname = physical_names[physical - 1];
+        mesh.class_sets[physicalname].emplace_back(0, tag);
+      }
+    }
+  }
+  const std::vector<std::pair<Int, Int>> params{
+      {num_curves, 2}, {num_surfaces, 2}, {num_volumes, 3}};
+  for (auto param : params) {
+    auto num_elements = param.first;
+    const auto dim = param.second;
+    while (num_elements-- > 0) {
+      Int tag;
+      Vector<3> min_point, max_point;
+      Int num_physicals;
+      read(stream, tag, is_binary, needs_swapping);
+      read(stream, min_point[0], is_binary, needs_swapping);
+      read(stream, min_point[1], is_binary, needs_swapping);
+      read(stream, min_point[2], is_binary, needs_swapping);
+      read(stream, max_point[0], is_binary, needs_swapping);
+      read(stream, max_point[1], is_binary, needs_swapping);
+      read(stream, max_point[2], is_binary, needs_swapping);
+      read(stream, num_physicals, is_binary, needs_swapping);
+      while (num_physicals-- > 0) {
+        Int physical;
+        read(stream, physical, is_binary, needs_swapping);
+        OMEGA_H_CHECK(physical != 0);
+        if (physical > 0) {
+          const auto& physical_name = physical_names[physical - 1];
+          mesh.class_sets[physical_name].emplace_back(dim, tag);
+        }
+      }
+      Int num_bounding_points;
+      read(stream, num_bounding_points, is_binary, needs_swapping);
+      while (num_bounding_points-- > 0) {
+        Int points_tag;
+        read(stream, points_tag, is_binary, needs_swapping);
+      }
+    }
   }
 }
 
@@ -131,6 +232,36 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     }
   }
   OMEGA_H_CHECK(data_size == sizeof(Real));
+  std::vector<std::string> physical_names;
+  if (seek_optional_section(stream, "$PhysicalNames")) {
+    Int num_physicals;
+    read(stream, num_physicals, is_binary, needs_swapping);
+    physical_names.reserve(static_cast<std::size_t>(num_physicals));
+    eat_newlines(stream);
+    for (auto i = 0; i < num_physicals; ++i) {
+      Int dim, number;
+      read(stream, dim, is_binary, needs_swapping);
+      read(stream, number, is_binary, needs_swapping);
+      OMEGA_H_CHECK(number == i + 1);
+      std::string name;
+      stream >> name;
+      physical_names.push_back(name.substr(1, name.size() - 2));
+    }
+  }
+  if (seek_optional_section(stream, "$Entities")) {
+    read_internal_entities_section(
+        *mesh, format, physical_names, stream, is_binary, needs_swapping);
+    std::string line;
+    std::getline(stream, line);
+    // line matches "[ ]*"
+    if (!line.empty()) {
+      line.erase(std::remove_if(line.begin(), line.end(),
+          [](unsigned char c) { return std::isspace(c); }));
+    }
+    OMEGA_H_CHECK(line.empty());
+    std::getline(stream, line);
+    OMEGA_H_CHECK(line == "$EndEntities");
+  }
   seek_line(stream, "$Nodes");
   std::vector<Vector<3>> node_coords;
   std::map<int, int> node_number_map;
@@ -141,28 +272,58 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, nnodes, is_binary, needs_swapping);
     node_coords.reserve(std::size_t(nnodes));
-    for (int entity_block = 0; entity_block < num_entity_blocks;
-         ++entity_block) {
-      int class_id, class_dim;
-      read(stream, class_id, is_binary, needs_swapping);
-      read(stream, class_dim, is_binary, needs_swapping);
-      int node_type, num_block_nodes;
-      read(stream, node_type, is_binary, needs_swapping);
-      read(stream, num_block_nodes, is_binary, needs_swapping);
-      for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
-        int node_number;
-        read(stream, node_number, is_binary, needs_swapping);
-        node_number_map[node_number] = int(node_coords.size());
-        Vector<3> coords;
-        read(stream, coords[0], is_binary, needs_swapping);
-        read(stream, coords[1], is_binary, needs_swapping);
-        read(stream, coords[2], is_binary, needs_swapping);
-        node_coords.push_back(coords);
+    if (format >= 4.1) {
+      int node_tag;
+      read(stream, node_tag, is_binary, needs_swapping);  // min
+      read(stream, node_tag, is_binary, needs_swapping);  // max
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_dim, is_binary, needs_swapping);
+        read(stream, class_id, is_binary, needs_swapping);
+        int node_type, num_block_nodes;
+        read(stream, node_type, is_binary, needs_swapping);
+        read(stream, num_block_nodes, is_binary, needs_swapping);
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          int node_number;
+          read(stream, node_number, is_binary, needs_swapping);
+          const auto position = int(node_coords.size() + block_node);
+          node_number_map[node_number] = position;
+        }
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          Vector<3> coords;
+          read(stream, coords[0], is_binary, needs_swapping);
+          read(stream, coords[1], is_binary, needs_swapping);
+          read(stream, coords[2], is_binary, needs_swapping);
+          node_coords.push_back(coords);
+        }
+      }
+
+    } else {
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_id, is_binary, needs_swapping);
+        read(stream, class_dim, is_binary, needs_swapping);
+        int node_type, num_block_nodes;
+        read(stream, node_type, is_binary, needs_swapping);
+        read(stream, num_block_nodes, is_binary, needs_swapping);
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          int node_number;
+          read(stream, node_number, is_binary, needs_swapping);
+          node_number_map[node_number] = int(node_coords.size());
+          Vector<3> coords;
+          read(stream, coords[0], is_binary, needs_swapping);
+          read(stream, coords[1], is_binary, needs_swapping);
+          read(stream, coords[2], is_binary, needs_swapping);
+          node_coords.push_back(coords);
+        }
       }
     }
   } else {
     stream >> nnodes;
     OMEGA_H_CHECK(nnodes >= 0);
+    node_coords.reserve(std::size_t(nnodes));
     eat_newlines(stream);
     for (LO i = 0; i < nnodes; ++i) {
       LO number;
@@ -179,19 +340,29 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     }
   }
   seek_line(stream, "$Elements");
-  std::vector<int> ent_class_ids[4];
-  std::vector<int> ent_nodes[4];
+  std::array<std::vector<int>, 4> ent_class_ids;
+  std::array<std::vector<int>, 4> ent_nodes;
   Omega_h_Family family = OMEGA_H_SIMPLEX;
   if (format >= 4.0) {
     eat_newlines(stream);
     int num_entity_blocks, total_num_ents;
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, total_num_ents, is_binary, needs_swapping);
+    if (format >= 4.1) {
+      int element_tag;
+      read(stream, element_tag, is_binary, needs_swapping);  // min
+      read(stream, element_tag, is_binary, needs_swapping);  // max
+    }
     for (int entity_block = 0; entity_block < num_entity_blocks;
          ++entity_block) {
       int class_id, class_dim;
-      read(stream, class_id, is_binary, needs_swapping);
-      read(stream, class_dim, is_binary, needs_swapping);
+      if (format == 4.) {
+        read(stream, class_id, is_binary, needs_swapping);
+        read(stream, class_dim, is_binary, needs_swapping);
+      } else {
+        read(stream, class_dim, is_binary, needs_swapping);
+        read(stream, class_id, is_binary, needs_swapping);
+      }
       int ent_type, num_block_ents;
       read(stream, ent_type, is_binary, needs_swapping);
       read(stream, num_block_ents, is_binary, needs_swapping);
@@ -218,10 +389,12 @@ void read_internal(std::istream& stream, Mesh* mesh) {
         }
       }
     }
+
   } else {
     LO nents;
     stream >> nents;
     OMEGA_H_CHECK(nents >= 0);
+    std::array<std::unordered_map<Int, Int>, 4> ent2physical;
     if (is_binary) {
       eat_newlines(stream);
       LO i = 0;
@@ -242,6 +415,9 @@ void read_internal(std::istream& stream, Mesh* mesh) {
           binary::read_value(stream, physical, needs_swapping);
           binary::read_value(stream, elementary, needs_swapping);
           ent_class_ids[dim].push_back(elementary);
+          if (physical != 0) {
+            ent2physical[dim].emplace(elementary, physical);
+          }
           for (Int k = 2; k < ntags; ++k) {
             I32 ignored;
             binary::read_value(stream, ignored, false);
@@ -265,10 +441,12 @@ void read_internal(std::istream& stream, Mesh* mesh) {
         Int ntags;
         stream >> ntags;
         OMEGA_H_CHECK(ntags >= 2);
-        Int physical;
-        Int elementary;
+        Int physical, elementary;
         stream >> physical >> elementary;
         ent_class_ids[dim].push_back(elementary);
+        if (physical != 0) {
+          ent2physical[dim].emplace(elementary, physical);
+        }
         Int tag;
         for (Int j = 2; j < ntags; ++j) {
           stream >> tag;
@@ -279,6 +457,18 @@ void read_internal(std::istream& stream, Mesh* mesh) {
           stream >> node_number;
           ent_nodes[dim].push_back(node_number - 1);
         }
+      }
+    }
+    for (Int dim = 0; dim < static_cast<Int>(ent2physical.size()); ++dim) {
+      const auto& entities = ent2physical[dim];
+      for (const auto& pair : entities) {
+        const auto entity = pair.first;
+        const auto physical = pair.second;
+        std::string physical_name(std::to_string(physical));
+        if (physical <= static_cast<Int>(physical_names.size())) {
+          physical_name = physical_names[physical - 1];
+        }
+        mesh->class_sets[physical_name].emplace_back(dim, entity);
       }
     }
   }
@@ -340,6 +530,165 @@ Mesh read(filesystem::path const& filename, CommPtr comm) {
   }
   return gmsh::read(file, comm);
 }
+
+#ifdef OMEGA_H_USE_GMSH
+
+Mesh read_parallel(filesystem::path filename, CommPtr comm) {
+  Mesh mesh(comm->library());
+  Omega_h_Family family = OMEGA_H_SIMPLEX;
+  {
+    std::ostringstream part_suffix;
+    part_suffix << '_' << comm->rank() + 1 << ".msh";
+    filename += filesystem::path(part_suffix.str());
+  }
+  if (!exists(filename)) {
+    Omega_h_fail("missing mesh part \"%s\" for rank %i\n", filename.c_str(), comm->rank());
+  }
+  ::gmsh::open(filename.c_str());
+  std::vector<std::size_t> node_tags;
+  std::vector<double> node_coords, parametric_coords;
+  ::gmsh::model::mesh::getNodes(node_tags, node_coords, parametric_coords);
+  const auto nnodes = static_cast<LO>(node_tags.size());
+  if (nnodes == 0) {
+    Omega_h_fail("Please check that filename is correct!\n");
+  }
+  std::map<GO, LO> node_number_map;
+  HostWrite<GO> host_vert_globals(nnodes);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    const auto global_index =
+        static_cast<GO>(node_tags[static_cast<std::size_t>(local_index)]);
+    node_number_map[global_index] = local_index;
+    host_vert_globals[local_index] = global_index;
+  }
+  Read<GO> vert_globals(host_vert_globals.write());
+
+  std::array<std::vector<int>, 4> ent_class_ids;
+  std::array<std::vector<LO>, 4> ent_nodes;
+  std::array<std::vector<GO>, 4> ent_globals;
+  ::gmsh::vectorpair physical_tags;
+  ::gmsh::model::getPhysicalGroups(physical_tags);
+  if (physical_tags.empty()) {
+    physical_tags.push_back({-1, 0});
+  }
+  for (const auto& physical_tag : physical_tags) {
+    ::gmsh::vectorpair tags;
+    const auto physical = physical_tag.second;
+    const auto dim = physical_tag.first;
+    if (dim >= 0) {
+      std::vector<int> entities_tag;
+      ::gmsh::model::getEntitiesForPhysicalGroup(dim, physical, entities_tag);
+      std::string name;
+      ::gmsh::model::getPhysicalName(dim, physical, name);
+      auto& set = mesh.class_sets[name];
+      for (auto j = 0u; j < entities_tag.size(); ++j) {
+        set.emplace_back(dim, entities_tag[j]);
+        tags.push_back({dim, entities_tag[j]});
+      }
+    } else {
+      ::gmsh::model::getEntities(tags);
+    }
+    for (auto j = 0u; j < tags.size(); ++j) {
+      const auto dim = tags[j].first;
+      const auto class_id = tags[j].second;
+      std::vector<int> element_types;
+      std::vector<std::vector<std::size_t>> element_tags, nodes_in_element_tags;
+      ::gmsh::model::mesh::getElements(
+          element_types, element_tags, nodes_in_element_tags, dim, class_id);
+      for (std::size_t type_index = 0; type_index < element_types.size();
+           ++type_index) {
+        OMEGA_H_CHECK(dim == type_dim(element_types[type_index]));
+        std::size_t num_block_ents = element_tags[type_index].size();
+        std::size_t nodes_per_ent =
+            nodes_in_element_tags[type_index].size() / num_block_ents;
+        ent_class_ids[dim].reserve(ent_class_ids[dim].size() + num_block_ents);
+        ent_globals[dim].reserve(ent_globals[dim].size() + num_block_ents);
+        ent_nodes[dim].reserve(
+            ent_nodes[dim].size() + num_block_ents * nodes_per_ent);
+        for (auto block_ent = 0u; block_ent < num_block_ents; ++block_ent) {
+          ent_class_ids[dim].push_back(class_id);
+          ent_globals[dim].push_back(
+              static_cast<GO>(element_tags[type_index][block_ent]));
+          for (auto ent_node = 0u; ent_node < nodes_per_ent; ++ent_node) {
+            auto it = node_number_map.find(static_cast<GO>(
+                nodes_in_element_tags[type_index]
+                                     [block_ent * nodes_per_ent + ent_node]));
+            OMEGA_H_CHECK(it != node_number_map.end());
+            ent_nodes[dim].push_back(it->second);
+          }
+        }
+      }
+    }
+  }
+
+  Int max_dim;
+  if (!ent_nodes[3].empty()) {
+    max_dim = 3;
+  } else if (!ent_nodes[2].empty()) {
+    max_dim = 2;
+  } else if (!ent_nodes[1].empty()) {
+    max_dim = 1;
+  } else {
+    Omega_h_fail("There were no Elements of dimension higher than zero!\n");
+  }
+
+  HostWrite<Real> host_coords(nnodes * max_dim);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    for (LO j = 0; j < max_dim; ++j) {
+      host_coords[local_index * max_dim + j] =
+          node_coords[static_cast<std::size_t>(local_index * 3 + j)];
+    }
+  }
+  for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
+    const auto ndim_ents = static_cast<LO>(ent_globals[ent_dim].size());
+    HostWrite<GO> host_elem_globals(ndim_ents);
+    HostWrite<LO> host_class_id(ndim_ents);
+    HostWrite<LO> host_ev2v(ent_nodes[ent_dim].size());
+    if (ndim_ents > 0) {
+      const auto neev = static_cast<LO>(ent_nodes[ent_dim].size()) / ndim_ents;
+      for (LO local_index = 0; local_index < ndim_ents; ++local_index) {
+        const auto global_index =
+            ent_globals[ent_dim][static_cast<std::size_t>(local_index)];
+        host_elem_globals[local_index] = global_index;
+        for (Int j = 0; j < neev; ++j) {
+          host_ev2v[local_index * neev + j] =
+              ent_nodes[ent_dim]
+                       [static_cast<std::size_t>(local_index * neev + j)];
+        }
+        host_class_id[local_index] =
+            ent_class_ids[ent_dim][static_cast<std::size_t>(local_index)];
+      }
+    }
+    LOs eqv2v(host_ev2v.write());
+    if (ent_dim == max_dim) {
+      Read<GO> elem_globals(host_elem_globals.write());
+      // build_from_elems2verts(
+      // &mesh, mesh.library()->self(), OMEGA_H_SIMPLEX, dim, eqv2v,
+      // vert_globals);
+      mesh.set_comm(comm);
+      mesh.set_parting(OMEGA_H_ELEM_BASED);
+      mesh.set_family(family);
+      mesh.set_dim(ent_dim);
+      build_verts_from_globals(&mesh, vert_globals);
+      // build_ents_from_elems2verts(&mesh, eqv2v, vert_globals, elem_globals);
+      for (Int mdim = 1; mdim < ent_dim; ++mdim) {
+        auto mv2v = find_unique(eqv2v, mesh.family(), ent_dim, mdim);
+        add_ents2verts(&mesh, mdim, mv2v, vert_globals, GOs());
+      }
+      add_ents2verts(&mesh, ent_dim, eqv2v, vert_globals, elem_globals);
+      // if (!comm->reduce_and(is_sorted(vert_globals))) {
+      //  reorder_by_globals(&mesh);
+      //}
+      mesh.add_coords(host_coords.write());
+    }
+    classify_equal_order(&mesh, ent_dim, eqv2v, host_class_id.write());
+  }
+  mesh.set_parting(OMEGA_H_GHOSTED);
+  finalize_classification(&mesh);
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
+  return mesh;
+}
+
+#endif  // OMEGA_H_USE_GMSH
 
 void write(std::ostream& stream, Mesh* mesh) {
   OMEGA_H_CHECK(mesh->comm()->size() == 1);
@@ -403,6 +752,57 @@ void write(filesystem::path const& filepath, Mesh* mesh) {
   std::ofstream stream(filepath.c_str());
   gmsh::write(stream, mesh);
 }
+
+#ifdef OMEGA_H_USE_GMSH
+
+void write_parallel(filesystem::path const& filename, Mesh& mesh) {
+  const auto dim = mesh.dim();
+  const auto nnodes = mesh.nverts();
+  const auto globals_v = mesh.globals(VERT);
+  const auto coords = mesh.coords();
+  const auto gmsh_dims = 3;
+
+  std::vector<std::size_t> node_tags(static_cast<size_t>(nnodes));
+  std::vector<double> node_coords(gmsh_dims * static_cast<size_t>(nnodes), 0);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    node_tags[static_cast<std::size_t>(local_index)] =
+        static_cast<size_t>(globals_v[local_index]) + 1;
+    // cleaner to use gather_vector on coords
+    for (LO j = 0; j < dim; ++j) {
+      node_coords[static_cast<std::size_t>(local_index * gmsh_dims + j)] =
+          coords[local_index * dim + j];
+    }
+  }
+
+  auto ents2verts = mesh.ask_elem_verts();
+  const LO ndim_ents = mesh.nelems();
+  std::vector<std::size_t> element_tags(static_cast<size_t>(ndim_ents));
+  std::vector<std::size_t> ent_nodes(
+      static_cast<size_t>((dim + 1) * ndim_ents));
+  const auto globals_e = mesh.globals(dim);
+  for (LO local_index = 0; local_index < ndim_ents; ++local_index) {
+    element_tags[static_cast<std::size_t>(local_index)] =
+        static_cast<size_t>(globals_e[local_index]) + 1;
+    for (Int j = 0; j < dim + 1; ++j) {
+      ent_nodes[static_cast<std::size_t>(local_index * (dim + 1) + j)] =
+          static_cast<size_t>(
+              globals_v[ents2verts[local_index * (dim + 1) + j]]) +
+          1;
+    }
+  }
+  ::gmsh::model::add("parallel_export");
+
+  // add discrete geometry with tag 1
+  ::gmsh::model::addDiscreteEntity(dim, 1);
+  ::gmsh::model::mesh::addNodes(dim, 1, node_tags, node_coords);
+  ::gmsh::model::mesh::addElementsByType(
+      1, dim == 2 ? 2 : 4, element_tags, ent_nodes);
+  std::ostringstream partFilename;
+  partFilename << filename << '_' << mesh.comm()->rank() + 1 << ".msh";
+  ::gmsh::write(partFilename.str());
+}
+
+#endif  // OMEGA_H_USE_GMSH
 
 }  // namespace gmsh
 

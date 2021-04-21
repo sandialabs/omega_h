@@ -279,7 +279,7 @@ Bytes mark_fan_preimage(LOs a2b) {
 }
 
 template <typename Functor>
-static Read<typename Functor::input_type> fan_reduce_tmpl(
+Read<typename Functor::input_type> fan_reduce_tmpl(
     LOs a2b, Read<typename Functor::input_type> b_data, Int width) {
   using T = typename Functor::input_type;
   using VT = typename Functor::value_type;

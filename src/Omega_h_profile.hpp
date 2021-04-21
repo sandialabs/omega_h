@@ -157,7 +157,7 @@ struct History {
   std::size_t calls(std::size_t frame) const;
 };
 
-extern History* global_singleton_history;
+OMEGA_H_DLL extern History* global_singleton_history;
 
 void simple_print(profile::History const& history);
 History invert(History const& h);

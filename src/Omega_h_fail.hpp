@@ -19,14 +19,19 @@ struct exception : public std::exception {
 };
 #endif
 
-void protect();
-void fail(char const* format, ...)
-    __attribute__((noreturn, format(printf, 1, 2)));
+void protect();	
+#ifdef _MSC_VER
+__declspec(noreturn)
+#else
+__attribute__((noreturn, format(printf, 1, 2)))
+#endif
+void fail(char const* format, ...);
+
 }  // namespace Omega_h
 
 #define Omega_h_fail Omega_h::fail
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
+#if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
 #define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
 #define OMEGA_H_CHECK(cond) assert(cond)

@@ -597,6 +597,31 @@ any eval_cos(LO size, ExprReader::Args& args) {
   }
 }
 
+any eval_erf(LO size, ExprReader::Args& args) {
+  if (args.size() != 1) {
+    std::stringstream ss;
+    ss << "erf() takes exactly one argument, given " << args.size();
+    throw ParserFail(ss.str());
+  }
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Real)) {
+    return std::erf(any_cast<Real>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = any_cast<Reals>(in_any);
+    if (a.size() != size) {
+      throw ParserFail("erf() given array that wasn't scalars");
+    }
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::erf(a[i]); };
+    parallel_for(a.size(), f, "eval_erf(Reals)");
+    return Reals(out);
+  } else {
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type().name() << " to erf()\n";
+    throw ParserFail(ss.str());
+  }
+}
+
 template <Int dim>
 any eval_norm(LO size, ExprReader::Args& args) {
   if (args.size() != 1) {
@@ -644,6 +669,8 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
       "sin", [=](Args& args) { return eval_sin(local_size, args); });
   register_function(
       "cos", [=](Args& args) { return eval_cos(local_size, args); });
+  register_function(
+      "erf", [=](Args& args) { return eval_erf(local_size, args); });
   register_function("vector",
       [=](Args& args) { return make_vector(local_size, local_dim, args); });
   register_function("symm",

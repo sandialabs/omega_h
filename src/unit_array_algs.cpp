@@ -153,7 +153,7 @@ static void test_injective_map() {
   OMEGA_H_CHECK(ints2primes == LOs({-1, -1, 0, 1, -1, 2, -1, 3}));
 }
 
-static void test_binary_search(LOs a, LO val, LO expect) {
+void test_binary_search(LOs a, LO val, LO expect) {
   auto size = a.size();
   auto f = OMEGA_H_LAMBDA(LO) {
     auto res = binary_search(a, val, size);

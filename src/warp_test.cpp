@@ -11,7 +11,7 @@
 
 using namespace Omega_h;
 
-static void add_dye(Mesh* mesh) {
+void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
   auto dye_fun = OMEGA_H_LAMBDA(LO vert) {
@@ -32,7 +32,7 @@ static void add_dye(Mesh* mesh) {
   mesh->add_tag(VERT, "dye", 1, Reals(dye_w));
 }
 
-static Reals form_pointwise(Mesh* mesh) {
+Reals form_pointwise(Mesh* mesh) {
   auto dim = mesh->dim();
   auto ecoords =
       average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
@@ -89,8 +89,8 @@ int main(int argc, char** argv) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto warp_fun = OMEGA_H_LAMBDA(LO vert) {
-      auto x0 = get_vector<dim>(coords, vert);
-      auto x1 = zero_vector<dim>();
+      auto x0 = get_vector<3>(coords, vert);
+      auto x1 = zero_vector<3>();
       x1[0] = x0[0];
       x1[1] = x0[1];
       auto x2 = x1 - mid;
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
       dst[1] = std::sin(dest_a) * polar_r;
       dst = dst + mid;
       auto w = dst - x0;
-      set_vector<dim>(warp_w, vert, w);
+      set_vector<3>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
