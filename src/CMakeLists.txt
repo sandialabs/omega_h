@@ -190,6 +190,7 @@ if (Omega_h_USE_OpenMP)
 endif()
 
 if (Omega_h_USE_CUDA)
+  set_property(TARGET omega_h PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
@@ -273,6 +274,7 @@ function(osh_add_exe EXE_NAME)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
+  set_property(TARGET ${EXE_NAME} PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(osh_add_exe)
 
