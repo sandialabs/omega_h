@@ -1092,14 +1092,14 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
   else {
-    OMEGA_H_CHECK(has_tag(dim, new_name));
+    OMEGA_H_CHECK(has_tag(ent_dim, new_name));
   }
 
   auto tagbase = get_tagbase(ent_dim, new_name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
 
-      if (nents(ent_dim)) 
+      if (nents(ent_dim))
         change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name);
 
       auto out = reduce_array(
@@ -1112,7 +1112,7 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
     }
     case OMEGA_H_I32: {
 
-      if (nents(ent_dim)) 
+      if (nents(ent_dim))
         change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name);
 
       auto out = reduce_array(
@@ -1162,7 +1162,7 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
   else {
-    OMEGA_H_CHECK(has_tag(dim, new_name));
+    OMEGA_H_CHECK(has_tag(ent_dim, new_name));
   }
 
   auto tagbase = get_tagbase(ent_dim, new_name);
@@ -1215,7 +1215,7 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
           sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), name);
+      change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }

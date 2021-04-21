@@ -32,7 +32,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = get_implied_metrics(mesh);
-  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  mesh->add_tag(0, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   set_target_metric<dim>(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
@@ -78,10 +78,13 @@ void test_3d(Library *lib) {
   auto new_mesh = Mesh(lib);
   binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
                 lib->world(), &new_mesh);
-  auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1"); 
+  auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1");
   OMEGA_H_CHECK(new_bField == vals_r);
   auto nverts = mesh.nverts();
   OMEGA_H_CHECK(new_bField.size() <= nverts);
+
+  mesh.sync_boundaryField(0, "field1");
+  mesh.reduce_boundaryField(0, "field1", OMEGA_H_SUM);
 
   //run_case<3>(&mesh, "./../../omega_h/meshes/adapt/3d_4k_4pbField.vtk");
 
