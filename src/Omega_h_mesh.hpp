@@ -96,12 +96,14 @@ class Mesh {
   void add_boundaryField(
     Int dim, std::string const& name, Int ncomps, Read<T> array,
     bool internal = false);
-
   template <typename T>
   Read<T> get_boundaryField_array(Int dim, std::string const& name) const;
   template <typename T>
   void set_boundaryField_array(
     Int dim, std::string const& name, Read<T> array, bool internal = false);
+  void reduce_boundaryField(Int ent_dim, std::string const& name,
+     Omega_h_Op op);
+  void sync_boundaryField(Int ent_dim, std::string const& name);
 
   template <typename T>
   void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);
