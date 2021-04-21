@@ -154,6 +154,8 @@ class Mesh {
   Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
   template <typename T>
   Read<T> owned_array(Int ent_dim, Read<T> a, Int width);
+  template <typename T>
+  Read<T> owned_subset_array(Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);
   void sync_tag(Int dim, std::string const& name);
   void reduce_tag(Int dim, std::string const& name, Omega_h_Op op);
   bool operator==(Mesh& other);
@@ -217,6 +219,8 @@ __host__
   extern template Read<T> Mesh::owned_array(                                   \
       Int ent_dim, Read<T> a, Int width);                                      \
   extern template Read<T> Mesh::sync_subset_array(                             \
+      Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
+  extern template Read<T> Mesh::owned_subset_array(                            \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
