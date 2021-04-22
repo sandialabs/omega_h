@@ -286,8 +286,8 @@ Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
 }
 
 void Mesh::check_dim(Int ent_dim) const {
-  OMEGA_H_CHECK(0 <= ent_dim);
-  OMEGA_H_CHECK(ent_dim <= dim());
+  OMEGA_H_CHECK_OP(0, <=, ent_dim);
+  OMEGA_H_CHECK_OP(ent_dim, <=, dim());
 }
 
 void Mesh::check_dim2(Int ent_dim) const {
@@ -759,6 +759,38 @@ Real Mesh::imbalance(Int ent_dim) const {
   auto n = comm_->size();
   auto a = s / n;
   return m / a;
+}
+
+std::string Mesh::string(int verbose) {
+  (void)verbose;
+  std::ostringstream oss;
+  oss << "Mesh:" 
+      << "\n    comm()->size              = " << comm()->size()
+      << "\n    parting                   = " << parting()
+      << "\n    dim                       = " << dim()
+      << "\n    family                    = " << family()
+      << "\n    nents                     = " << nents(dim())
+      << "\n    nents(0)                  = " << nents(0)
+      << "\n    nelems                    = " << nelems();
+  if (dim() > 2) {
+    oss << "\n    nregions                  = " << nregions();
+  }
+  oss << "\n    nfaces                    = " << nfaces()
+      << "\n    nedges                    = " << nedges()
+      << "\n    nverts                    = " << nverts()
+      << "\n    nglobal_ents              = " << nglobal_ents(dim())
+      << "\n    nglobal_ents(0)           = " << nglobal_ents(0)
+      << "\n    ntags                     = " << ntags(dim())
+      << "\n    ntags(0)                  = " << ntags(0)
+    //<< "\n    min_quality               = " << min_quality()
+    //<< "\n    max_length                = " << max_length()
+      << "\n    could_be_shared           = " << could_be_shared(dim())
+      << "\n    could_be_shared(0)        = " << could_be_shared(0)
+      << "\n    owners_have_all_upward    = " << owners_have_all_upward(dim())
+      << "\n    owners_have_all_upward(0) = " << owners_have_all_upward(0)
+      << "\n    have_all_upward           = " << have_all_upward()
+      << "\n    imbalance                 = " << imbalance();
+  return oss.str();
 }
 
 bool can_print(Mesh* mesh) {

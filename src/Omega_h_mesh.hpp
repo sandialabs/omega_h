@@ -168,6 +168,7 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+  std::string string(int verbose=0);
 
  public:
   ClassSets class_sets;
