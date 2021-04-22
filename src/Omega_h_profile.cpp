@@ -179,25 +179,28 @@ void print_time_sorted(History const& h, double total_runtime) {
   print_time_sorted_recursive(h, invalid, depths, total_runtime);
 }
 
-static void gather_recursive(History const& h, std::size_t frame, std::map<std::string, std::vector<double>>& result) {
+enum { TOP_AVE,
+       TOP_MIN,
+       TOP_MAX,
+       TOP_NUM_ENTRIES };
+
+static void gather(History const& h, std::size_t frame, std::map<std::string, std::vector<double>>& result) {
   for (std::size_t child = h.first(frame); child != invalid;
        child = h.next(child)) {
     if (result[h.get_name(child)].size() == 0) {
-      result[h.get_name(child)].resize(3);
+      result[h.get_name(child)].resize(TOP_NUM_ENTRIES);
     }
-    result[h.get_name(child)][0] = h.time(child);
-    result[h.get_name(child)][1] = h.time(child);
-    result[h.get_name(child)][2] = h.time(child);
-    gather_recursive(h, child, result);
+    result[h.get_name(child)][TOP_AVE] = h.time(child);
+    result[h.get_name(child)][TOP_MIN] = h.time(child);
+    result[h.get_name(child)][TOP_MAX] = h.time(child);
   }
 }
 
-void print_top_down_and_bottom_up(History const& h) {
+void print_top_down_and_bottom_up(History const& h, double total_runtime) {
   auto coutflags( std::cout.flags() );
   if (h.do_percent) {
     std::cout << std::setprecision(2) << std::fixed;
   }
-  double total_runtime = now() - h.start_time;
   std::cout << "\n";
   std::cout << "TOP-DOWN:\n";
   std::cout << "=========\n";
@@ -230,7 +233,7 @@ void sendrecv(History const& h, std::map<std::string, std::vector<double> >& res
     if (h.comm->rank()) {
       for (auto i : result) {
         cvec.insert(cvec.end(), i.first.c_str(), i.first.c_str()+i.first.length()+1);
-        dvec.push_back(i.second[0]);
+        dvec.push_back(i.second[TOP_AVE]);
       }
       h.comm->send(0, cvec);
       h.comm->send(0, dvec);
@@ -244,41 +247,42 @@ void sendrecv(History const& h, std::map<std::string, std::vector<double> >& res
         split_char_vec(cvec, res);
         OMEGA_H_CHECK_OP(res.size(), ==, dvec.size());
         for (size_t i = 0; i < res.size(); ++i) {
-          result[res[i]][0] += dvec[i];
-          result[res[i]][1] = std::min(result[res[i]][1], dvec[i]);
-          result[res[i]][2] = std::max(result[res[i]][2], dvec[i]);
+          result[res[i]][TOP_AVE] += dvec[i];
+          result[res[i]][TOP_MIN] = std::min(result[res[i]][TOP_MIN], dvec[i]);
+          result[res[i]][TOP_MAX] = std::max(result[res[i]][TOP_MAX], dvec[i]);
         }
       }
     }
   }
 }
 
-void print_top_sorted(History const& h_in) {
+void print_top_sorted(History const& h_in, double total_runtime) {
   auto h = invert(h_in);
   auto coutflags( std::cout.flags() );
   if (h.do_percent) {
     std::cout << std::setprecision(2) << std::fixed;
   }
-  double total_runtime = now() - h.start_time;
   double sz =  h.comm->size();
-  total_runtime = h.comm->allreduce(total_runtime, OMEGA_H_SUM) / sz;
+  double total_runtime_ave = h.comm->allreduce(total_runtime, OMEGA_H_SUM) / sz;
+  double total_runtime_min = h.comm->allreduce(total_runtime, OMEGA_H_MIN);
+  double total_runtime_max = h.comm->allreduce(total_runtime, OMEGA_H_MAX);
   TASK_0_cout << "\n";
   TASK_0_cout << "TOP FUNCTIONS (self time, average of all ranks):\n";
   TASK_0_cout << "=============\n";
   std::map<std::string, std::vector<double>> result;
-  gather_recursive(h, invalid, result);
+  gather(h, invalid, result);
   sendrecv(h, result);
   typedef std::pair<std::string, std::vector<double>> my_pair;
   std::vector<my_pair> sorted_result;
   double sum = 0.0;
   for (auto& i : result) {
-    i.second[0] /= sz;
-    sum += i.second[0];
+    i.second[TOP_AVE] /= sz;
+    sum += i.second[TOP_AVE];
     sorted_result.push_back(std::make_pair(i.first, i.second));
   }
-  TASK_0_cout << "total_runtime= " << total_runtime << " [s] monitored functions= " << sum 
-              << " [s] unmonitored= " << 100.0*(total_runtime - sum)/total_runtime << "%" << std::endl;
-  std::vector<double> vv(3, (total_runtime-sum));
+  TASK_0_cout << "total_runtime= " << total_runtime_ave << " [s] monitored functions= " << sum 
+              << " [s] unmonitored= " << 100.0*(total_runtime_ave - sum)/total_runtime_ave << "%" << std::endl;
+  std::vector<double> vv = {(total_runtime_ave-sum), (total_runtime_min-sum), (total_runtime_max-sum)};
   sorted_result.push_back(std::make_pair("unmonitored functions", vv));
   std::stable_sort(sorted_result.begin(), sorted_result.end(),
             [](const my_pair& a, const my_pair& b) -> bool
@@ -294,7 +298,7 @@ void print_top_sorted(History const& h_in) {
   if (h.do_percent) {
     percent = "% ";
     ul = "- ";
-    scale = 100.0/total_runtime;
+    scale = 100.0/total_runtime_ave;
     width = 8;
   }
   TASK_0_cout << std::right 
@@ -313,12 +317,12 @@ void print_top_sorted(History const& h_in) {
 
   for (auto i : sorted_result) {
     auto cflags( std::cout.flags() );
-    double val = i.second[0];
-    if (val*100.0/total_runtime >= h.chop) {
+    double val = i.second[TOP_AVE];
+    if (val*100.0/total_runtime_ave >= h.chop) {
       TASK_0_cout << std::right
                   << std::setw(width) << val*scale << percent 
-                  << std::setw(width) << i.second[1]*scale << percent
-                  << std::setw(width) << i.second[2]*scale << percent << " ";
+                  << std::setw(width) << i.second[TOP_MIN]*scale << percent
+                  << std::setw(width) << i.second[TOP_MAX]*scale << percent << " ";
       std::cout.flags(cflags);
       TASK_0_cout << i.first << std::endl;
     }

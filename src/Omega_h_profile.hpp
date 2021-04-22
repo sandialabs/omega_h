@@ -174,8 +174,8 @@ OMEGA_H_DLL extern History* global_singleton_history;
 void simple_print(profile::History const& history);
 History invert(History const& h);
 void print_time_sorted(History const& h);
-void print_top_down_and_bottom_up(History const& h);
-void print_top_sorted(History const& h);
+void print_top_down_and_bottom_up(History const& h, double total_runtime);
+void print_top_sorted(History const& h, double total_runtime);
 
 }  // namespace profile
 }  // namespace Omega_h

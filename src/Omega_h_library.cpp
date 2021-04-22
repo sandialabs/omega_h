@@ -184,13 +184,14 @@ Library::Library(Library const& other)
 
 Library::~Library() {
   if (Omega_h::profile::global_singleton_history) {
+    double total_runtime = now() - Omega_h::profile::global_singleton_history->start_time;
     if (world_->rank() == 0) {
       // FIXME - parallelize?
       Omega_h::profile::print_top_down_and_bottom_up(
-          *Omega_h::profile::global_singleton_history);
+          *Omega_h::profile::global_singleton_history, total_runtime);
     }
     Omega_h::profile::print_top_sorted(
-          *Omega_h::profile::global_singleton_history);
+          *Omega_h::profile::global_singleton_history, total_runtime);
     delete Omega_h::profile::global_singleton_history;
     Omega_h::profile::global_singleton_history = nullptr;
   }
