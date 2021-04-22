@@ -1063,6 +1063,20 @@ void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps,
   return;
 }
 
+bool Mesh::has_boundaryField(Int ent_dim, std::string const& name) const {
+
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+  }
+
+  std::string new_name = name;
+  new_name.append("_boundary");
+  if (!has_ents(ent_dim)) return false;
+  return has_tag(ent_dim, new_name);
+
+}
+
 template <typename T>
 void Mesh::set_boundaryField_array
   (Int dim, std::string const& name, Read<T> array, bool internal) {

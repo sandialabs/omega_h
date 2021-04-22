@@ -104,6 +104,7 @@ class Mesh {
   void reduce_boundaryField(Int ent_dim, std::string const& name,
      Omega_h_Op op);
   void sync_boundaryField(Int ent_dim, std::string const& name);
+  bool has_boundaryField(Int dim, std::string const& name) const;
 
   template <typename T>
   void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);
