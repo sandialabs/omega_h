@@ -953,7 +953,8 @@ Adj Mesh::ask_revClass (Int edim) {
 }
 
 template <typename T>
-void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name) {
+void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
+                                std::string const &name) {
 
   auto mesh_field = get_array<T>(ent_dim, name);
   OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
@@ -969,16 +970,18 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps, std::string const &name
   };
   parallel_for(n_bEnts, f, "get_bdryField");
 
-  remove_tag(ent_dim, name);
+  set_tag<T>(ent_dim, name, Read<T>(b_field));
+  //remove_tag(ent_dim, name);
 
-  OMEGA_H_CHECK(!has_tag(ent_dim, name));
-  add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
+  //OMEGA_H_CHECK(!has_tag(ent_dim, name));
+  //add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
 
   return;
 }
 
 template <typename T>
-void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
+void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
+                            std::string const &name) {
 
   auto boundary_field = get_array<T>(ent_dim, name);
   auto n_ents = nents (ent_dim);
@@ -987,78 +990,105 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name) {
 
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
+
+  printf("mesh.c tag btoMesh ok1\n");
  
   int waiting=0;
   while(waiting);
-  Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
 
+  double interior_val = static_cast<double>(OMEGA_H_INTERIOR_VAL);
+  ///TODO for bfield
+/*
+  if (tag is real) {
+    double interior_val = static_cast<double>(OMEGA_H_INTERIOR_VAL);
+  }
+  else if (tag is byte) {
+    byte interior_val = static_cast<byte>(OMEGA_H_INTERIOR_VAL);
+  }
+  else {
+    cast to int
+  }
+*/
+
+  Write<T> mesh_field (n_ents*ncomps, interior_val);
+  //Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
+
+  printf("mesh.c tag btoMesh ok2\n");
+ 
   auto f = OMEGA_H_LAMBDA (LO i) {
     auto id = boundary_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
-      if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
+      if (mesh_field[id*ncomps + n] == interior_val) {
+      //if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
         mesh_field[id*ncomps + n] = boundary_field[i*ncomps + n];
       }
     }
   };
   parallel_for(n_bEnts, f, "get_fieldFromBdry");
 
-  remove_tag(ent_dim, name);
-  OMEGA_H_CHECK(!has_tag(ent_dim, name));
+  printf("mesh.c tag btoMesh ok3\n");
+ 
+  //remove_tag(ent_dim, name);
+  //OMEGA_H_CHECK(!has_tag(ent_dim, name));
 
-  add_tag<T>(ent_dim, name, ncomps, Read<T>(mesh_field));
-  OMEGA_H_CHECK(has_tag(ent_dim, name));
+  printf("mesh.c tag btoMesh ok4\n");
+ 
+  set_tag<T>(ent_dim, name, Read<T>(mesh_field));
+  //add_tag<T>(ent_dim, name, ncomps, Read<T>(mesh_field));
+  //OMEGA_H_CHECK(has_tag(ent_dim, name));
 
+  printf("mesh.c tag btoMesh ok5\n");
+ 
   return;
 }
 
 template <typename T>
 Read<T> Mesh::get_boundaryField_array
-  (Int dim, std::string const& name) const {
+  (Int ent_dim, std::string const& name) const {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
     OMEGA_H_NORETURN(Read<T>());
   }
-  else {
-    std::string new_name = name;
-    new_name.append("_boundary");
-    OMEGA_H_CHECK(has_tag(dim, new_name));
-    return get_tag<T>(dim, new_name)->array();
-  }
+
+  std::string new_name = name;
+  new_name.append("_boundary");
+  OMEGA_H_CHECK(has_tag(ent_dim, new_name));
+  return get_tag<T>(ent_dim, new_name)->array();
+
 }
 
 template <typename T>
-void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps) {
+void Mesh::add_boundaryField(Int ent_dim, std::string const& name,
+                             Int ncomps) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
-  else {
-    std::string new_name = name;
-    new_name.append("_boundary");
-    OMEGA_H_CHECK(!has_tag(dim, new_name));
-    add_tag<T>(dim, new_name, ncomps);
-  }
+
+  std::string new_name = name;
+  new_name.append("_boundary");
+  OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
+  add_tag<T>(ent_dim, new_name, ncomps);
 
   return;
 }
 
 template <typename T>
-void Mesh::add_boundaryField(Int dim, std::string const& name, Int ncomps,
+void Mesh::add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
   Read<T> array, bool internal) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
-  else {
-    std::string new_name = name;
-    new_name.append("_boundary");
-    OMEGA_H_CHECK(!has_tag(dim, new_name));
-    add_tag<T>(dim, new_name, ncomps, array, internal);
-  }
+
+  std::string new_name = name;
+  new_name.append("_boundary");
+  OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
+  add_tag<T>(ent_dim, new_name, ncomps, array, internal);
 
   return;
 }
@@ -1079,18 +1109,17 @@ bool Mesh::has_boundaryField(Int ent_dim, std::string const& name) const {
 
 template <typename T>
 void Mesh::set_boundaryField_array
-  (Int dim, std::string const& name, Read<T> array, bool internal) {
+  (Int ent_dim, std::string const& name, Read<T> array, bool internal) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
     Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
   }
-  else {
-    std::string new_name = name;
-    new_name.append("_boundary");
-    OMEGA_H_CHECK(has_tag(dim, new_name));
-    set_tag<T>(dim, new_name, array, internal);
-  }
+
+  std::string new_name = name;
+  new_name.append("_boundary");
+  OMEGA_H_CHECK(has_tag(ent_dim, new_name));
+  set_tag<T>(ent_dim, new_name, array, internal);
 
   return;
 }
