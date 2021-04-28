@@ -260,6 +260,7 @@ void Comm::bcast(T& x, int root_rank) const {
   CALL(MPI_Bcast(&x, 1, MpiTraits<T>::datatype(), root_rank, impl_));
 #else
   (void)x;
+  (void)root_rank;
 #endif
 }
 
@@ -271,6 +272,7 @@ void Comm::bcast_string(std::string& s, int root_rank) const {
   CALL(MPI_Bcast(&s[0], len, MPI_CHAR, root_rank, impl_));
 #else
   (void)s;
+  (void)root_rank;
 #endif
 }
 

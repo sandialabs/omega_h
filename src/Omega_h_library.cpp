@@ -155,8 +155,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     int local_mpi_rank = rank % mpi_ranks_per_node;
     cudaSetDevice(local_mpi_rank);
     cudaGetDevice(&my_device);
-    OMEGA_H_CHECK(mpi_ranks_per_node == ndevices_per_node);
-    OMEGA_H_CHECK(my_device == local_mpi_rank);
+    OMEGA_H_CHECK_OP(mpi_ranks_per_node, ==, ndevices_per_node);
+    OMEGA_H_CHECK_OP(my_device, ==, local_mpi_rank);
   }
 #endif
   if (cmdline.parsed("--osh-signal")) Omega_h::protect();

@@ -305,12 +305,14 @@ void print_top_sorted(History const& h_in, double total_runtime) {
               << std::setw(width) << "Ave" << percent 
               << std::setw(width) << "Min" << percent
               << std::setw(width) << "Max" << percent
+              << std::setw(width) << "Max/Min" << "  "
               << " Name"
               << std::endl;
   TASK_0_cout << std::right 
               << std::setw(width) << "---" << ul
               << std::setw(width) << "---" << ul
               << std::setw(width) << "---" << ul
+              << std::setw(width) << "-------" << "  "
               << " ----"
               << std::endl;
   std::cout.flags(cflags);
@@ -322,7 +324,8 @@ void print_top_sorted(History const& h_in, double total_runtime) {
       TASK_0_cout << std::right
                   << std::setw(width) << val*scale << percent 
                   << std::setw(width) << i.second[TOP_MIN]*scale << percent
-                  << std::setw(width) << i.second[TOP_MAX]*scale << percent << " ";
+                  << std::setw(width) << i.second[TOP_MAX]*scale << percent
+                  << std::setw(width) << i.second[TOP_MAX]/i.second[TOP_MIN] << "   ";
       std::cout.flags(cflags);
       TASK_0_cout << i.first << std::endl;
     }

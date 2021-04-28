@@ -353,7 +353,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
         auto elem = set_sides2elem[set_side];
         auto side_of_element =
             side_exo2osh(family, dim, set_sides2local[set_side]);
-        OMEGA_H_CHECK_OP(side_of_element, !=, -1);
+        OMEGA_H_CHECK(side_of_element != -1);
         auto side = elems2sides[elem * nsides_per_elem + side_of_element];
         set_sides2side_w[set_side] = side;
       };
