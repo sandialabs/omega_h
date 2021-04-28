@@ -992,34 +992,15 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
   auto n_bEnts = boundary_ids.size();
 
   printf("mesh.c tag btoMesh ok1\n");
- 
-  int waiting=0;
-  while(waiting);
 
-  double interior_val = static_cast<double>(OMEGA_H_INTERIOR_VAL);
-  ///TODO for bfield
-/*
-  if (tag is real) {
-    double interior_val = static_cast<double>(OMEGA_H_INTERIOR_VAL);
-  }
-  else if (tag is byte) {
-    byte interior_val = static_cast<byte>(OMEGA_H_INTERIOR_VAL);
-  }
-  else {
-    cast to int
-  }
-*/
-
-  Write<T> mesh_field (n_ents*ncomps, interior_val);
-  //Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
+  Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
 
   printf("mesh.c tag btoMesh ok2\n");
  
   auto f = OMEGA_H_LAMBDA (LO i) {
     auto id = boundary_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
-      if (mesh_field[id*ncomps + n] == interior_val) {
-      //if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
+      if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
         mesh_field[id*ncomps + n] = boundary_field[i*ncomps + n];
       }
     }
@@ -1028,14 +1009,7 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
 
   printf("mesh.c tag btoMesh ok3\n");
  
-  //remove_tag(ent_dim, name);
-  //OMEGA_H_CHECK(!has_tag(ent_dim, name));
-
-  printf("mesh.c tag btoMesh ok4\n");
- 
   set_tag<T>(ent_dim, name, Read<T>(mesh_field));
-  //add_tag<T>(ent_dim, name, ncomps, Read<T>(mesh_field));
-  //OMEGA_H_CHECK(has_tag(ent_dim, name));
 
   printf("mesh.c tag btoMesh ok5\n");
  
@@ -1263,6 +1237,100 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
       break;
     }
   }
+}
+
+void Mesh::change_all_bFieldsToMesh() {
+
+  OMEGA_H_TIME_FUNCTION;
+  for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
+    for (Int t = 0; t < ntags(ent_dim); ++t) {
+      auto tag = get_tag(ent_dim, t);
+      auto const &name = tag->name();
+      auto ncomps = tag->ncomps();
+
+      if (is<I8>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToMesh<I8> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<I32>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+          change_tagToMesh<I32> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<I64>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToMesh<I64> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<Real>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToMesh<Real> (ent_dim, ncomps, name);
+        }
+      }
+    }
+  }
+
+  return;  
+}
+
+void Mesh::change_all_bFieldsToBoundary() {
+
+  OMEGA_H_TIME_FUNCTION;
+  for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
+    for (Int t = 0; t < ntags(ent_dim); ++t) {
+      auto tag = get_tag(ent_dim, t);
+      auto const &name = tag->name();
+      auto ncomps = tag->ncomps();
+
+      if (is<I8>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToBoundary<I8> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<I32>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+          change_tagToBoundary<I32> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<I64>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToBoundary<I64> (ent_dim, ncomps, name);
+        }
+
+      } else if (is<Real>(tag)) {
+
+        size_t found = name.find("_boundary");
+        if (found != std::string::npos) {
+          if (nents(ent_dim)) 
+            change_tagToBoundary<Real> (ent_dim, ncomps, name);
+        }
+      }
+    }
+  }
+
+  return;  
 }
 
 }  // end namespace Omega_h
