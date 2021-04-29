@@ -17,6 +17,7 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_print.hpp"
 #include "Omega_h_dbg.hpp"
 
 namespace Omega_h {
@@ -762,34 +763,39 @@ Real Mesh::imbalance(Int ent_dim) const {
 }
 
 std::string Mesh::string(int verbose) {
-  (void)verbose;
   std::ostringstream oss;
   oss << "Mesh:" 
-      << "\n    comm()->size              = " << comm()->size()
-      << "\n    parting                   = " << parting()
-      << "\n    dim                       = " << dim()
-      << "\n    family                    = " << family()
-      << "\n    nents                     = " << nents(dim())
-      << "\n    nents(0)                  = " << nents(0)
-      << "\n    nelems                    = " << nelems();
+      << "\n    comm()->size                = " << comm()->size()
+      << "\n    parting                     = " << parting()
+      << "\n    dim                         = " << dim()
+      << "\n    family                      = " << family()
+      << "\n    nents(dim)                  = " << nents(dim())
+      << "\n    nents(0)                    = " << nents(0)
+      << "\n    nelems                      = " << nelems();
   if (dim() > 2) {
-    oss << "\n    nregions                  = " << nregions();
+    oss 
+      << "\n    nregions                    = " << nregions();
   }
-  oss << "\n    nfaces                    = " << nfaces()
-      << "\n    nedges                    = " << nedges()
-      << "\n    nverts                    = " << nverts()
-      << "\n    nglobal_ents              = " << nglobal_ents(dim())
-      << "\n    nglobal_ents(0)           = " << nglobal_ents(0)
-      << "\n    ntags                     = " << ntags(dim())
-      << "\n    ntags(0)                  = " << ntags(0)
-    //<< "\n    min_quality               = " << min_quality()
-    //<< "\n    max_length                = " << max_length()
-      << "\n    could_be_shared           = " << could_be_shared(dim())
-      << "\n    could_be_shared(0)        = " << could_be_shared(0)
-      << "\n    owners_have_all_upward    = " << owners_have_all_upward(dim())
-      << "\n    owners_have_all_upward(0) = " << owners_have_all_upward(0)
-      << "\n    have_all_upward           = " << have_all_upward()
-      << "\n    imbalance                 = " << imbalance();
+  oss << "\n    nfaces                      = " << nfaces()
+      << "\n    nedges                      = " << nedges()
+      << "\n    nverts                      = " << nverts()
+      << "\n    nglobal_ents(dim)           = " << nglobal_ents(dim())
+      << "\n    nglobal_ents(0)             = " << nglobal_ents(0)
+      << "\n    ntags                       = " << ntags(dim())
+      << "\n    ntags(0)                    = " << ntags(0)
+    //<< "\n    min_quality                 = " << min_quality()
+    //<< "\n    max_length                  = " << max_length()
+      << "\n    could_be_shared(dim)        = " << could_be_shared(dim())
+      << "\n    could_be_shared(0)          = " << could_be_shared(0)
+      << "\n    owners_have_all_upward(dim) = " << owners_have_all_upward(dim())
+      << "\n    owners_have_all_upward(0)   = " << owners_have_all_upward(0)
+      << "\n    have_all_upward             = " << have_all_upward()
+      << "\n    imbalance                   = " << imbalance();
+  if (verbose) {
+    oss 
+      << "\n    globals(dim)                =\n" << globals(dim())
+      << "\n    globals(0)                  =\n" << globals(0);
+  }
   return oss.str();
 }
 

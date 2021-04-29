@@ -67,6 +67,11 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     std::string msg_str = msg.str();
     Omega_h::fail("%s\n", msg_str.c_str());
   }
+  OMEGA_H_CHECK(argc != nullptr);
+  OMEGA_H_CHECK(argv != nullptr);
+  for (int ic = 0; ic < *argc; ic++) {
+    argv_.push_back((*argv)[ic]);
+  }
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
   OMEGA_H_CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
@@ -155,6 +160,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     int local_mpi_rank = rank % mpi_ranks_per_node;
     cudaSetDevice(local_mpi_rank);
     cudaGetDevice(&my_device);
+    PCOUT("ndevices_per_node= " << ndevices_per_node << " mpi_ranks_per_node= " << mpi_ranks_per_node << " local_mpi_rank= " << local_mpi_rank << std::endl);
     OMEGA_H_CHECK_OP(mpi_ranks_per_node, ==, ndevices_per_node);
     OMEGA_H_CHECK_OP(my_device, ==, local_mpi_rank);
   }
