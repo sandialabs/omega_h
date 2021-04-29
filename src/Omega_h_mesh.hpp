@@ -168,6 +168,8 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+  Real ghosted_ratio(Int ent_dim);
+  LO nents_owned(Int ent_dim);
   std::string string(int verbose=0);
 
  public:
