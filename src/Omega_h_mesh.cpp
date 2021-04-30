@@ -782,8 +782,11 @@ std::string Mesh::string(int verbose) {
     oss 
       << "\n    nregions                    = " << nregions();
   }
-  oss << "\n    nfaces                      = " << nfaces()
-      << "\n    nedges                      = " << nedges()
+  if (dim() > 1) {
+    oss 
+      << "\n    nfaces                      = " << nfaces();
+  }
+  oss << "\n    nedges                      = " << nedges()
       << "\n    nverts                      = " << nverts()
       << "\n    nglobal_ents(dim)           = " << nglobal_ents(dim())
       << "\n    nglobal_ents(0)             = " << nglobal_ents(0)

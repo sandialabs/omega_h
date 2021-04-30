@@ -4,6 +4,7 @@
 #include "Omega_h_fail.hpp"
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 #include <set>
 #include <map>
@@ -12,13 +13,14 @@ extern Omega_h::Comm *DBG_COMM;
 extern bool dbg_print_global;
 
 #define ERROUTFL(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << a; OMEGA_H_CHECK(false); } while(0)
+#define FILE_LINE() (std::string(__FILE__) + ":" + std::to_string(__LINE__))
 
 #ifdef OMEGA_H_DBG
 
 namespace Omega_h {
-inline std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return _oss_.str(); }
-inline std::string rank() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->rank() : 0); return _oss_.str(); }
-inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->size() : 0); return _oss_.str(); }
+OMEGA_H_INLINE std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return _oss_.str(); }
+OMEGA_H_INLINE std::string rank() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->rank() : 0); return _oss_.str(); }
+OMEGA_H_INLINE std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->size() : 0); return _oss_.str(); }
 }
 
 #  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
@@ -76,9 +78,9 @@ inline std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_C
 #else // OMEGA_H_DBG
 
 namespace Omega_h {
-inline std::string proc() { return "P0: "; }
-inline std::string rank() { return "0"; }
-inline std::string size() { return "1"; }
+OMEGA_H_INLINE std::string proc() { return "P0: "; }
+OMEGA_H_INLINE std::string rank() { return "0"; }
+OMEGA_H_INLINE std::string size() { return "1"; }
 }
 
 #  define TASK_0_cout std::cout
