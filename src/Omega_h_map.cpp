@@ -26,7 +26,7 @@ template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size();
-  OMEGA_H_CHECK(a_data.size() == na * width);
+  OMEGA_H_CHECK_MSG(a_data.size() == na * width, "a_data.size= " << a_data.size() << " na= " << na << " width= " << width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     for (Int j = 0; j < width; ++j) {
