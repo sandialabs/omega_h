@@ -761,23 +761,39 @@ Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   if (ent_dim == 0) return unmap(a2e, v2x, ncomps);
+  printf(" average field 1 ncomps %d\n", ncomps);
   auto ev2v = mesh->ask_verts_of(ent_dim);
+  printf(" average field 2 ncomps %d\n", ncomps);
   auto degree = element_degree(mesh->family(), ent_dim, VERT);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
+  printf(" average field 3 ncomps %d\n", ncomps);
+  auto a2eSz = a2e.size();
+  auto ev2vSz = ev2v.size();
+  auto v2xSz = v2x.size();
+  printf(" sizes %d %d %d\n", a2eSz, ev2vSz, v2xSz);
   auto f = OMEGA_H_LAMBDA(LO a) {
+    printf("in average field pfor a = %d \n", a);
+    int waiting =0;
+    if ((a == 3) && (ncomps == 1)) waiting=0;
+    while(waiting);
     auto e = a2e[a];
     for (Int j = 0; j < ncomps; ++j) {
       Real comp = 0;
       for (Int k = 0; k < degree; ++k) {
+        printf("ok1 \n");
+        // seg fault in here
         auto v = ev2v[e * degree + k];
+        printf("ok2 \n");
         comp += v2x[v * ncomps + j];
+        printf("ok3 \n");
       }
       comp /= degree;
       out[a * ncomps + j] = comp;
     }
   };
   parallel_for(na, f, "average_field");
+  printf(" average field 4\n");
   return out;
 }
 
@@ -957,6 +973,9 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
                                 std::string const &name) {
 
   auto mesh_field = get_array<T>(ent_dim, name);
+  std::cout << "change tag to boundary: name, ncomps, data size , nents, edim "
+    << name << " " << ncomps << " " << mesh_field.size() << " " << 
+    nents(ent_dim) << " " << ent_dim << "\n";
   OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
 
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
@@ -971,10 +990,6 @@ void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
   parallel_for(n_bEnts, f, "get_bdryField");
 
   set_tag<T>(ent_dim, name, Read<T>(b_field));
-  //remove_tag(ent_dim, name);
-
-  //OMEGA_H_CHECK(!has_tag(ent_dim, name));
-  //add_tag<T>(ent_dim, name, ncomps, Read<T>(b_field));
 
   return;
 }
@@ -1276,6 +1291,7 @@ void Mesh::change_all_bFieldsToMesh() {
 
         size_t found = name.find("_boundary");
         if (found != std::string::npos) {
+          std::cout << "found real bfield " << name << "\n";
           if (nents(ent_dim)) 
             change_tagToMesh<Real> (ent_dim, ncomps, name);
         }

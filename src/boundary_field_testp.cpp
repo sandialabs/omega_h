@@ -8,6 +8,7 @@
 #include <Omega_h_metric.hpp>
 #include <Omega_h_timer.hpp>
 #include <Omega_h_for.hpp>
+#include <Omega_h_build.hpp>
 
 using namespace Omega_h;
 
@@ -35,20 +36,33 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   mesh->add_tag(0, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   set_target_metric<dim>(mesh);
+
+  OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
+  OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
+
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+
+  //OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
+  OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
+
   mesh->ask_lengths();
   mesh->ask_qualities();
   vtk::FullWriter writer;
+  printf("run case 1\n");
   if (vtk_path) {
     writer = vtk::FullWriter(vtk_path, mesh);
     writer.write();
   }
+  printf("run case 2\n");
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
+  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_MOMENTUM_VELOCITY;
+  opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
+    printf("adapt 1 \n");
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
     if (vtk_path) writer.write();
@@ -59,12 +73,18 @@ void run_case(Mesh* mesh, char const* vtk_path) {
 
 void test_3d(Library *lib) {
 
-  auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.osh",
-                lib->world(), &mesh);
+  double o_high[3];
+  o_high[0] = 1.0; o_high[1] = 1.0; o_high[2] = 1.0;
+  auto mesh = build_box (lib->world(), OMEGA_H_SIMPLEX,
+                         o_high[0], o_high[1], o_high[2], 2, 2, 2);
+  //auto mesh = Mesh(lib);
+  //binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.osh",
+    //            lib->world(), &mesh);
 
   auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
   auto nbvert = boundary_ids.size();
+
+  printf("nbvert %d, nvert %d\n", nbvert, mesh.nverts());
 
   mesh.add_boundaryField<Real>(0, "field1", 1);
   const auto rank = lib->world()->rank();
@@ -79,6 +99,7 @@ void test_3d(Library *lib) {
     mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
   }
 
+/*
   vtk::write_parallel ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.vtk",
                    &mesh);
   binary::write ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
@@ -94,13 +115,13 @@ void test_3d(Library *lib) {
   OMEGA_H_CHECK(new_bField.size() <= nverts);
 
   mesh.sync_boundaryField(0, "field1");
-  vtk::write_parallel 
-    ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_sync.vtk", &mesh);
+  //vtk::write_parallel 
+    //("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_sync.vtk", &mesh);
   mesh.reduce_boundaryField(0, "field1", OMEGA_H_SUM);
-  vtk::write_parallel 
-    ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_reduce.vtk", &mesh);
-
-  //run_case<3>(&mesh, "./../../omega_h/meshes/adapt/3d_4k_4pbField.vtk");
+  //vtk::write_parallel 
+    //("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_reduce.vtk", &mesh);
+*/
+  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d_8k.vtk");
 
   return;
 }

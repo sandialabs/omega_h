@@ -27,15 +27,20 @@ void test_2d(Library *lib) {
   Write<Real> vals3(mesh.nverts()*3, 500);
   Read<Real> vals_r3(vals3);
 
+  printf("btest ok1\n");
   vtk::write_vtu ("./../../omega_h/meshes/plate_6elem.vtu",
                    &mesh);
+  printf("btest ok2\n");
   binary::write ("./../../omega_h/meshes/plate_6elem_bField.osh",
                    &mesh);
+  printf("btest ok3\n");
 
   auto new_mesh = Mesh(lib);
   binary::read ("./../../omega_h/meshes/plate_6elem_bField.osh",
                 lib->world(), &new_mesh);
+  printf("btest ok4\n");
   auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1"); 
+  printf("btest ok5\n");
   OMEGA_H_CHECK(new_bField == vals_r);
   OMEGA_H_CHECK(new_bField.size() < nverts);
 

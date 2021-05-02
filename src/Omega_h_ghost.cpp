@@ -137,6 +137,9 @@ void partition_by_elems(Mesh* mesh, bool verbose) {
   auto owned2all = collect_marked(marked_owned);
   auto owned2owners = unmap(owned2all, all2owners);
   auto dist = Dist(mesh->comm(), owned2owners, mesh->nelems());
+
+  OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
+
   migrate_mesh(mesh, dist, OMEGA_H_ELEM_BASED, verbose);
 }
 

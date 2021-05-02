@@ -126,6 +126,8 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(old_owners2new_ents.nroots() == old_mesh->nents(ent_dim));
+  int waiting=0;
+  while(waiting);
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     auto const& name = tag->name();
@@ -181,7 +183,6 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
     } else if (is<Real>(tag)) {
 
-      printf("dim %d ok1 push tags\n", ent_dim);
       size_t found = (tag->name()).find("_boundary");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 

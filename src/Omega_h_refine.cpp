@@ -73,19 +73,50 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;
     }
+    std::cout << "in refine element based 1, old mesh bfield is "
+    << mesh->has_boundaryField(0,
+    "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+    "field1")).size()<< " \n";
+    std::cout << "in refine element based 1, new mesh bfield is "
+    << new_mesh.has_boundaryField(0,
+    "field1") << " \n";
     transfer_refine(mesh, opts.xfer_opts, &new_mesh, keys2edges, keys2midverts,
         ent_dim, keys2prods, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
+    std::cout << "in refine element based 2, old mesh bfield is " 
+    << mesh->has_boundaryField(0,
+    "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+    "field1")).size()<< " \n";
+    std::cout << "in refine element based 2, new mesh bfield is " 
+    << new_mesh.has_boundaryField(0,
+    "field1") << "size is " << (new_mesh.get_boundaryField_array<Real>(0,
+    "field1")).size()<< " \n";
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
 }
 
 static bool refine(Mesh* mesh, AdaptOpts const& opts) {
+  std::cout << "in refine 0, bfield is " << mesh->has_boundaryField(0,
+  "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+  "field1")).size()<< " \n";
+
   mesh->set_parting(OMEGA_H_GHOSTED);
+  std::cout << "in refine 1, bfield is " << mesh->has_boundaryField(0,
+  "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+  "field1")).size()<< " \n";
   if (!refine_ghosted(mesh, opts)) return false;
+  std::cout << "in refine 2, bfield is " << mesh->has_boundaryField(0,
+  "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+  "field1")).size()<< " \n";
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+  std::cout << "in refine 3, bfield is " << mesh->has_boundaryField(0,
+  "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+  "field1")).size()<< " \n";
   refine_element_based(mesh, opts);
+  std::cout << "in refine 4, bfield is " << mesh->has_boundaryField(0,
+  "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
+  "field1")).size()<< " \n";
   return true;
 }
 
@@ -96,6 +127,8 @@ bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
   if (get_max(comm, edge_is_cand) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, edge_is_cand);
+  std::cout << "in refine by size 1, bfield is " << mesh->has_boundaryField(0,
+  "field1") << " \n";
   return refine(mesh, opts);
 }
 
