@@ -18,9 +18,15 @@ extern bool dbg_print_global;
 #ifdef OMEGA_H_DBG
 
 namespace Omega_h {
+#ifdef OMEGA_H_USE_CUDA
+OMEGA_H_INLINE std::string proc() { return ""; }
+OMEGA_H_INLINE std::string rank() { return ""; }
+OMEGA_H_INLINE std::string size() { return ""; }
+#else
 OMEGA_H_INLINE std::string proc() { std::ostringstream _oss_; _oss_ << "P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": "; return _oss_.str(); }
 OMEGA_H_INLINE std::string rank() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->rank() : 0); return _oss_.str(); }
 OMEGA_H_INLINE std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM ? DBG_COMM->size() : 0); return _oss_.str(); }
+#endif
 }
 
 #  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
