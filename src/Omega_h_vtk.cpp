@@ -244,6 +244,9 @@ void write_tag(
     Mesh *mesh, bool compress) {
   OMEGA_H_TIME_FUNCTION;
 
+  auto ncomps = tag->ncomps();
+  auto name = tag->name();
+
   if (is<I8>(tag)) {
 
     size_t found = (tag->name()).find("_boundary");
@@ -253,6 +256,11 @@ void write_tag(
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+    }
+
   } else if (is<I32>(tag)) {
 
     size_t found = (tag->name()).find("_boundary");
@@ -262,6 +270,11 @@ void write_tag(
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+    }
+
   } else if (is<I64>(tag)) {
 
     size_t found = (tag->name()).find("_boundary");
@@ -271,6 +284,11 @@ void write_tag(
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+    }
+
   } else if (is<Real>(tag)) {
   
     fprintf(stderr, " vtk.c write tag ok1\n");
@@ -307,6 +325,11 @@ void write_tag(
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array, compress);
     }
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+    }
+
   } else {
     Omega_h_fail("unknown tag type in write_tag");
   }

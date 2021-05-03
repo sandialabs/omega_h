@@ -87,36 +87,59 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
     << mesh->has_boundaryField(0,
     "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
+/*
     std::cout << "in refine element based 2, new mesh bfield is " 
     << new_mesh.has_boundaryField(0,
     "field1") << "size is " << (new_mesh.get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
+*/
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
 }
 
 static bool refine(Mesh* mesh, AdaptOpts const& opts) {
+/*
   std::cout << "in refine 0, bfield is " << mesh->has_boundaryField(0,
   "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
   "field1")).size()<< " \n";
+*/
+
+  mesh->change_all_bFieldsToBoundary();
 
   mesh->set_parting(OMEGA_H_GHOSTED);
+
+  mesh->change_all_bFieldsToMesh();
+
+/*
   std::cout << "in refine 1, bfield is " << mesh->has_boundaryField(0,
   "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
   "field1")).size()<< " \n";
+*/
   if (!refine_ghosted(mesh, opts)) return false;
+/*
   std::cout << "in refine 2, bfield is " << mesh->has_boundaryField(0,
   "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
   "field1")).size()<< " \n";
+*/ 
+
+  mesh->change_all_bFieldsToBoundary();
+
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+
+  mesh->change_all_bFieldsToMesh();
+
+/*
   std::cout << "in refine 3, bfield is " << mesh->has_boundaryField(0,
   "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
   "field1")).size()<< " \n";
+*/
   refine_element_based(mesh, opts);
+/*
   std::cout << "in refine 4, bfield is " << mesh->has_boundaryField(0,
   "field1") << "size is " << (mesh->get_boundaryField_array<Real>(0,
   "field1")).size()<< " \n";
+*/
   return true;
 }
 

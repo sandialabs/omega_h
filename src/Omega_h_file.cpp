@@ -286,6 +286,11 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
     }
 
     write_array(stream, as<I8>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+    }
+
   } else if (is<I32>(tag)) {
 
     size_t found = (name).find("_boundary");
@@ -294,6 +299,11 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
     }
 
     write_array(stream, as<I32>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+    }
+
   } else if (is<I64>(tag)) {
 
     size_t found = (name).find("_boundary");
@@ -302,6 +312,11 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
     }
 
     write_array(stream, as<I64>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+    }
+
   } else if (is<Real>(tag)) {
 
     size_t found = (name).find("_boundary");
@@ -310,6 +325,11 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
     }
 
     write_array(stream, as<Real>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+    }
+
   } else {
     Omega_h_fail("unexpected tag type in binary write\n");
   }

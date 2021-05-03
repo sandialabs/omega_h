@@ -31,7 +31,7 @@ static void set_target_metric(Mesh* mesh) {
 template <Int dim>
 void run_case(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
-  mesh->set_parting(OMEGA_H_GHOSTED);
+  //mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = get_implied_metrics(mesh);
   mesh->add_tag(0, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
@@ -40,7 +40,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
   OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
 
-  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  //mesh->set_parting(OMEGA_H_ELEM_BASED);
 
   //OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
   OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
@@ -53,13 +53,18 @@ void run_case(Mesh* mesh, char const* vtk_path) {
     writer = vtk::FullWriter(vtk_path, mesh);
     writer.write();
   }
+
   printf("run case 2\n");
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_MOMENTUM_VELOCITY;
+  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_POINTWISE; //refine
+    //elem based 1, tag dne
   opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
+  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_INHERIT; // same as
+    //pointwise
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     printf("adapt 1 \n");
@@ -69,6 +74,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   }
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
+
 }
 
 void test_3d(Library *lib) {
@@ -81,8 +87,11 @@ void test_3d(Library *lib) {
   //binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.osh",
     //            lib->world(), &mesh);
 
-  auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
-  auto nbvert = boundary_ids.size();
+  auto vtx_rc = mesh.ask_revClass(0);
+  auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
+  auto nbvert = vert_boundary_ids.size();
+  //auto face_boundary_ids = (mesh.ask_revClass(2)).ab2b;
+  //auto nbface = face_boundary_ids.size();
 
   printf("nbvert %d, nvert %d\n", nbvert, mesh.nverts());
 
@@ -99,9 +108,9 @@ void test_3d(Library *lib) {
     mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
   }
 
-/*
-  vtk::write_parallel ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.vtk",
+  vtk::write_parallel ("./../../omega_h/meshes/box_3d.vtk",
                    &mesh);
+/*
   binary::write ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
                    &mesh);
 
@@ -121,7 +130,9 @@ void test_3d(Library *lib) {
   //vtk::write_parallel 
     //("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_reduce.vtk", &mesh);
 */
-  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d_8k.vtk");
+  vtk::write_parallel ("./../../omega_h/meshes/box_3d_foo.vtk",
+                   &mesh);
+  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d.vtk");
 
   return;
 }

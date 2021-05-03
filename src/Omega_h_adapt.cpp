@@ -221,7 +221,13 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 #ifdef OMEGA_H_USE_EGADS
   if (opts.egads_model) {
     ScopedTimer snap_timer("snap");
+
+    mesh->change_all_bFieldsToBoundary();
+
     mesh->set_parting(OMEGA_H_GHOSTED);
+
+    mesh->change_all_bFieldsToMesh();
+
     auto warp = egads_get_snap_warp(
         mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
     if (opts.should_smooth_snap) {
@@ -303,7 +309,13 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   std::cout << "after correct integ error, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
   auto t4 = now();
+
+  mesh->change_all_bFieldsToBoundary();
+
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+
+  mesh->change_all_bFieldsToMesh();
+
   std::cout << "after set parting, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);

@@ -773,7 +773,7 @@ Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
   auto v2xSz = v2x.size();
   printf(" sizes %d %d %d\n", a2eSz, ev2vSz, v2xSz);
   auto f = OMEGA_H_LAMBDA(LO a) {
-    printf("in average field pfor a = %d \n", a);
+    //printf("in average field pfor a = %d \n", a);
     int waiting =0;
     if ((a == 3) && (ncomps == 1)) waiting=0;
     while(waiting);
@@ -781,12 +781,12 @@ Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
     for (Int j = 0; j < ncomps; ++j) {
       Real comp = 0;
       for (Int k = 0; k < degree; ++k) {
-        printf("ok1 \n");
+        //printf("ok1 \n");
         // seg fault in here
         auto v = ev2v[e * degree + k];
-        printf("ok2 \n");
+        //printf("ok2 \n");
         comp += v2x[v * ncomps + j];
-        printf("ok3 \n");
+        //printf("ok3 \n");
       }
       comp /= degree;
       out[a * ncomps + j] = comp;
@@ -1001,17 +1001,12 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
   auto boundary_field = get_array<T>(ent_dim, name);
   auto n_ents = nents (ent_dim);
   OMEGA_H_CHECK (boundary_field.size() <= n_ents*ncomps);
-  printf("bents %d nents %d\n", boundary_field.size()/ncomps, n_ents);
 
   auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
   auto n_bEnts = boundary_ids.size();
 
-  printf("mesh.c tag btoMesh ok1\n");
-
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
 
-  printf("mesh.c tag btoMesh ok2\n");
- 
   auto f = OMEGA_H_LAMBDA (LO i) {
     auto id = boundary_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
@@ -1022,12 +1017,8 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
   };
   parallel_for(n_bEnts, f, "get_fieldFromBdry");
 
-  printf("mesh.c tag btoMesh ok3\n");
- 
   set_tag<T>(ent_dim, name, Read<T>(mesh_field));
 
-  printf("mesh.c tag btoMesh ok5\n");
- 
   return;
 }
 

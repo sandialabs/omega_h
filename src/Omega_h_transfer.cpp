@@ -433,6 +433,7 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     "field1") << " \n";
     transfer_linear_interp(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
+/*
     std::cout << "in transfer refine 2, old mesh bfield is " 
     << old_mesh->has_boundaryField(0,
     "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
@@ -441,8 +442,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     << new_mesh->has_boundaryField(0,
     "field1") << "size is " << (new_mesh->get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
+*/
     transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
+/*
     std::cout << "in transfer refine 3, old mesh bfield is " 
     << old_mesh->has_boundaryField(0,
     "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
@@ -451,6 +454,7 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     << new_mesh->has_boundaryField(0,
     "field1") << "size is " << (new_mesh->get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
+*/
   }
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
