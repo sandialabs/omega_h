@@ -113,6 +113,8 @@ class Mesh {
 
   void change_all_bFieldsToMesh();
   void change_all_bFieldsToBoundary();
+  bool has_anyBoundaryField();
+  bool has_allMeshTags();
 
  public:
   typedef std::shared_ptr<TagBase> TagPtr;

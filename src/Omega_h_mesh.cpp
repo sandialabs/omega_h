@@ -1340,4 +1340,27 @@ void Mesh::change_all_bFieldsToBoundary() {
   return;  
 }
 
+bool Mesh::has_allMeshTags() {
+
+  OMEGA_H_TIME_FUNCTION;
+  bool out = true;
+  for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
+    for (Int t = 0; t < ntags(ent_dim); ++t) {
+      auto tag = get_tag(ent_dim, t);
+      auto const &name = tag->name();
+      size_t found = name.find("_boundary");
+      if (found != std::string::npos) out = false;
+    }
+  }
+
+  return out;
+
+}
+
+bool Mesh::has_anyBoundaryField() {
+
+  return (!has_allMeshTags());
+
+}
+
 }  // end namespace Omega_h
