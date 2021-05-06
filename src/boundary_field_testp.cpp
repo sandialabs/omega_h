@@ -31,19 +31,17 @@ static void set_target_metric(Mesh* mesh) {
 template <Int dim>
 void run_case(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
-  //mesh->set_parting(OMEGA_H_GHOSTED);
+  mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = get_implied_metrics(mesh);
   mesh->add_tag(0, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   set_target_metric<dim>(mesh);
 
   OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
-  OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
 
-  //mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
 
-  //OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
-  OMEGA_H_CHECK(mesh->has_boundaryField(0, "field1"));
+  OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
 
   mesh->ask_lengths();
   mesh->ask_qualities();
@@ -59,12 +57,8 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_MOMENTUM_VELOCITY;
-  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_POINTWISE; //refine
-    //elem based 1, tag dne
   opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
-  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_INHERIT; // same as
-    //pointwise
+  //TODO: change this so that the type map should only be "field1"
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     printf("adapt 1 \n");
@@ -79,13 +73,16 @@ void run_case(Mesh* mesh, char const* vtk_path) {
 
 void test_3d(Library *lib) {
 
+/*
   double o_high[3];
   o_high[0] = 1.0; o_high[1] = 1.0; o_high[2] = 1.0;
   auto mesh = build_box (lib->world(), OMEGA_H_SIMPLEX,
                          o_high[0], o_high[1], o_high[2], 2, 2, 2);
-  //auto mesh = Mesh(lib);
-  //binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p.osh",
-    //            lib->world(), &mesh);
+*/
+  // write osh and create partitioned mesh
+  auto mesh = Mesh(lib);
+  binary::read ("./../../omega_h/meshes/box_3d_2p.osh",
+                lib->world(), &mesh);
 
   auto vtx_rc = mesh.ask_revClass(0);
   auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
@@ -95,25 +92,25 @@ void test_3d(Library *lib) {
 
   printf("nbvert %d, nvert %d\n", nbvert, mesh.nverts());
 
-  mesh.add_boundaryField<Real>(0, "field1", 1);
+  mesh.add_boundaryField<Real>(0, "field2", 1);// field1 is present in input mesh
   const auto rank = lib->world()->rank();
   if (!rank) {
     Write<Real> vals(nbvert, 100);
     Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
+    mesh.set_boundaryField_array<Real>(0, "field2", vals_r);
   }
   else {
     Write<Real> vals(nbvert, 50.45632);
     Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(0, "field1", vals_r);
+    mesh.set_boundaryField_array<Real>(0, "field2", vals_r);
   }
 
-  vtk::write_parallel ("./../../omega_h/meshes/box_3d.vtk",
+  vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk",
                    &mesh);
-/*
-  binary::write ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
-                   &mesh);
+  //binary::write ("./../../omega_h/meshes/box_3d.osh",
+                   //&mesh);
 
+/*
   auto new_mesh = Mesh(lib);
   binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_4k_4pbField.osh",
                 lib->world(), &new_mesh);
@@ -124,15 +121,15 @@ void test_3d(Library *lib) {
   OMEGA_H_CHECK(new_bField.size() <= nverts);
 
   mesh.sync_boundaryField(0, "field1");
-  //vtk::write_parallel 
+  //vtk::write_parallel
     //("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_sync.vtk", &mesh);
   mesh.reduce_boundaryField(0, "field1", OMEGA_H_SUM);
-  //vtk::write_parallel 
+  //vtk::write_parallel
     //("./../../omega_h/meshes/unitbox_cutTriCube_4k_4p_reduce.vtk", &mesh);
 */
-  vtk::write_parallel ("./../../omega_h/meshes/box_3d_foo.vtk",
+  vtk::write_parallel ("./../../omega_h/meshes/box_3d_foo_2p.vtk",
                    &mesh);
-  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d.vtk");
+  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d_2p.vtk");
 
   return;
 }

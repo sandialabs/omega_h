@@ -72,7 +72,13 @@ static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
 bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap_part1(mesh, opts)) return false;
   if (!swap2d_ghosted(mesh, opts)) return false;
+
+  mesh->change_all_bFieldsToBoundary();
+
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+
+  mesh->change_all_bFieldsToMesh();
+
   swap2d_element_based(mesh, opts);
   return true;
 }

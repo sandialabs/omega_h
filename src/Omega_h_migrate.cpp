@@ -135,6 +135,8 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
     if (is<I8>(tag)) {
 
+      //TODO call this after creating a new flag to check if conversion is
+      // needed
       size_t found = name.find("_boundary");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 

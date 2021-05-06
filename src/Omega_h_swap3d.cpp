@@ -78,7 +78,13 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
 bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap_part1(mesh, opts)) return false;
   if (!swap3d_ghosted(mesh, opts)) return false;
+
+  mesh->change_all_bFieldsToBoundary();
+
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
+
+  mesh->change_all_bFieldsToMesh();
+
   swap3d_element_based(mesh, opts);
   return true;
 }

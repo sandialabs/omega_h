@@ -972,6 +972,7 @@ template <typename T>
 void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
                                 std::string const &name) {
 
+  OMEGA_H_TIME_FUNCTION;
   auto mesh_field = get_array<T>(ent_dim, name);
   std::cout << "change tag to boundary: name, ncomps, data size , nents, edim "
     << name << " " << ncomps << " " << mesh_field.size() << " " << 
@@ -998,6 +999,7 @@ template <typename T>
 void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
                             std::string const &name) {
 
+  OMEGA_H_TIME_FUNCTION;
   auto boundary_field = get_array<T>(ent_dim, name);
   auto n_ents = nents (ent_dim);
   OMEGA_H_CHECK (boundary_field.size() <= n_ents*ncomps);

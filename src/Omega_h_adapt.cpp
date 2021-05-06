@@ -293,21 +293,31 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   if (!pre_adapt(mesh, opts)) return false;
   std::cout << "after preadapt bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
+  printf("bfield size is %d nents %d\n",
+    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
   setup_conservation_tags(mesh, opts);
   std::cout << "after setup cons tags, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
+  printf("bfield size is %d nents %d\n",
+    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
   auto t1 = now();
   satisfy_lengths(mesh, opts);
   std::cout << "after satisfy lengths, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
+  printf("bfield size is %d nents %d\n",
+    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   std::cout << "after satisfy quals, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
+  printf("bfield size is %d nents %d\n",
+    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
   auto t3 = now();
   correct_integral_errors(mesh, opts);
   std::cout << "after correct integ error, bfield is" << mesh->has_boundaryField(0,
     "field1") << " \n";
+  printf("bfield size is %d nents %d\n",
+    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
   auto t4 = now();
 
   mesh->change_all_bFieldsToBoundary();
