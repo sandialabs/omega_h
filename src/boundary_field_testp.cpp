@@ -57,8 +57,8 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  //opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
-  //opts.xfer_opts.type_map["field2_boundary"] = OMEGA_H_LINEAR_INTERP;
+  opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
+  opts.xfer_opts.type_map["field2_boundary"] = OMEGA_H_LINEAR_INTERP;
   opts.xfer_opts.type_map["field3_boundary"] = OMEGA_H_LINEAR_INTERP;
   opts.xfer_opts.type_map["field4_boundary"] = OMEGA_H_POINTWISE;
   //TODO: change this so that the type map should only be "field1"
@@ -83,12 +83,16 @@ void test_3d(Library *lib) {
   auto vtx_rc = mesh.ask_revClass(0);
   auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
   auto nbvert = vert_boundary_ids.size();
+  OMEGA_H_CHECK (nbvert < mesh.nverts());
+  auto edge_boundary_ids = (mesh.ask_revClass(1)).ab2b;
+  auto nbedge = edge_boundary_ids.size();
   auto face_boundary_ids = (mesh.ask_revClass(2)).ab2b;
   auto nbface = face_boundary_ids.size();
   auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
   auto nbreg = reg_boundary_ids.size();
 
-  mesh.add_boundaryField<Real>(0, "field2", 1);//field1 is present in input mesh
+  //field1 is present on input mesh vertices
+  mesh.add_boundaryField<Real>(1, "field2", 1);
   mesh.add_boundaryField<Real>(2, "field3", 1);
   mesh.add_boundaryField<Real>(3, "field4", 1);
   Write<Real> valsf(nbface, 10);
@@ -99,14 +103,14 @@ void test_3d(Library *lib) {
   mesh.set_boundaryField_array<Real>(3, "field4", valsr_r);
   const auto rank = lib->world()->rank();
   if (!rank) {
-    Write<Real> vals(nbvert, 100);
+    Write<Real> vals(nbedge, 100);
     Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(0, "field2", vals_r);
+    mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
   }
   else {
-    Write<Real> vals(nbvert, 50.45632);
+    Write<Real> vals(nbedge, 50.45632);
     Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(0, "field2", vals_r);
+    mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
   }
 
   vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk",
@@ -121,17 +125,15 @@ void test_3d(Library *lib) {
   auto nverts = mesh.nverts();
   OMEGA_H_CHECK(new_bField.size() <= nverts);
 
-  mesh.sync_boundaryField(0, "field2");
+  mesh.sync_boundaryField(1, "field2");
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_sync.vtk", &mesh);
-  mesh.reduce_boundaryField(0, "field2", OMEGA_H_SUM);
+  mesh.reduce_boundaryField(1, "field2", OMEGA_H_SUM);
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_reduce.vtk", &mesh);
 
   vtk::write_parallel ("./../../omega_h/meshes/box_3d_foo_2p.vtk",
                    &mesh);
-  mesh.remove_boundaryField(0, "field1");
-  mesh.remove_boundaryField(0, "field2");
   run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d_2p.vtk");
 
   return;
