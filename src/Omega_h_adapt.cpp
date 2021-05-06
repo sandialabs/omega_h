@@ -175,21 +175,21 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
   bool did_anything;
   do {
     did_anything = false;
-    std::cout << "in satisfy lengths 0, bfield is " << mesh->has_boundaryField(0,
-    "field1") << " \n";
+    std::cout << "in satisfy lengths 0, bfield is " << mesh->has_boundaryField(2,
+    "field3") << " \n";
     if (opts.should_refine && refine_by_size(mesh, opts)) {
-      std::cout << "in satisfy lengths 1.1, bfield is " << mesh->has_boundaryField(0,
-      "field1") << " \n";
+      std::cout << "in satisfy lengths 1.1, bfield is " << mesh->has_boundaryField(2,
+      "field3") << " \n";
       post_rebuild(mesh, opts);
-      std::cout << "in satisfy lengths 1.2, bfield is " << mesh->has_boundaryField(0,
-      "field1") << " \n";
+      std::cout << "in satisfy lengths 1.2, bfield is " << mesh->has_boundaryField(2,
+      "field3") << " \n";
       did_anything = true;
     }
     if (opts.should_coarsen && coarsen_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
       did_anything = true;
-      std::cout << "in satisfy lengths 2, bfield is " << mesh->has_boundaryField(0,
-      "field1") << " \n";
+      std::cout << "in satisfy lengths 2, bfield is " << mesh->has_boundaryField(2,
+      "field3") << " \n";
     }
   } while (did_anything);
 }
@@ -291,33 +291,33 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   mesh->change_all_bFieldsToMesh();
 
   if (!pre_adapt(mesh, opts)) return false;
-  std::cout << "after preadapt bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after preadapt bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   printf("bfield size is %d nents %d\n",
-    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
+    (mesh->get_boundaryField_array<Real>(2,"field3")).size(), mesh->nfaces());
   setup_conservation_tags(mesh, opts);
-  std::cout << "after setup cons tags, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after setup cons tags, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   printf("bfield size is %d nents %d\n",
-    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
+    (mesh->get_boundaryField_array<Real>(2,"field3")).size(), mesh->nfaces());
   auto t1 = now();
   satisfy_lengths(mesh, opts);
-  std::cout << "after satisfy lengths, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after satisfy lengths, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   printf("bfield size is %d nents %d\n",
-    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
+    (mesh->get_boundaryField_array<Real>(2,"field3")).size(), mesh->nfaces());
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
-  std::cout << "after satisfy quals, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after satisfy quals, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   printf("bfield size is %d nents %d\n",
-    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
+    (mesh->get_boundaryField_array<Real>(2,"field3")).size(), mesh->nfaces());
   auto t3 = now();
   correct_integral_errors(mesh, opts);
-  std::cout << "after correct integ error, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after correct integ error, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   printf("bfield size is %d nents %d\n",
-    (mesh->get_boundaryField_array<Real>(0,"field1")).size(), mesh->nverts());
+    (mesh->get_boundaryField_array<Real>(2,"field3")).size(), mesh->nfaces());
   auto t4 = now();
 
   mesh->change_all_bFieldsToBoundary();
@@ -326,11 +326,11 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
 
   mesh->change_all_bFieldsToMesh();
 
-  std::cout << "after set parting, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after set parting, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
-  std::cout << "after post adapt, bfield is" << mesh->has_boundaryField(0,
-    "field1") << " \n";
+  std::cout << "after post adapt, bfield is" << mesh->has_boundaryField(2,
+    "field3") << " \n";
 
   mesh->change_all_bFieldsToBoundary();
 

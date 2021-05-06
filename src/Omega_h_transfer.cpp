@@ -355,8 +355,11 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
-    if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL &&
-        tagbase->ncomps() == 1) {
+    size_t found = tagbase->name().find("_boundary");
+    if ((tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
+         && tagbase->ncomps() == 1) ||
+        (found != std::string::npos)) {
+    
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -396,7 +399,10 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    if (tagbase->name() == "magnetic face flux") {
+    size_t found = tagbase->name().find("_boundary");
+    if ((tagbase->name() == "magnetic face flux") || (found !=
+        std::string::npos)) {
+
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Read<Real> prod_data(prods2new_ents.size(), 0);
       transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,
@@ -413,32 +419,33 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
       keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == VERT) {
     std::cout << "in transfer refine 1, old mesh bfield is " 
-    << old_mesh->has_boundaryField(0,
-    "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
-    "field1")).size()<< " \n";
+    << old_mesh->has_boundaryField(2,
+    "field3") << "size is " << (old_mesh->get_boundaryField_array<Real>(2,
+    "field3")).size()<< " \n";
     std::cout << "in transfer refine 1, new mesh bfield is " 
-    << new_mesh->has_boundaryField(0,
-    "field1") << " \n";
+    << new_mesh->has_boundaryField(2,
+    "field3") << " \n";
     transfer_linear_interp(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-/*
-    std::cout << "in transfer refine 2, old mesh bfield is " 
-    << old_mesh->has_boundaryField(0,
-    "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
-    "field1")).size()<< " \n";
-    std::cout << "in transfer refine 2, new mesh bfield is " 
-    << new_mesh->has_boundaryField(0,
-    "field1") << "size is " << (new_mesh->get_boundaryField_array<Real>(0,
-    "field1")).size()<< " \n";
-*/
+
+    std::cout << "in transfer refine 2, old mesh bfield is "
+    << old_mesh->has_boundaryField(2,
+    "field3") << "size is " << (old_mesh->get_boundaryField_array<Real>(2,
+    "field3")).size()<< " \n";
+    std::cout << "in transfer refine 2, new mesh bfield is "
+    << new_mesh->has_boundaryField(2,
+    "field3") <<
+    //"size is " << (new_mesh->get_boundaryField_array<Real>(2,"field3")).size()<<
+    " \n";
+
     transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
 /*
-    std::cout << "in transfer refine 3, old mesh bfield is " 
+    std::cout << "in transfer refine 3, old mesh bfield is "
     << old_mesh->has_boundaryField(0,
     "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
-    std::cout << "in transfer refine 3, new mesh bfield is " 
+    std::cout << "in transfer refine 3, new mesh bfield is "
     << new_mesh->has_boundaryField(0,
     "field1") << "size is " << (new_mesh->get_boundaryField_array<Real>(0,
     "field1")).size()<< " \n";
