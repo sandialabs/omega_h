@@ -291,20 +291,14 @@ void write_tag(
 
   } else if (is<Real>(tag)) {
   
-    fprintf(stderr, " vtk.c write tag ok1\n");
-
     size_t found = (tag->name()).find("_boundary");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name());
     }
 
-    fprintf(stderr, " vtk.c write tag ok2\n");
-
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
       if (tag->ncomps() == space_dim) {
-        fprintf(stderr, " vtk.c write tag ncomps %d sdim %d ok3\n",
-          tag->ncomps(), space_dim);
         // VTK / ParaView expect vector fields to have 3 components
         // regardless of whether this is a 2D mesh or not.
         // this filter adds a 3rd zero component to any
@@ -319,8 +313,6 @@ void write_tag(
       } else {
 
         write_array(stream, tag->name(), tag->ncomps(), array, compress);
-        fprintf(stderr, " vtk.c write tag ok4\n");
-
       }
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array, compress);

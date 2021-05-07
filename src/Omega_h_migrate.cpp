@@ -191,18 +191,13 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
           old_mesh->change_tagToMesh<Real> (ent_dim, ncomps, name);
       }
 
-      printf("dim %d ok2 push tags\n", ent_dim);
       auto array = as<Real>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      printf("dim %d ok3 push tags\n", ent_dim);
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array, true);
-      printf("dim %d ok4 push tags\n", ent_dim);
 
       if (found != std::string::npos) {
-      printf("dim %d ok4.5 push tags\n", ent_dim);
         new_mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
       }
-      printf("dim %d ok5 push tags\n", ent_dim);
 
     }
   }
@@ -224,11 +219,8 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     auto old_own_ranks = old_mesh->ask_owners(ent_dim).ranks;
     own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
   }
-      printf("dim %d ok6 push ents\n", ent_dim);
   auto owners = update_ownership(new_ents2old_owners, own_ranks);
-      printf("dim %d ok7 push ents\n", ent_dim);
   new_mesh->set_owners(ent_dim, owners);
-      printf("dim %d ok8 push ents\n", ent_dim);
 }
 
 static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
@@ -281,7 +273,6 @@ void migrate_mesh(
   new_mesh.set_verts(nnew_verts);
   push_ents(
       mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
-  printf("ok9 migrate mesh\n");
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));

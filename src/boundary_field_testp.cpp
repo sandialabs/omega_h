@@ -46,13 +46,11 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   mesh->ask_lengths();
   mesh->ask_qualities();
   vtk::FullWriter writer;
-  printf("run case 1\n");
   if (vtk_path) {
     writer = vtk::FullWriter(vtk_path, mesh);
     writer.write();
   }
 
-  printf("run case 2\n");
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
@@ -63,7 +61,6 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   add_boundaryField_transferMap(&opts, "field4", OMEGA_H_POINTWISE);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
-    printf("adapt 1 \n");
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
     if (vtk_path) writer.write();

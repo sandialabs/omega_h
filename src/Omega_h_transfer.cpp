@@ -176,11 +176,7 @@ void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nnew_ents = new_mesh->nents(ent_dim);
   auto ncomps = tagbase->ncomps();
   auto new_data = Write<T>(nnew_ents * ncomps);
-  printf("transfer common1 nnew_verts %d, ncomps %d, new_data size %d\n",
-    nnew_ents, ncomps, new_data.size());
   map_into(prod_data, prods2new_ents, new_data, ncomps);
-  printf("transfer common2 nnew_verts %d, ncomps %d, new_data size %d\n",
-    nnew_ents, ncomps, new_data.size());
   transfer_common2(old_mesh, new_mesh, ent_dim, same_ents2old_ents,
       same_ents2new_ents, tagbase, new_data);
 }
@@ -193,21 +189,10 @@ static void transfer_linear_interp(Mesh* old_mesh, TransferOpts const& opts,
     if (should_interpolate(old_mesh, opts, VERT, tagbase)) {
       auto ncomps = tagbase->ncomps();
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
-      std::cout << "transfer linear interp 1 name, old_data size " <<
-        tagbase->name() << old_data.size() << "\n";
-      int wait=0;
-      if (tagbase->name() == "field1_boundary") wait = 0;
-      while (wait);
       auto prod_data =
           average_field(old_mesh, EDGE, keys2edges, ncomps, old_data);
-      std::cout << "transfer linear interp 2 name, old_data size, prod_data size "
-        << tagbase->name() << " " << old_data.size() << " " << 
-        prod_data.size() << "\n";
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
           same_verts2new_verts, keys2midverts, tagbase, prod_data);
-      std::cout << "transfer linear interp 3 name, old_data size, prod_data size "
-        << tagbase->name() << " " << old_data.size() << " " << 
-        prod_data.size() << "\n";
     }
   }
 }
@@ -418,38 +403,11 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
   transfer_inherit_refine(old_mesh, opts, new_mesh, keys2edges, prod_dim,
       keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == VERT) {
-    std::cout << "in transfer refine 1, old mesh bfield is " 
-    << old_mesh->has_boundaryField(2,
-    "field3") << "size is " << (old_mesh->get_boundaryField_array<Real>(2,
-    "field3")).size()<< " \n";
-    std::cout << "in transfer refine 1, new mesh bfield is " 
-    << new_mesh->has_boundaryField(2,
-    "field3") << " \n";
     transfer_linear_interp(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
 
-    std::cout << "in transfer refine 2, old mesh bfield is "
-    << old_mesh->has_boundaryField(2,
-    "field3") << "size is " << (old_mesh->get_boundaryField_array<Real>(2,
-    "field3")).size()<< " \n";
-    std::cout << "in transfer refine 2, new mesh bfield is "
-    << new_mesh->has_boundaryField(2,
-    "field3") <<
-    //"size is " << (new_mesh->get_boundaryField_array<Real>(2,"field3")).size()<<
-    " \n";
-
     transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-/*
-    std::cout << "in transfer refine 3, old mesh bfield is "
-    << old_mesh->has_boundaryField(0,
-    "field1") << "size is " << (old_mesh->get_boundaryField_array<Real>(0,
-    "field1")).size()<< " \n";
-    std::cout << "in transfer refine 3, new mesh bfield is "
-    << new_mesh->has_boundaryField(0,
-    "field1") << "size is " << (new_mesh->get_boundaryField_array<Real>(0,
-    "field1")).size()<< " \n";
-*/
   }
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -471,12 +429,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   if (opts.user_xfer) {
-  printf("user_xfer\n");
     opts.user_xfer->refine(*old_mesh, *new_mesh, keys2edges, keys2midverts,
         prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
   }
-  printf("end_code\n");
   end_code();
 }
 
