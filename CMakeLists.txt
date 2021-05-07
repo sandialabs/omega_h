@@ -97,6 +97,13 @@ if(Omega_h_USE_MPI)
   bob_add_dependency(PUBLIC NAME MPI
     INCLUDE_DIR_VARS MPI_CXX_INCLUDE_DIRS
     LIBRARY_VARS MPI_CXX_LIBRARIES)
+  get_target_property(mpiLibs ${PROJECT_NAME}-MPI INTERFACE_LINK_LIBRARIES)
+  if(NOT mpiLibs)
+    message(WARNING "MPI Libraries not found, there may be linking errors!  "
+      "Try enabling shared libraries \'-DBUILD_SHARED_LIBS=ON\'.")
+  else()
+    message(STATUS "Found MPI libraries: ${mpiLibs}")
+  endif()
 endif()
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
