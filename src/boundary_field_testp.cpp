@@ -57,11 +57,10 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
-  opts.xfer_opts.type_map["field2_boundary"] = OMEGA_H_LINEAR_INTERP;
-  opts.xfer_opts.type_map["field3_boundary"] = OMEGA_H_LINEAR_INTERP;
-  opts.xfer_opts.type_map["field4_boundary"] = OMEGA_H_POINTWISE;
-  //TODO: change this so that the type map should only be "field1"
+  add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
+  add_boundaryField_transferMap(&opts, "field2", OMEGA_H_LINEAR_INTERP);
+  add_boundaryField_transferMap(&opts, "field3", OMEGA_H_LINEAR_INTERP);
+  add_boundaryField_transferMap(&opts, "field4", OMEGA_H_POINTWISE);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     printf("adapt 1 \n");

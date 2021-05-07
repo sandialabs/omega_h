@@ -337,4 +337,18 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   return true;
 }
 
+void add_boundaryField_transferMap(AdaptOpts *opts, std::string const &name,
+    Omega_h_Transfer const transfer) {
+
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+  }
+  std::string new_name = name;
+  new_name.append("_boundary");
+
+  opts->xfer_opts.type_map[new_name] = transfer;
+
+}
+
 }  // end namespace Omega_h

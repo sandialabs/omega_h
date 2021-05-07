@@ -139,6 +139,9 @@ void fix_for_given_metric(
 void grade_fix_adapt(
     Mesh* mesh, AdaptOpts const& opts, Reals target_metric, bool verbose);
 
+void add_boundaryField_transferMap(AdaptOpts *opts, std::string const &name,
+    Omega_h_Transfer const transfer);
+
 }  // namespace Omega_h
 
 #endif
