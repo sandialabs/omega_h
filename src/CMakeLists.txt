@@ -444,7 +444,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     osh_add_exe(boundary_field_testp)
     set(TEST_EXES ${TEST_EXES} boundary_field_testp)
-    test_func(boundary_field_testp 1 ./boundary_field_testp)
+    test_func(boundary_field_testp 2 ./boundary_field_testp)
   endif()
 endif()
 

@@ -765,13 +765,7 @@ Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
   auto degree = element_degree(mesh->family(), ent_dim, VERT);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
-  auto a2eSz = a2e.size();
-  auto ev2vSz = ev2v.size();
-  auto v2xSz = v2x.size();
   auto f = OMEGA_H_LAMBDA(LO a) {
-    int waiting =0;
-    if ((a == 3) && (ncomps == 1)) waiting=0;
-    while(waiting);
     auto e = a2e[a];
     for (Int j = 0; j < ncomps; ++j) {
       Real comp = 0;
