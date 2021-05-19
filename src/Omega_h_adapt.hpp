@@ -141,6 +141,8 @@ void grade_fix_adapt(
 
 void add_boundaryField_transferMap(AdaptOpts *opts, std::string const &name,
     Omega_h_Transfer const transfer);
+void add_boundaryField_integralMap(AdaptOpts *opts, std::string const &name,
+    std::string const &map);
 
 }  // namespace Omega_h
 

@@ -317,4 +317,19 @@ void add_boundaryField_transferMap(AdaptOpts *opts, std::string const &name,
 
 }
 
+void add_boundaryField_integralMap(AdaptOpts *opts, std::string const &name,
+    std::string const &map) {
+
+  size_t found = name.find("_boundary");
+  if (found != std::string::npos) {
+    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+  }
+  std::string new_name = name;
+  new_name.append("_boundary");
+
+  opts->xfer_opts.integral_map[new_name] = map;
+
+}
+
+
 }  // end namespace Omega_h
