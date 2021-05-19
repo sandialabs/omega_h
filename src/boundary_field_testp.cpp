@@ -56,13 +56,41 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
-  add_boundaryField_transferMap(&opts, "field2", OMEGA_H_LINEAR_INTERP);
-  add_boundaryField_transferMap(&opts, "field3", OMEGA_H_LINEAR_INTERP);
+  //add_boundaryField_transferMap(&opts, "field2", OMEGA_H_LINEAR_INTERP);
+  add_boundaryField_transferMap(&opts, "field2", OMEGA_H_INHERIT);
+  add_boundaryField_transferMap(&opts, "field3", OMEGA_H_INHERIT);
+  //opts.xfer_opts.type_map["magnetic_face_flux"] = OMEGA_H_POINTWISE;
+  //opts.xfer_opts.integral_map["magnetic_face_flux"] = "mass";
+  
+  //add_boundaryField_transferMap(&opts, "field3", OMEGA_H_INHERIT);
+  //add_boundaryField_transferMap(&opts, "field3", OMEGA_H_CONSERVE);
+  //add_boundaryField_integralMap(&opts, "field3", "mass");
   add_boundaryField_transferMap(&opts, "field4", OMEGA_H_POINTWISE);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
+
+    auto face_rc = mesh->ask_revClass(2);
+    auto face_a2abSize = face_rc.a2ab.size();
+    OMEGA_H_CHECK(face_a2abSize);
+    auto ab2b = face_rc.ab2b;
+    auto a2ab = face_rc.a2ab;
+    auto nbface = ab2b.size();
+    Write<Real> valsf_new(nbface, 12);
+
+    auto f_new = OMEGA_H_LAMBDA(LO gf) {
+      if ((gf == 16) || (gf == 22)) {
+        auto start = a2ab[gf];
+        auto end = a2ab[gf+1];
+        for (int index = start; index < end; ++index) {
+          valsf_new[index] = gf;
+        }
+      }
+    };
+    parallel_for(face_a2abSize-1, f_new);
+
+    mesh->set_boundaryField_array<Real>(2, "field3", Read<Real>(valsf_new));
     if (vtk_path) writer.write();
   }
   Now t1 = now();
@@ -82,23 +110,17 @@ void test_3d(Library *lib) {
   OMEGA_H_CHECK (nbvert < mesh.nverts());
   auto edge_boundary_ids = (mesh.ask_revClass(1)).ab2b;
   auto nbedge = edge_boundary_ids.size();
+  auto face_rc = mesh.ask_revClass(2);
+  auto face_a2abSize = face_rc.a2ab.size();
+  OMEGA_H_CHECK(face_a2abSize);
   auto face_boundary_ids = (mesh.ask_revClass(2)).ab2b;
   auto nbface = face_boundary_ids.size();
   auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
   auto nbreg = reg_boundary_ids.size();
 
-  //field1 is present on input mesh vertices
   mesh.add_boundaryField<Real>(1, "field2", 1);
-  mesh.add_boundaryField<Real>(2, "field3", 1);
-  mesh.add_boundaryField<Real>(3, "field4", 1);
-  Write<Real> valsf(nbface, 10);
-  Read<Real> valsf_r(valsf);
-  Write<Real> valsr(nbreg, 10);
-  Read<Real> valsr_r(valsr);
-  mesh.set_boundaryField_array<Real>(2, "field3", valsf_r);
-  mesh.set_boundaryField_array<Real>(3, "field4", valsr_r);
   const auto rank = lib->world()->rank();
-  if (!rank) {
+  if ((!rank) || (rank == 1)) {
     Write<Real> vals(nbedge, 100);
     Read<Real> vals_r(vals);
     mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
@@ -108,6 +130,32 @@ void test_3d(Library *lib) {
     Read<Real> vals_r(vals);
     mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
   }
+
+  mesh.add_boundaryField<Real>(2, "field3", 1);
+  Write<Real> valsf(nbface, 12);
+
+  auto ab2b = face_rc.ab2b;
+  auto a2ab = face_rc.a2ab;
+  auto f = OMEGA_H_LAMBDA(LO gf) {
+    if ((gf == 16) || (gf == 22)) {
+      auto start = a2ab[gf];
+      auto end = a2ab[gf+1];
+      for (int index = start; index < end; ++index) {
+        valsf[index] = gf;
+      }
+    }
+  };
+  parallel_for(face_a2abSize-1, f);
+
+  Read<Real> valsf_r(valsf);
+  mesh.set_boundaryField_array<Real>(2, "field3", valsf_r);
+  Write<Real> vals_allFace(mesh.nfaces(), 12.5);
+  mesh.add_tag<Real>(2, "magnetic_face_flux", 1, Read<Real>(vals_allFace));
+ 
+  mesh.add_boundaryField<Real>(3, "field4", 1);
+  Write<Real> valsr(nbreg, 100);
+  Read<Real> valsr_r(valsr);
+  mesh.set_boundaryField_array<Real>(3, "field4", valsr_r);
 
   vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk",
                    &mesh);

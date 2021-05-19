@@ -54,8 +54,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  opts.xfer_opts.type_map["field1_boundary"] = OMEGA_H_LINEAR_INTERP;
-  //TODO: change this so that the type map should only be "field1"
+  add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
@@ -105,6 +104,7 @@ void test_3d(Library *lib) {
   auto mesh = Mesh(lib);
   binary::read ("./../../omega_h/meshes/box_3d.osh",
                 lib->world(), &mesh);
+  OMEGA_H_CHECK(mesh.has_boundaryField(0, "field1"));
   run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d.vtk");
 
   return;
