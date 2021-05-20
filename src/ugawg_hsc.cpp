@@ -48,6 +48,41 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   opts.egads_model = geom;
 #endif
+
+  auto vtx_rc = mesh.ask_revClass(0);
+  auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
+  auto nbvert = vert_boundary_ids.size();
+  OMEGA_H_CHECK (nbvert < mesh.nverts());
+  auto edge_boundary_ids = (mesh.ask_revClass(1)).ab2b;
+  auto nbedge = edge_boundary_ids.size();
+  auto face_rc = mesh.ask_revClass(2);
+  auto face_a2abSize = face_rc.a2ab.size();
+  OMEGA_H_CHECK(face_a2abSize);
+  auto face_boundary_ids = (mesh.ask_revClass(2)).ab2b;
+  auto nbface = face_boundary_ids.size();
+  auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
+  auto nbreg = reg_boundary_ids.size();
+
+  mesh.add_boundaryField<LO>(0, "field", 1);
+  Write<LO> valsr_v(nbvert, 100);
+  mesh.set_boundaryField_array(0, "field", Read<LO>(valsr_v));
+  Write<Real> vals_real(nbvert, 50.2523232);
+  mesh.add_boundaryField<Real>(0, "field1", 1, Read<Real>(vals_real));
+  mesh.add_boundaryField<LO>(1, "field", 1);
+  Write<LO> vals(nbedge, 100);
+  Read<LO> vals_r(vals);
+  mesh.set_boundaryField_array(1, "field", vals_r);
+  mesh.add_boundaryField<LO>(2, "field", 1);
+  Write<LO> valsf(nbface, 12);
+  mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
+  mesh.add_boundaryField<LO>(3, "field", 1);
+  Write<LO> valsr(nbreg, 100);
+  Read<LO> valsr_r(valsr);
+  mesh.set_boundaryField_array(3, "field", valsr_r);
+
+  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
+
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::vtk::Writer writer(out_prefix + "_vtk", &mesh);
   writer.write();
