@@ -87,6 +87,7 @@ class Mesh {
   Graph ask_dual();
 
   Adj ask_revClass (Int edim);
+  Adj ask_revClass (Int edim, LOs g_ids);
   bool has_revClass (Int edim) const;
   Adj get_revClass (Int edim) const;
 

@@ -938,7 +938,7 @@ Adj Mesh::derive_revClass (Int edim) {
     ab2b_h[i] =  ab2b_vec[static_cast<std::size_t>(i)];
   }
 
-  return Adj(a2ab_h.write(), ab2b_h.write()); 
+  return Adj(Read<LO>(a2ab_h.write()), Read<LO>(ab2b_h.write())); 
 }
 
 Adj Mesh::ask_revClass (Int edim) {
@@ -950,6 +950,42 @@ Adj Mesh::ask_revClass (Int edim) {
   Adj derived_rc = derive_revClass (edim);
   revClass_[edim] = std::make_shared<Adj>(derived_rc);
   return derived_rc;
+}
+
+Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
+  OMEGA_H_TIME_FUNCTION;
+  check_dim2 (edim);
+  if (!g_ids.size()) {
+    Omega_h_fail("Model entity IDs cannot be empty\n");
+  }
+  auto edim_rc = ask_revClass(edim);
+  auto n_gents = g_ids.size();
+  auto max_gent_id = get_max(g_ids);
+  HostRead<LO> h_ab2b(edim_rc.ab2b);
+  HostRead<LO> h_a2ab(edim_rc.a2ab);
+  std::vector<int> new_ab2b_vec;
+  HostWrite<LO> new_a2ab_h(max_gent_id + 1);
+
+  for (LO i = 0; i < n_gents; ++i) {
+    auto gent = g_ids[i];
+    auto start = h_a2ab[gent];
+    auto end = h_a2ab[gent + 1];
+    new_a2ab_h[gent+1] = end - start;
+    for (LO j = start; j < end; ++j) {
+      new_ab2b_vec.push_back(h_ab2b[j]);
+    }
+  }
+
+  for (LO i = 1; i < new_a2ab_h.size(); ++i) {
+    new_a2ab_h[i] += new_a2ab_h[i-1];
+  }
+
+  HostWrite<LO> new_ab2b_h(new_ab2b_vec.size());
+  for (LO i = 0; i < new_ab2b_h.size(); ++i) {
+    new_ab2b_h[i] =  new_ab2b_vec[static_cast<std::size_t>(i)];
+  }
+
+  return Adj(Read<LO>(new_a2ab_h.write()), Read<LO>(new_ab2b_h.write())); 
 }
 
 template <typename T>

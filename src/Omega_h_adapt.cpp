@@ -190,6 +190,7 @@ static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_TIME_FUNCTION;
   if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return true;
   if ((opts.verbosity >= EACH_REBUILD) && can_print(mesh)) {
+    std::cout << "addressing element qualities\n";
   }
   do {
     if (opts.should_swap && swap_edges(mesh, opts)) {
@@ -201,6 +202,7 @@ static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       continue;
     }
     if ((opts.verbosity > SILENT) && can_print(mesh)) {
+      std::cout << "could not satisfy quality\n";
     }
     return false;
   } while (min_fixable_quality(mesh, opts) < opts.min_quality_desired);

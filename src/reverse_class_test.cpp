@@ -115,10 +115,7 @@ void test_3d(Library *lib) {
 
 int main(int argc, char** argv) {
 
-  auto temp = argc;
-  auto tempv = argv;
-
-  auto lib = Library();
+  auto lib = Library(&argc, &argv);
 
   test_2d(&lib);
   test_3d(&lib);
