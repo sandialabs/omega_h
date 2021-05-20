@@ -61,6 +61,8 @@ static inline void fail(char const* format, ...) {
 #define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
 #define OMEGA_H_CHECK(cond) assert(cond)
+#elif defined(OMPTARGET)
+#define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0)                                                          \
