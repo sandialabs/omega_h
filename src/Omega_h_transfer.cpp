@@ -21,11 +21,14 @@ bool is_transfer_required(
 bool should_inherit(
     Mesh* mesh, TransferOpts const& opts, Int, TagBase const* tag) {
   auto& name = tag->name();
+printf("should inherit 1 %s, trns reqd %d\n", name.c_str(), is_transfer_required
+(opts, name, OMEGA_H_INHERIT));
   if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
           name == "class_id" || name == "class_dim" ||
           name == "momentum_velocity_fixed")) {
     return false;
   }
+printf("should inherit 2\n");
   for (Int i = 0; i <= mesh->dim(); ++i) {
     if (!mesh->has_tag(i, name)) return false;
     if (mesh->get_tagbase(i, name)->type() != tag->type()) return false;
@@ -153,7 +156,9 @@ void transfer_common3(
     Mesh* new_mesh, Int ent_dim, TagBase const* tagbase, Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
+printf("t c3\n");
   new_mesh->add_tag(ent_dim, name, ncomps, Read<T>(new_data), true);
+printf("t c3-2\n");
 }
 
 template <typename T>
@@ -166,6 +171,7 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
+printf("t c2\n");
   transfer_common3(new_mesh, ent_dim, tagbase, new_data);
 }
 
@@ -177,6 +183,7 @@ void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto ncomps = tagbase->ncomps();
   auto new_data = Write<T>(nnew_ents * ncomps);
   map_into(prod_data, prods2new_ents, new_data, ncomps);
+printf("t c\n");
   transfer_common2(old_mesh, new_mesh, ent_dim, same_ents2old_ents,
       same_ents2new_ents, tagbase, new_data);
 }
@@ -215,6 +222,7 @@ template <typename T>
 void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, std::string const& name) {
+std::cout << name << "\n";
   auto old_tag = old_mesh->get_tag<T>(prod_dim, name);
   auto ncomps = old_tag->ncomps();
   auto nprods = keys2prods.last();
@@ -298,9 +306,11 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 static void transfer_inherit_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
+printf("tr inhe ref\n");
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
+printf("tr inhe ref: should inherit %s\n",tagbase->name().c_str());
       transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase);
@@ -340,11 +350,14 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
+    if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
+         && tagbase->ncomps() == 1) {
+/*
     size_t found = tagbase->name().find("_boundary");
     if ((tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
          && tagbase->ncomps() == 1) ||
         (found != std::string::npos)) {
-    
+*/    
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -384,9 +397,10 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    size_t found = tagbase->name().find("_boundary");
-    if ((tagbase->name() == "magnetic face flux") || (found !=
-        std::string::npos)) {
+    if (tagbase->name() == "magnetic face flux") {
+    //size_t found = tagbase->name().find("_boundary");
+    //if ((tagbase->name() == "magnetic face flux") || (found !=
+      //  std::string::npos)) {
 
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Read<Real> prod_data(prods2new_ents.size(), 0);

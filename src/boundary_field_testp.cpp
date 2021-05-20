@@ -55,17 +55,18 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
+  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
   //add_boundaryField_transferMap(&opts, "field2", OMEGA_H_LINEAR_INTERP);
-  add_boundaryField_transferMap(&opts, "field2", OMEGA_H_INHERIT);
-  add_boundaryField_transferMap(&opts, "field3", OMEGA_H_INHERIT);
+  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
   //opts.xfer_opts.type_map["magnetic_face_flux"] = OMEGA_H_POINTWISE;
   //opts.xfer_opts.integral_map["magnetic_face_flux"] = "mass";
   
   //add_boundaryField_transferMap(&opts, "field3", OMEGA_H_INHERIT);
   //add_boundaryField_transferMap(&opts, "field3", OMEGA_H_CONSERVE);
   //add_boundaryField_integralMap(&opts, "field3", "mass");
-  add_boundaryField_transferMap(&opts, "field4", OMEGA_H_POINTWISE);
+  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  //add_boundaryField_transferMap(&opts, "field4", OMEGA_H_POINTWISE);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
@@ -77,7 +78,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
     auto ab2b = face_rc.ab2b;
     auto a2ab = face_rc.a2ab;
     auto nbface = ab2b.size();
-    Write<Real> valsf_new(nbface, 12);
+    Write<LO> valsf_new(nbface, 12);
 
     auto f_new = OMEGA_H_LAMBDA(LO gf) {
       if ((gf == 16) || (gf == 22)) {
@@ -89,8 +90,9 @@ void run_case(Mesh* mesh, char const* vtk_path) {
       }
     };
     parallel_for(face_a2abSize-1, f_new);
+    printf("ok1\n");
+    //mesh->set_boundaryField_array(2, "field", Read<LO>(valsf_new));
 
-    mesh->set_boundaryField_array<Real>(2, "field3", Read<Real>(valsf_new));
     if (vtk_path) writer.write();
   }
   Now t1 = now();
@@ -118,21 +120,25 @@ void test_3d(Library *lib) {
   auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
   auto nbreg = reg_boundary_ids.size();
 
-  mesh.add_boundaryField<Real>(1, "field2", 1);
+  mesh.add_boundaryField<LO>(0, "field", 1);
+  Write<LO> valsr_v(nbvert, 100);
+  mesh.set_boundaryField_array(0, "field", Read<LO>(valsr_v));
+
+  mesh.add_boundaryField<LO>(1, "field", 1);
   const auto rank = lib->world()->rank();
   if ((!rank) || (rank == 1)) {
-    Write<Real> vals(nbedge, 100);
-    Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
+    Write<LO> vals(nbedge, 100);
+    Read<LO> vals_r(vals);
+    mesh.set_boundaryField_array(1, "field", vals_r);
   }
   else {
-    Write<Real> vals(nbedge, 50.45632);
-    Read<Real> vals_r(vals);
-    mesh.set_boundaryField_array<Real>(1, "field2", vals_r);
+    Write<LO> vals(nbedge, 50.45632);
+    Read<LO> vals_r(vals);
+    mesh.set_boundaryField_array(1, "field", vals_r);
   }
 
-  mesh.add_boundaryField<Real>(2, "field3", 1);
-  Write<Real> valsf(nbface, 12);
+  mesh.add_boundaryField<LO>(2, "field", 1);
+  Write<LO> valsf(nbface, 12);
 
   auto ab2b = face_rc.ab2b;
   auto a2ab = face_rc.a2ab;
@@ -147,15 +153,15 @@ void test_3d(Library *lib) {
   };
   parallel_for(face_a2abSize-1, f);
 
-  Read<Real> valsf_r(valsf);
-  mesh.set_boundaryField_array<Real>(2, "field3", valsf_r);
-  Write<Real> vals_allFace(mesh.nfaces(), 12.5);
-  mesh.add_tag<Real>(2, "magnetic_face_flux", 1, Read<Real>(vals_allFace));
+  Read<LO> valsf_r(valsf);
+  mesh.set_boundaryField_array(2, "field", valsf_r);
+  Write<LO> vals_allFace(mesh.nfaces(), 12.5);
+  mesh.add_tag(2, "magnetic_face_flux", 1, Read<LO>(vals_allFace));
  
-  mesh.add_boundaryField<Real>(3, "field4", 1);
-  Write<Real> valsr(nbreg, 100);
-  Read<Real> valsr_r(valsr);
-  mesh.set_boundaryField_array<Real>(3, "field4", valsr_r);
+  mesh.add_boundaryField<LO>(3, "field", 1);
+  Write<LO> valsr(nbreg, 100);
+  Read<LO> valsr_r(valsr);
+  mesh.set_boundaryField_array(3, "field", valsr_r);
 
   vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk",
                    &mesh);
@@ -169,10 +175,10 @@ void test_3d(Library *lib) {
   auto nverts = mesh.nverts();
   OMEGA_H_CHECK(new_bField.size() <= nverts);
 
-  mesh.sync_boundaryField(1, "field2");
+  mesh.sync_boundaryField(1, "field");
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_sync.vtk", &mesh);
-  mesh.reduce_boundaryField(1, "field2", OMEGA_H_SUM);
+  mesh.reduce_boundaryField(1, "field", OMEGA_H_SUM);
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_reduce.vtk", &mesh);
 
