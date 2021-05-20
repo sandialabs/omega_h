@@ -88,7 +88,7 @@ void test_3d(Library *lib) {
 
   mesh.add_boundaryField<LO>(1, "field", 1);
   const auto rank = lib->world()->rank();
-  if ((!rank) || (rank == 1)) {
+  if ((!rank)) {
     Write<LO> vals(nbedge, 100);
     Read<LO> vals_r(vals);
     mesh.set_boundaryField_array(1, "field", vals_r);
@@ -115,7 +115,6 @@ void test_3d(Library *lib) {
   parallel_for(face_a2abSize-1, f);
   mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
   Write<LO> vals_allFace(mesh.nfaces(), 12.5);
-  //mesh.add_tag(2, "magnetic_face_flux", 1, Read<LO>(vals_allFace));
  
   mesh.add_boundaryField<LO>(3, "field", 1);
   Write<LO> valsr(nbreg, 100);
@@ -132,7 +131,7 @@ void test_3d(Library *lib) {
   auto vals_r = mesh.get_boundaryField_array<Real>(0, "field1");
   OMEGA_H_CHECK(new_bField == vals_r);
   auto nverts = mesh.nverts();
-  OMEGA_H_CHECK(new_bField.size() <= nverts);
+  OMEGA_H_CHECK(new_bField.size() < nverts);
 
   mesh.sync_boundaryField(1, "field");
   vtk::write_parallel

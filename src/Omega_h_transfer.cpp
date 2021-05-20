@@ -23,11 +23,9 @@ bool should_inherit(
   auto& name = tag->name();
 printf("should inherit 1 %s, trns reqd %d\n", name.c_str(), is_transfer_required
 (opts, name, OMEGA_H_INHERIT));
-  size_t found = name.find("_boundary");
   if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
           name == "class_id" || name == "class_dim" ||
-          name == "momentum_velocity_fixed") ||
-          (found != std::string::npos)) {
+          name == "momentum_velocity_fixed")) {
     return false;
   }
 printf("should inherit 2\n");
