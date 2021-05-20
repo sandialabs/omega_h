@@ -21,14 +21,11 @@ bool is_transfer_required(
 bool should_inherit(
     Mesh* mesh, TransferOpts const& opts, Int, TagBase const* tag) {
   auto& name = tag->name();
-printf("should inherit 1 %s, trns reqd %d\n", name.c_str(), is_transfer_required
-(opts, name, OMEGA_H_INHERIT));
   if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
           name == "class_id" || name == "class_dim" ||
           name == "momentum_velocity_fixed")) {
     return false;
   }
-printf("should inherit 2\n");
   for (Int i = 0; i <= mesh->dim(); ++i) {
     if (!mesh->has_tag(i, name)) return false;
     if (mesh->get_tagbase(i, name)->type() != tag->type()) return false;
@@ -156,9 +153,7 @@ void transfer_common3(
     Mesh* new_mesh, Int ent_dim, TagBase const* tagbase, Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
-printf("t c3\n");
   new_mesh->add_tag(ent_dim, name, ncomps, Read<T>(new_data), true);
-printf("t c3-2\n");
 }
 
 template <typename T>
@@ -171,7 +166,6 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
-printf("t c2\n");
   transfer_common3(new_mesh, ent_dim, tagbase, new_data);
 }
 
@@ -183,7 +177,6 @@ void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto ncomps = tagbase->ncomps();
   auto new_data = Write<T>(nnew_ents * ncomps);
   map_into(prod_data, prods2new_ents, new_data, ncomps);
-printf("t c\n");
   transfer_common2(old_mesh, new_mesh, ent_dim, same_ents2old_ents,
       same_ents2new_ents, tagbase, new_data);
 }
@@ -306,11 +299,9 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 static void transfer_inherit_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
-printf("tr inhe ref\n");
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
-printf("tr inhe ref: should inherit %s\n",tagbase->name().c_str());
       transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase);

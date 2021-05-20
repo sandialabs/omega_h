@@ -113,15 +113,13 @@ void test_3d(Library *lib) {
   };
   parallel_for(face_a2abSize-1, f);
   mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
-  Write<LO> vals_allFace(mesh.nfaces(), 12.5);
  
   mesh.add_boundaryField<LO>(3, "field", 1);
   Write<LO> valsr(nbreg, 100);
   Read<LO> valsr_r(valsr);
   mesh.set_boundaryField_array(3, "field", valsr_r);
 
-  vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk",
-                       &mesh);
+  vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk", &mesh);
 
   auto new_mesh = Mesh(lib);
   binary::read ("./../../omega_h/meshes/box_3d_2p.osh",
