@@ -62,16 +62,39 @@ void test_3d_p(Library *lib) {
   return;
 }
 
+void test_3d_box(Library *lib) {
+  
+  auto mesh = Mesh(lib);
+  binary::read ("./../../omega_h/meshes/box_3d_2p.osh", lib->world(), &mesh);
+  auto rank = lib->world()->rank(); 
+ 
+  //TODO add segfault check on max gent id for each part
+  if (!rank) {
+    auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
+    OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({17}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 0, 1, 1, 1, 1, 1}));
+  }
+
+  if (rank) {
+    auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
+    OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({7}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 1}));
+
+    auto vtx6_rc = mesh.ask_revClass(0, LOs({6}));
+    OMEGA_H_CHECK (vtx6_rc.ab2b == LOs({7}));
+    OMEGA_H_CHECK (vtx6_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 1}));
+  }
+
+  return;
+}
+
 int main(int argc, char** argv) {
 
-  OMEGA_H_CHECK(argc != -1);
-  OMEGA_H_CHECK(std::string(argv[0]) != "");
+  auto lib = Library(&argc, &argv);
 
-  auto lib = Library();
-
-  test_3d_p(&lib);
-  // using mfem adapt tests, it was confirmed that rc info is
-  // destroyed during adapt
+  auto size = lib.world()->size(); 
+  if (size == 4) test_3d_p(&lib);
+  if (size == 2) test_3d_box(&lib);
 
   return 0;
 }

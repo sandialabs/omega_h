@@ -933,7 +933,7 @@ Adj Mesh::derive_revClass (Int edim) {
     a2ab_h[i] = offset;
   }
 
-  HostWrite<LO> ab2b_h(count_rc_ments);
+  HostWrite<LO> ab2b_h(count_rc_ments, 0, 0);
   for (LO i = 0; i < count_rc_ments; ++i) {
     ab2b_h[i] =  ab2b_vec[static_cast<std::size_t>(i)];
   }
@@ -956,15 +956,22 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   OMEGA_H_TIME_FUNCTION;
   check_dim2 (edim);
   if (!g_ids.size()) {
-    Omega_h_fail("Model entity IDs cannot be empty\n");
+    fprintf(stderr, "Model entity IDs cannot be empty\n");
+    OMEGA_H_NORETURN(Adj());
   }
   auto edim_rc = ask_revClass(edim);
   auto n_gents = g_ids.size();
   auto max_gent_id = get_max(g_ids);
+  auto max_gent_id_avail = (edim_rc.a2ab.size() - 1);
+  if (max_gent_id > max_gent_id_avail) {
+    fprintf(stderr, "input model id %d greater than local max. model id\n",
+            max_gent_id);
+    OMEGA_H_NORETURN(Adj());
+  }
   HostRead<LO> h_ab2b(edim_rc.ab2b);
   HostRead<LO> h_a2ab(edim_rc.a2ab);
   std::vector<int> new_ab2b_vec;
-  HostWrite<LO> new_a2ab_h(max_gent_id + 1);
+  HostWrite<LO> new_a2ab_h(max_gent_id + 1 + 1, 0, 0);
 
   for (LO i = 0; i < n_gents; ++i) {
     auto gent = g_ids[i];
@@ -980,7 +987,7 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
     new_a2ab_h[i] += new_a2ab_h[i-1];
   }
 
-  HostWrite<LO> new_ab2b_h(new_ab2b_vec.size());
+  HostWrite<LO> new_ab2b_h(new_ab2b_vec.size(), 0, 0);
   for (LO i = 0; i < new_ab2b_h.size(); ++i) {
     new_ab2b_h[i] =  new_ab2b_vec[static_cast<std::size_t>(i)];
   }

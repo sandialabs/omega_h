@@ -65,8 +65,7 @@ void test_3d(Library *lib) {
   // TODO: change the adapt b.field transfer test to work for FACE
   // without having to add sudo bfields to all other dims
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/box_3d_2p.osh",
-                lib->world(), &mesh);
+  binary::read ("./../../omega_h/meshes/box_3d_2p.osh", lib->world(), &mesh);
 
   auto vtx_rc = mesh.ask_revClass(0);
   auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;

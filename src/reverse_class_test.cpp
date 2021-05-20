@@ -30,14 +30,18 @@ void test_2d(Library *lib) {
   binary::read ("/lore/joshia5/Meshes/oh-mfem/plate_6elem.osh",
                 lib->world(), &mesh);
 
-  // test rc API
   fprintf(stderr,"for face\n");
   OMEGA_H_CHECK (!mesh.has_revClass(2));
   auto face_rc = mesh.ask_revClass(2);
+  auto face_1_2_rc = mesh.ask_revClass(2, LOs({1, 2}));
+  call_print(face_1_2_rc.a2ab);
+  call_print(face_1_2_rc.ab2b);
   auto face_rc_get = mesh.get_revClass(2);
   OMEGA_H_CHECK (mesh.has_revClass(2));
   OMEGA_H_CHECK (face_rc.ab2b == face_rc_get.ab2b);
   OMEGA_H_CHECK (face_rc.a2ab == face_rc_get.a2ab);
+  OMEGA_H_CHECK (face_rc.ab2b == face_1_2_rc.ab2b);
+  OMEGA_H_CHECK (face_rc.a2ab == face_1_2_rc.a2ab);
   OMEGA_H_CHECK (face_rc.ab2b == LOs({0, 1, 2, 3, 4, 5}));
   OMEGA_H_CHECK (face_rc.a2ab == LOs({0, 0, 0, 6}));
   fprintf(stderr,"a2ab = \n");
@@ -119,8 +123,6 @@ int main(int argc, char** argv) {
 
   test_2d(&lib);
   test_3d(&lib);
-  // using mfem adapt tests, it was confirmed that rc info is
-  // destroyed during adapt
 
   return 0;
 }
