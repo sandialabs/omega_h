@@ -573,9 +573,9 @@ void write(
   }
   auto nelem_blocks = int(region_set.size());
   auto nside_sets =
-      (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
+      (classify_with & exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
   auto nnode_sets =
-      (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
+      (classify_with & exodus::NODE_SETS) ? int(surface_set.size()) : 0;
   if (verbose) {
     std::cout << "init params for " << path << ":\n";
     std::cout << " Exodus ID " << file << '\n';

@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
+cmake_minimum_required(VERSION 3.18.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.32.2 LANGUAGES CXX)
+project(Omega_h VERSION 9.33.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -12,6 +12,10 @@ endif()
 include(cmake/bob.cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+set(CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH}
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 bob_begin_package()
 
 bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
@@ -22,6 +26,7 @@ bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
 bob_option(Omega_h_USE_Kokkos "Use Kokkos as a backend" OFF)
 bob_input(Kokkos_PREFIX "" PATH "Path to Kokkos install")
 bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
+bob_option(Omega_h_USE_SimModSuite "Enable reading Simmetrix MeshSim meshes" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
@@ -30,20 +35,24 @@ bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
 set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
-bob_add_dependency(PUBLIC NAME Kokkos TARGETS kokkos INCLUDE_DIR_VARS Kokkos_INCLUDE_DIRS)
+bob_add_dependency(PUBLIC NAME Kokkos TARGETS Kokkos::kokkos)
 if (Omega_h_USE_Kokkos)
-  set_target_properties(kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+  set_target_properties(Kokkos::kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
 endif()
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
 
-set(Gmsh_REQUIRED_VERSION 4.4.1)
 set(Omega_h_USE_Gmsh_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME Gmsh
     INCLUDE_DIR_VARS Gmsh_INCLUDE_DIRS
     LIBRARY_VARS Gmsh_LIBRARIES)
+if(Omega_h_USE_Gmsh)
+  if(Gmsh_VERSION_STRING VERSION_LESS 4.4.1)
+    message(SEND_ERROR "Gmsh minimum version is 4.4.1 but found version ${Gmsh_VERSION_STRING}")
+  endif()
+endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
@@ -57,15 +66,29 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_INCLUDE_DIRS
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
+if (Omega_h_USE_SEACASExodus)
+  # On Windows, we must find hdf5 targets since 
+  # it is linked PUBLIC
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(Omega_h_USE_HDF5_DEFAULT ON)
+    bob_add_dependency(PUBLIC NAME HDF5)
+  endif()
+endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_kokkos_opts.cmake)
-detect_kokkos_opts()
-if (Kokkos_HAS_CUDA AND (NOT Kokkos_HAS_CUDA_LAMBDA))
-  message(FATAL_ERROR
-          "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
+if(Omega_h_USE_Kokkos)
+  if ("CUDA" IN_LIST Kokkos_DEVICES)
+      bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "ON")
+  endif()
+  if ("OPENMP" IN_LIST Kokkos_DEVICES)
+      bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "ON")
+  endif()
+  if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
+    message(FATAL_ERROR
+            "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
+  endif()
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
@@ -74,6 +97,13 @@ if(Omega_h_USE_MPI)
   bob_add_dependency(PUBLIC NAME MPI
     INCLUDE_DIR_VARS MPI_CXX_INCLUDE_DIRS
     LIBRARY_VARS MPI_CXX_LIBRARIES)
+  get_target_property(mpiLibs ${PROJECT_NAME}-MPI INTERFACE_LINK_LIBRARIES)
+  if(NOT mpiLibs)
+    message(WARNING "MPI Libraries not found, there may be linking errors!  "
+      "Try enabling shared libraries \'-DBUILD_SHARED_LIBS=ON\'.")
+  else()
+    message(STATUS "Found MPI libraries: ${mpiLibs}")
+  endif()
 endif()
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
@@ -94,6 +124,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
+    Omega_h_USE_SimModSuite
     Omega_h_USE_DOLFIN
     Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS

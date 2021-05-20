@@ -151,6 +151,17 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
+  #Is there a better way? I assume CMAKE_MODULE_PATH was purposely not set in
+  # the top level CMakeLists.txt
+  set(OLD_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+  find_package(SimModSuite MODULE REQUIRED)
+  set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
+endif()
+
 if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
@@ -165,7 +176,7 @@ endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
-set_property(TARGET omega_h PROPERTY CXX_STANDARD "11")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "14")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
@@ -179,6 +190,7 @@ if (Omega_h_USE_OpenMP)
 endif()
 
 if (Omega_h_USE_CUDA)
+  set_property(TARGET omega_h PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
@@ -192,7 +204,7 @@ if (Omega_h_USE_CUDA)
   endif()
 else()
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
@@ -200,7 +212,7 @@ else()
         -Wimplicit-fallthrough
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
@@ -224,6 +236,12 @@ if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
+
+if(Omega_h_USE_SimModSuite)
+  target_include_directories(omega_h PUBLIC "${SIMMODSUITE_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${SIMMODSUITE_LIBS}")
+endif()
+
 
 bob_link_dependency(omega_h PUBLIC SEACASExodus)
 
@@ -253,9 +271,10 @@ function(osh_add_exe EXE_NAME)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
-  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "11")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
+  set_property(TARGET ${EXE_NAME} PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(osh_add_exe)
 
@@ -291,6 +310,9 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(osh2exo)
   osh_add_util(osh_class_morph)
 endif()
+if(Omega_h_USE_SimModSuite)
+  osh_add_util(meshsim2osh)
+endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
 osh_add_util(ascii_vtk2osh)
@@ -317,11 +339,24 @@ if(BUILD_TESTING)
       set(TEST_STR ${VALGRIND} ${ARGN})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}\\bin;$ENV{PATH}" )
+    endif()
   endfunction(test_func)
 
   osh_add_exe(unit_math)
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_func(run_unit_math 1 ./unit_math)
+
+  if(Omega_h_USE_SimModSuite)
+    osh_add_exe(mixed_writeMesh)
+    set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
+    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh)
+    osh_add_exe(mixed_test)
+    set(TEST_EXES ${TEST_EXES} mixed_test)
+    test_func(run_mixed_test 1 ./mixed_test)
+  endif()
+
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_func(run_unit_array_algs 1 ./unit_array_algs)
@@ -428,9 +463,12 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(random_test)
-  target_include_directories(random_test PRIVATE ${TPL_PATH})
-  test_func(run_random_test 1 ./random_test)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  else()
+    osh_add_exe(random_test)
+    target_include_directories(random_test PRIVATE ${TPL_PATH})
+    test_func(run_random_test 1 ./random_test)
+  endif()
   osh_add_exe(hypercube_test)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
@@ -539,6 +577,7 @@ set(Omega_h_HEADERS
   Omega_h_vector.hpp
   Omega_h_vtk.hpp
   Omega_h_xml_lite.hpp
+  Omega_h_xml.hpp
   r3d.hpp
   )
 
