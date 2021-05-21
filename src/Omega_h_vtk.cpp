@@ -872,13 +872,13 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   stream << "</Points>\n";
   stream << "<PointData>\n";
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), 0, mesh, compress);
   }
   for (Int i = 0; i < mesh->ntags(Topo_type::vertex); ++i) {
     auto tag = mesh->get_tag(Topo_type::vertex, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
         tags[VERT].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), 0, mesh, compress);
     }
   }
   stream << "</PointData>\n";
@@ -886,7 +886,7 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
     write_tag(
-        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), cell_dim, mesh, compress);
   }
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
@@ -895,28 +895,28 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(Topo_type::tetrahedron); ++i) {
       auto tag = mesh->get_tag(Topo_type::tetrahedron, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::hexahedron); ++i) {
       auto tag = mesh->get_tag(Topo_type::hexahedron, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::wedge); ++i) {
       auto tag = mesh->get_tag(Topo_type::wedge, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::pyramid); ++i) {
       auto tag = mesh->get_tag(Topo_type::pyramid, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }
@@ -924,14 +924,14 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(Topo_type::triangle); ++i) {
       auto tag = mesh->get_tag(Topo_type::triangle, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::quadrilateral); ++i) {
       auto tag = mesh->get_tag(Topo_type::quadrilateral, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }
@@ -939,7 +939,7 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
       auto tag = mesh->get_tag(cell_dim, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }
