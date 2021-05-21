@@ -63,21 +63,21 @@ int main(int argc, char** argv) {
   auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
   auto nbreg = reg_boundary_ids.size();
 
-  mesh.add_boundaryField<LO>(0, "field", 1);
-  Write<LO> valsr_v(nbvert, 100);
-  mesh.set_boundaryField_array(0, "field", Read<LO>(valsr_v));
-  Write<Real> vals_real(nbvert, 50.2523232);
-  mesh.add_boundaryField<Real>(0, "field1", 1, Read<Real>(vals_real));
-  mesh.add_boundaryField<LO>(1, "field", 1);
-  Write<LO> vals(nbedge, 100);
-  Read<LO> vals_r(vals);
+  mesh.add_boundaryField<Omega_h::LO>(0, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsr_v(nbvert, 100);
+  mesh.set_boundaryField_array(0, "field", Omega_h::Read<Omega_h::LO>(valsr_v));
+  Omega_h::Write<Omega_h::Real> vals_real(nbvert, 50.2523232);
+  mesh.add_boundaryField<Omega_h::Real>(0, "field1", 1, Omega_h::Read<Omega_h::Real>(vals_real));
+  mesh.add_boundaryField<Omega_h::LO>(1, "field", 1);
+  Omega_h::Write<Omega_h::LO> vals(nbedge, 100);
+  Omega_h::Read<Omega_h::LO> vals_r(vals);
   mesh.set_boundaryField_array(1, "field", vals_r);
-  mesh.add_boundaryField<LO>(2, "field", 1);
-  Write<LO> valsf(nbface, 12);
-  mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
-  mesh.add_boundaryField<LO>(3, "field", 1);
-  Write<LO> valsr(nbreg, 100);
-  Read<LO> valsr_r(valsr);
+  mesh.add_boundaryField<Omega_h::LO>(2, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsf(nbface, 12);
+  mesh.set_boundaryField_array(2, "field", Omega_h::Read<Omega_h::LO>(valsf));
+  mesh.add_boundaryField<Omega_h::LO>(3, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsr(nbreg, 100);
+  Omega_h::Read<Omega_h::LO> valsr_r(valsr);
   mesh.set_boundaryField_array(3, "field", valsr_r);
 
   add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
