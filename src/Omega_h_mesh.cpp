@@ -1234,9 +1234,47 @@ Adj Mesh::derive_revClass (Int edim) {
   OMEGA_H_TIME_FUNCTION;
   check_dim2 (edim);
 
-  HostRead<LO> class_ids_h(get_array<ClassId>(edim, "class_id"));
+/*
+  auto class_ids = get_array<ClassId>(edim, "class_id");
+  auto class_dim = get_array<I8>(edim, "class_dim");
+  auto n_gents = get_max(class_ids) + 1;
+
+  Write<LO> degree(n_gents, 0, "rc_degrees");
+
+  auto count_degree = OMEGA_H_LAMBDA (LO i) {
+    if (class_dim[i] == edim) {
+      auto gent_id = class_ids[i];
+      atomic_increment(&degree[gent_id]);
+    }
+  };
+  parallel_for(nents(edim), std::move(count_degree));
+
+  auto total_ments = get_sum(Read<LO>(degree));
+  auto a2ab_r = offset_scan(Read<LO>(degree), "rc_a2ab");
+  Write<LO> ab2b(total_ments, 0, "rc_ab2b");
+
+  auto get_values = OMEGA_H_LAMBDA (LO i) {
+    if (class_dim[i] == edim) {
+      auto gent_id = class_ids[i];
+      //TODO: find way to add values to specific positions of ab2b
+    }
+  };
+  parallel_for(nents(edim), std::move(get_values));
+
+  return Adj(a2ab_r, LOs(ab2b));
+*/
+
+  HostRead<LO> class_ids_all_h(get_array<ClassId>(edim, "class_id"));
   HostRead<I8> class_dim_h(get_array<I8>(edim, "class_dim"));
-  auto max_gents = get_max(get_array<ClassId>(edim, "class_id")) + 1;
+  //auto max_gents_all = get_max(get_array<ClassId>(edim, "class_id")) + 1;
+
+  HostWrite<LO> class_ids_h(nents(edim), -1, 0);
+  for (LO i = 0; i < nents(edim); ++i) {
+    if (class_dim_h[i] == edim) {
+      class_ids_h[i] = class_ids_all_h[i];
+    }
+  }
+  auto max_gents = get_max(LOs(class_ids_h.write())) + 1;
 
   HostWrite<LO> a2ab_h(max_gents + 1, 0, 0);
   
@@ -1271,6 +1309,7 @@ Adj Mesh::derive_revClass (Int edim) {
   }
 
   return Adj(Read<LO>(a2ab_h.write()), Read<LO>(ab2b_h.write())); 
+
 }
 
 Adj Mesh::ask_revClass (Int edim) {
@@ -1309,13 +1348,13 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
     auto gent = g_ids[i];
     auto start = a2ab[gent];
     auto end = a2ab[gent + 1];
-    degree[gent] = end - start;   
+    degree[gent] = end - start;
   };
   parallel_for(n_gents, std::move(count));
 
   auto total_ments = get_sum(Read<LO>(degree));
   auto new_a2ab_r = offset_scan(Read<LO>(degree), "new_rc_a2ab");
-  Write<LO> new_ab2b(total_ments, 0, "new_ab2b");
+  Write<LO> new_ab2b(total_ments, 0, "new_rc_ab2b");
 
   auto get_values = OMEGA_H_LAMBDA (LO i) {
     auto gent = g_ids[i];
@@ -1327,7 +1366,7 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   };
   parallel_for(n_gents, std::move(get_values));
 
-  return Adj(new_a2ab_r, new_ab2b);
+  return Adj(new_a2ab_r, LOs(new_ab2b));
 }
 
 template <typename T>

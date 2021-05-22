@@ -42,7 +42,7 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK (vert_rc.a2ab == vert_rc_get.a2ab);
   OMEGA_H_CHECK (vert_rc.ab2b == LOs({3, 2, 1, 0}));
   OMEGA_H_CHECK (vert_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2,
-                                      2, 2, 2, 3, 3, 3, 3, 4, 4}));
+                                      2, 2, 2, 3, 3, 3, 3, 4}));
 
   auto rc_face2vert = mesh.ask_revClass_downAdj (2, 0);
   auto f_classids = mesh.get_array<ClassId>(2, "class_id");
