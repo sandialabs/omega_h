@@ -137,7 +137,7 @@ void test_3d(Library *lib) {
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_reduce.vtk", &mesh);
 
-  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d_2p.vtk");
+  run_case<3>(&mesh, "./../../omega_h/meshes/box3d_2p_adapt.vtk");
 
   return;
 }

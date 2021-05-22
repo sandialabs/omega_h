@@ -105,7 +105,7 @@ void test_3d(Library *lib) {
   binary::read ("./../../omega_h/meshes/box_3d.osh",
                 lib->world(), &mesh);
   OMEGA_H_CHECK(mesh.has_boundaryField(0, "field1"));
-  run_case<3>(&mesh, "./../../omega_h/meshes/adapt/box3d.vtk");
+  run_case<3>(&mesh, "./../../omega_h/meshes/box3d_adapt.vtk");
 
   return;
 }

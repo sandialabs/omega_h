@@ -18,8 +18,6 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK (!mesh.has_revClass(2));
   auto face_rc = mesh.ask_revClass(2);
   auto face_1_2_rc = mesh.ask_revClass(2, LOs({1, 2}));
-  call_print(face_1_2_rc.a2ab);
-  call_print(face_1_2_rc.ab2b);
   auto face_rc_get = mesh.get_revClass(2);
   OMEGA_H_CHECK (mesh.has_revClass(2));
   OMEGA_H_CHECK (face_rc.ab2b == face_rc_get.ab2b);
