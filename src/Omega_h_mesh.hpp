@@ -130,6 +130,7 @@ class Mesh {
   bool has_revClass (Int edim) const;
   Adj get_revClass (Int edim) const;
   Adj ask_revClass_downAdj (Int from, Int to);
+  Adj derive_revClass (Int edim);
 
   template <typename T>
   void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps);
@@ -205,7 +206,6 @@ class Mesh {
   Library* library_;
 
   AdjPtr revClass_[DIMS];
-  Adj derive_revClass (Int edim);
 
  public:
   void add_coords(Reals array);
