@@ -13,10 +13,10 @@
 using namespace Omega_h;
 
 template <Int dim>
-static void set_target_metric(Mesh* mesh) {
+void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO v) {
+  auto calc_metrics = OMEGA_H_LAMBDA(LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
     for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
@@ -24,12 +24,12 @@ static void set_target_metric(Mesh* mesh) {
     auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(target_metrics_w, v, m);
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), std::move(calc_metrics), "calc_metrics");
   mesh->set_tag(VERT, "target_metric", Reals(target_metrics_w));
 }
 
 template <Int dim>
-void run_case(Mesh* mesh, char const* vtk_path) {
+void run_adapt(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = get_implied_metrics(mesh);
@@ -102,7 +102,7 @@ void test_3d(Library *lib) {
   Write<LO> valsf(nbface, 12);
   auto ab2b = face_rc.ab2b;
   auto a2ab = face_rc.a2ab;
-  auto f = OMEGA_H_LAMBDA(LO gf) {
+  auto assign_field_vals = OMEGA_H_LAMBDA(LO gf) {
     if ((gf == 16) || (gf == 22)) {
       auto start = a2ab[gf];
       auto end = a2ab[gf+1];
@@ -111,7 +111,8 @@ void test_3d(Library *lib) {
       }
     }
   };
-  parallel_for(face_a2abSize-1, f);
+  parallel_for(face_a2abSize-1, std::move(assign_field_vals),
+                "assign_field_vals");
   mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
  
   mesh.add_boundaryField<LO>(3, "field", 1);
@@ -137,7 +138,7 @@ void test_3d(Library *lib) {
   vtk::write_parallel
     ("./../../omega_h/meshes/box_3d_2p_reduce.vtk", &mesh);
 
-  run_case<3>(&mesh, "./../../omega_h/meshes/box3d_2p_adapt.vtk");
+  run_adapt<3>(&mesh, "./../../omega_h/meshes/box3d_2p_adapt.vtk");
 
   return;
 }

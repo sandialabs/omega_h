@@ -12,7 +12,8 @@
 using namespace Omega_h;
 
 template <Int dim>
-static void set_target_metric(Mesh* mesh) {
+//TODO this function was made non-static to get around weird compile error
+void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO v) {
@@ -28,7 +29,7 @@ static void set_target_metric(Mesh* mesh) {
 }
 
 template <Int dim>
-void run_case(Mesh* mesh, char const* vtk_path) {
+void run_adapt(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = get_implied_metrics(mesh);
@@ -105,7 +106,7 @@ void test_3d(Library *lib) {
   binary::read ("./../../omega_h/meshes/box_3d.osh",
                 lib->world(), &mesh);
   OMEGA_H_CHECK(mesh.has_boundaryField(0, "field1"));
-  run_case<3>(&mesh, "./../../omega_h/meshes/box3d_adapt.vtk");
+  run_adapt<3>(&mesh, "./../../omega_h/meshes/box3d_adapt.vtk");
 
   return;
 }
