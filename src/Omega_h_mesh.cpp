@@ -18,6 +18,7 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_int_scan.hpp"
+#include "Omega_h_atomics.hpp"
 
 namespace Omega_h {
 
@@ -1234,81 +1235,44 @@ Adj Mesh::derive_revClass (Int edim) {
   OMEGA_H_TIME_FUNCTION;
   check_dim2 (edim);
 
-/*
-  auto class_ids = get_array<ClassId>(edim, "class_id");
+  auto class_ids_all = get_array<ClassId>(edim, "class_id");
   auto class_dim = get_array<I8>(edim, "class_dim");
-  auto n_gents = get_max(class_ids) + 1;
 
-  Write<LO> degree(n_gents, 0, "rc_degrees");
-
-  auto count_degree = OMEGA_H_LAMBDA (LO i) {
+  Write<LO> class_ids_w(nents(edim), -1, "edim_classIds");
+  auto edim_classid = OMEGA_H_LAMBDA (LO i) {
     if (class_dim[i] == edim) {
-      auto gent_id = class_ids[i];
+      class_ids_w[i] = class_ids_all[i];
+    }
+  };
+  parallel_for(nents(edim), std::move(edim_classid));
+  auto class_ids = LOs(class_ids_w);
+
+  auto const n_gents = get_max(class_ids) + 1;
+  Write<LO> degree(n_gents, 0, "rc_degrees");
+  auto count_degree = OMEGA_H_LAMBDA (LO i) {
+    if (class_ids[i] >= 0) {
+      auto const gent_id = class_ids[i];
       atomic_increment(&degree[gent_id]);
     }
   };
   parallel_for(nents(edim), std::move(count_degree));
-
-  auto total_ments = get_sum(Read<LO>(degree));
   auto a2ab_r = offset_scan(Read<LO>(degree), "rc_a2ab");
+
+  auto const total_ments = get_sum(Read<LO>(degree));
   Write<LO> ab2b(total_ments, 0, "rc_ab2b");
+  Write<LO> positions(n_gents, 0, "rc_positions");
 
   auto get_values = OMEGA_H_LAMBDA (LO i) {
-    if (class_dim[i] == edim) {
-      auto gent_id = class_ids[i];
-      //TODO: find way to add values to specific positions of ab2b
+    if (class_ids[i] >= 0) {
+      auto const gent_id = class_ids[i];
+      auto const first = a2ab_r[gent_id];
+      auto const j = atomic_fetch_add(&positions[gent_id], 1);
+      ab2b[first + j] = i;
     }
   };
   parallel_for(nents(edim), std::move(get_values));
 
   return Adj(a2ab_r, LOs(ab2b));
-*/
-
-  HostRead<LO> class_ids_all_h(get_array<ClassId>(edim, "class_id"));
-  HostRead<I8> class_dim_h(get_array<I8>(edim, "class_dim"));
-  //auto max_gents_all = get_max(get_array<ClassId>(edim, "class_id")) + 1;
-
-  HostWrite<LO> class_ids_h(nents(edim), -1, 0);
-  for (LO i = 0; i < nents(edim); ++i) {
-    if (class_dim_h[i] == edim) {
-      class_ids_h[i] = class_ids_all_h[i];
-    }
-  }
-  auto max_gents = get_max(LOs(class_ids_h.write())) + 1;
-
-  HostWrite<LO> a2ab_h(max_gents + 1, 0, 0);
-  
-  std::vector<int> classified_ment_ids[max_gents];
-  LO count_rc_ments = 0;
-
-  for (LO i = 0; i < nents(edim); ++i) {
-    if (class_dim_h[i] == edim) {
-      auto gent_id = class_ids_h[i];
-      classified_ment_ids[gent_id].push_back(i);
-      ++a2ab_h[gent_id + 1];
-      ++count_rc_ments;
-    }
-  }
- 
-  std::vector<int> ab2b_vec;
-  for (LO i = 0; i < max_gents; ++i) {
-    for (LO j = 0; j < a2ab_h[i + 1]; ++j) {
-      ab2b_vec.push_back(classified_ment_ids[i][j]);
-    }
-  }
-
-  LO offset = 0;
-  for (LO i = 1; i < a2ab_h.size(); ++i) {
-    offset += a2ab_h[i];
-    a2ab_h[i] = offset;
-  }
-
-  HostWrite<LO> ab2b_h(count_rc_ments, 0, 0);
-  for (LO i = 0; i < count_rc_ments; ++i) {
-    ab2b_h[i] =  ab2b_vec[static_cast<std::size_t>(i)];
-  }
-
-  return Adj(Read<LO>(a2ab_h.write()), Read<LO>(ab2b_h.write())); 
 
 }
 
