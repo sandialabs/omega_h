@@ -13,7 +13,6 @@ class bfields : Mesh {
   bool has_revClass (Int edim) const;
   Adj get_revClass (Int edim) const;
   Adj ask_revClass_downAdj (Int from, Int to);
-  Adj derive_revClass (Int edim);
 
   template <typename T>
   void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps);
@@ -45,6 +44,10 @@ class bfields : Mesh {
  private:
 
   AdjPtr revClass_[DIMS];
+
+ public:
+
+  Adj derive_revClass (Int edim);
 
 };
 
