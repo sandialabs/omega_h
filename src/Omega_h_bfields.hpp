@@ -1,17 +1,11 @@
 #ifndef OMEGA_H_BFIELDS_HPP
 #define OMEGA_H_BFIELDS_HPP
 
-#include <array>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
-#include <Omega_h_adj.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 
-class Mesh {
+class bfields : Mesh {
  public:
 
   Adj ask_revClass (Int edim);
