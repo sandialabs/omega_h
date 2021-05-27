@@ -485,7 +485,6 @@ static void test_quaternions() {
 }
 
 int main(int argc, char** argv) {
-  Kokkos::initialize(argc, argv);
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_edge_length();
