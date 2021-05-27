@@ -478,7 +478,9 @@ if(BUILD_TESTING)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
   osh_add_exe(reverse_class_test)
-  test_func(reverse_class_test 1 ./reverse_class_test)
+  test_func(reverse_class_test 1 ./reverse_class_test 
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
   osh_add_exe(boundary_field_test)
   set(TEST_EXES ${TEST_EXES} boundary_field_test)
   test_func(boundary_field_test 1 ./boundary_field_test)
@@ -547,7 +549,6 @@ set(Omega_h_HEADERS
   Omega_h_math_lang.hpp
   Omega_h_matrix.hpp
   Omega_h_mesh.hpp
-  Omega_h_bfields.hpp
   Omega_h_metric.hpp
   Omega_h_mpi.h
   Omega_h_owners.hpp

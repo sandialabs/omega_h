@@ -1,4 +1,5 @@
-#include "Omega_h_bfields.hpp"
+#include "Omega_h_mesh.hpp"
+//#include "Omega_h_bfields.hpp"
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_element.hpp"
@@ -13,18 +14,18 @@ namespace Omega_h {
 #endif
 
 #define OMEGA_H_INST(T)                                                        \
-  template void bfields::change_tagToBoundary<T>(                                 \
+  template void Mesh::change_tagToBoundary<T>(                                 \
       Int ent_dim, Int ncomps, std::string const& name);                       \
-  template void bfields::change_tagToMesh<T>(                                     \
+  template void Mesh::change_tagToMesh<T>(                                     \
       Int ent_dim, Int ncomps, std::string const& name);                       \
-  template Read<T> bfields::get_boundaryField_array<T>(                           \
+  template Read<T> Mesh::get_boundaryField_array<T>(                           \
       Int dim, std::string const& name) const;                                 \
-  template void bfields::add_boundaryField<T>(                                    \
+  template void Mesh::add_boundaryField<T>(                                    \
       Int dim, std::string const& name, Int ncomps);                           \
-  template void bfields::add_boundaryField<T>(                                    \
+  template void Mesh::add_boundaryField<T>(                                    \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
-  template void bfields::set_boundaryField_array(                                 \
+  template void Mesh::set_boundaryField_array(                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         
 OMEGA_H_INST(I8)
 OMEGA_H_INST(I32)
@@ -32,18 +33,18 @@ OMEGA_H_INST(I64)
 OMEGA_H_INST(Real)
 #undef OMEGA_H_INST
 
-bool bfields::has_revClass (Int edim) const {
+bool Mesh::has_revClass (Int edim) const {
   OMEGA_H_CHECK (has_ents(edim));
   return bool (revClass_[edim]);
 }
 
-Adj bfields::get_revClass (Int edim) const {
+Adj Mesh::get_revClass (Int edim) const {
   OMEGA_H_CHECK (has_ents(edim));
   OMEGA_H_CHECK (has_revClass (edim));
   return *(revClass_[edim]);
 }
 
-Adj bfields::derive_revClass (Int edim) {
+Adj Mesh::derive_revClass (Int edim) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
 
@@ -88,7 +89,7 @@ Adj bfields::derive_revClass (Int edim) {
 
 }
 
-Adj bfields::ask_revClass (Int edim) {
+Adj Mesh::ask_revClass (Int edim) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
   if (has_revClass (edim)) {
@@ -99,7 +100,7 @@ Adj bfields::ask_revClass (Int edim) {
   return derived_rc;
 }
 
-Adj bfields::ask_revClass (Int edim, LOs g_ids) {
+Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
   if (!g_ids.size()) {
@@ -146,7 +147,7 @@ Adj bfields::ask_revClass (Int edim, LOs g_ids) {
 }
 
 template <typename T>
-void bfields::change_tagToBoundary(Int ent_dim, Int ncomps,
+void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
                                 std::string const &name) {
 
   OMEGA_H_TIME_FUNCTION;
@@ -170,7 +171,7 @@ void bfields::change_tagToBoundary(Int ent_dim, Int ncomps,
 }
 
 template <typename T>
-void bfields::change_tagToMesh(Int ent_dim, Int ncomps,
+void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
                             std::string const &name) {
 
   OMEGA_H_TIME_FUNCTION;
@@ -199,7 +200,7 @@ void bfields::change_tagToMesh(Int ent_dim, Int ncomps,
 }
 
 template <typename T>
-Read<T> bfields::get_boundaryField_array
+Read<T> Mesh::get_boundaryField_array
   (Int ent_dim, std::string const& name) const {
 
   size_t found = name.find("_boundary");
@@ -216,7 +217,7 @@ Read<T> bfields::get_boundaryField_array
 }
 
 template <typename T>
-void bfields::add_boundaryField(Int ent_dim, std::string const& name,
+void Mesh::add_boundaryField(Int ent_dim, std::string const& name,
                              Int ncomps) {
 
   size_t found = name.find("_boundary");
@@ -233,7 +234,7 @@ void bfields::add_boundaryField(Int ent_dim, std::string const& name,
 }
 
 template <typename T>
-void bfields::add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
+void Mesh::add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
   Read<T> array, bool internal) {
 
   size_t found = name.find("_boundary");
@@ -249,7 +250,7 @@ void bfields::add_boundaryField(Int ent_dim, std::string const& name, Int ncomps
   return;
 }
 
-bool bfields::has_boundaryField(Int ent_dim, std::string const& name) const {
+bool Mesh::has_boundaryField(Int ent_dim, std::string const& name) const {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
@@ -263,7 +264,7 @@ bool bfields::has_boundaryField(Int ent_dim, std::string const& name) const {
 
 }
 
-void bfields::remove_boundaryField(Int ent_dim, std::string const& name) {
+void Mesh::remove_boundaryField(Int ent_dim, std::string const& name) {
 
   size_t found = name.find("_boundary");
   if (found != std::string::npos) {
@@ -278,7 +279,7 @@ void bfields::remove_boundaryField(Int ent_dim, std::string const& name) {
 }
 
 template <typename T>
-void bfields::set_boundaryField_array
+void Mesh::set_boundaryField_array
   (Int ent_dim, std::string const& name, Read<T> array, bool internal) {
 
   size_t found = name.find("_boundary");
@@ -294,7 +295,7 @@ void bfields::set_boundaryField_array
   return;
 }
 
-void bfields::reduce_boundaryField(Int ent_dim, std::string const& name,
+void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
      Omega_h_Op op) {
 
   std::string new_name = name;
@@ -365,7 +366,7 @@ void bfields::reduce_boundaryField(Int ent_dim, std::string const& name,
   }
 }
 
-void bfields::sync_boundaryField(Int ent_dim, std::string const& name) {
+void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
 
   std::string new_name = name;
   new_name.append("_boundary");
@@ -435,7 +436,7 @@ void bfields::sync_boundaryField(Int ent_dim, std::string const& name) {
   }
 }
 
-void bfields::change_all_bFieldsToMesh() {
+void Mesh::change_all_bFieldsToMesh() {
 
   OMEGA_H_TIME_FUNCTION;
   for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
@@ -482,7 +483,7 @@ void bfields::change_all_bFieldsToMesh() {
   return;  
 }
 
-void bfields::change_all_bFieldsToBoundary() {
+void Mesh::change_all_bFieldsToBoundary() {
 
   OMEGA_H_TIME_FUNCTION;
   for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
@@ -529,7 +530,7 @@ void bfields::change_all_bFieldsToBoundary() {
   return;  
 }
 
-bool bfields::has_allMeshTags() {
+bool Mesh::has_allMeshTags() {
 
   OMEGA_H_TIME_FUNCTION;
   bool out = true;
@@ -546,13 +547,13 @@ bool bfields::has_allMeshTags() {
 
 }
 
-bool bfields::has_anyBoundaryField() {
+bool Mesh::has_anyBoundaryField() {
 
   return (!has_allMeshTags());
 
 }
 
-Adj bfields::ask_revClass_downAdj (Int from, Int to) {
+Adj Mesh::ask_revClass_downAdj (Int from, Int to) {
   auto rc = ask_revClass (from);
   auto ab2b = rc.ab2b;
   auto a2ab = rc.a2ab;
