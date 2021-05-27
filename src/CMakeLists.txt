@@ -327,6 +327,8 @@ if(BUILD_TESTING)
   endfunction(test_func)
 
   osh_add_exe(unit_math)
+  osh_add_exe(initKokkos)
+  osh_add_exe(initKokkosAndLib)
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_func(run_unit_math 1 ./unit_math)
   osh_add_exe(unit_array_algs)
