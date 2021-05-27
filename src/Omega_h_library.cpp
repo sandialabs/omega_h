@@ -74,9 +74,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(this, world_dup));
 #else
-  world_ = CommPtr(new Comm(this, false, false));
+  auto comm = new Comm(this, false, false); //commenting this line results in no JIT
+  /*
+  world_ = CommPtr(comm);
   self_ = CommPtr(new Comm(this, false, false));
+  */
 #endif
+  /*
   Omega_h::CmdLine cmdline;
   cmdline.add_flag(
       "--osh-memory", "print amount and stacktrace of max memory use");
@@ -107,7 +111,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
   silent_ = cmdline.parsed("--osh-silent");
+  */
 #ifdef OMEGA_H_USE_KOKKOS
+  /*
   if (!Kokkos::is_initialized()) {
     OMEGA_H_CHECK(argc != nullptr);
     OMEGA_H_CHECK(argv != nullptr);
@@ -116,6 +122,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   } else {
     we_called_kokkos_init = false;
   }
+  */
 #endif
 #if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
   && (!defined(OMEGA_H_USE_KOKKOS))
@@ -132,13 +139,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     OMEGA_H_CHECK(my_device == local_mpi_rank);
   }
 #endif
-  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
+  //if (cmdline.parsed("--osh-signal")) Omega_h::protect();
 #if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOS))
   // trigger lazy initialization of the CUDA runtime
   // and prevent it from polluting later timings
   cudaFree(nullptr);
 #endif
-  if (cmdline.parsed("--osh-pool")) enable_pooling();
+  //if (cmdline.parsed("--osh-pool")) enable_pooling();
 }
 
 Library::Library(Library const& other)
@@ -149,25 +156,32 @@ Library::Library(Library const& other)
       we_called_mpi_init(other.we_called_mpi_init)
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
-      ,
+      /*,
       we_called_kokkos_init(other.we_called_kokkos_init)
+      */
 #endif
 {
 }
 
 Library::~Library() {
   if (Omega_h::profile::global_singleton_history) {
+    /*
     if (world_->rank() == 0) {
       Omega_h::profile::print_top_down_and_bottom_up(
           *Omega_h::profile::global_singleton_history);
     }
+    */
+    /*
     delete Omega_h::profile::global_singleton_history;
     Omega_h::profile::global_singleton_history = nullptr;
+    */
   }
+  /*
   // need to destroy all Comm objects prior to MPI_Finalize()
   world_ = CommPtr();
   self_ = CommPtr();
   disable_pooling();
+  */
 #ifdef OMEGA_H_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
@@ -180,7 +194,7 @@ Library::~Library() {
     we_called_mpi_init = false;
   }
 #endif
-  delete[] Omega_h::max_memory_stacktrace;
+  //delete[] Omega_h::max_memory_stacktrace;
 }
 
 CommPtr Library::world() { return world_; }

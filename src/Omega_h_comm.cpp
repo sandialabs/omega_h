@@ -43,6 +43,8 @@ Comm::Comm(
 #else
 
 Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
+{
+  /*
     : library_(library_in) {
   if (is_graph) {
     if (sends_to_self) {
@@ -58,6 +60,7 @@ Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
   } else {
     OMEGA_H_CHECK(!sends_to_self);
   }
+  */
 }
 #endif
 
