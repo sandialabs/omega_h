@@ -96,7 +96,9 @@ int main(int argc, char** argv) {
 
   auto lib = Library(&argc, &argv);
 
-  OMEGA_H_CHECK(argc == 3);
+  if (argc != 3) {
+    Omega_h_fail("a.out <3d_in_boxMesh> <3d_in_cutMesh>\n");
+  }
   char const* path_box = nullptr;
   char const* path_cutBox = nullptr;
   path_box = argv[1];

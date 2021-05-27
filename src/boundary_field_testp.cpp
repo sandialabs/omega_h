@@ -60,12 +60,14 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
 }
 
-void test_3d(Library *lib) {
+void test_3d(Library *lib, const std::string &mesh_file, const char* vtk_file,
+             const char *sync_file, const char *reduce_file,
+             const char *adapt_file) {
 
   // TODO: change the adapt b.field transfer test to work for FACE
-  // without having to add sudo bfields to all other dims
+  // without having to add pseudo bfields to all other dims
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/box_3d_2p.osh", lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
 
   auto vtx_rc = mesh.ask_revClass(0);
   auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
@@ -112,7 +114,7 @@ void test_3d(Library *lib) {
     }
   };
   parallel_for(face_a2abSize-1, std::move(assign_field_vals),
-                "assign_field_vals");
+               "assign_field_vals");
   mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
  
   mesh.add_boundaryField<LO>(3, "field", 1);
@@ -120,25 +122,14 @@ void test_3d(Library *lib) {
   Read<LO> valsr_r(valsr);
   mesh.set_boundaryField_array(3, "field", valsr_r);
 
-  vtk::write_parallel ("./../../omega_h/meshes/box_3d_2p.vtk", &mesh);
-
-  auto new_mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/box_3d_2p.osh",
-                lib->world(), &new_mesh);
-  auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1");
-  auto vals_r = mesh.get_boundaryField_array<Real>(0, "field1");
-  OMEGA_H_CHECK(new_bField == vals_r);
-  auto nverts = mesh.nverts();
-  OMEGA_H_CHECK(new_bField.size() < nverts);
+  vtk::write_parallel (vtk_file, &mesh);
 
   mesh.sync_boundaryField(1, "field");
-  vtk::write_parallel
-    ("./../../omega_h/meshes/box_3d_2p_sync.vtk", &mesh);
+  vtk::write_parallel (sync_file, &mesh);
   mesh.reduce_boundaryField(1, "field", OMEGA_H_SUM);
-  vtk::write_parallel
-    ("./../../omega_h/meshes/box_3d_2p_reduce.vtk", &mesh);
+  vtk::write_parallel (reduce_file, &mesh);
 
-  run_adapt<3>(&mesh, "./../../omega_h/meshes/box3d_2p_adapt.vtk");
+  run_adapt<3>(&mesh, adapt_file);
 
   return;
 }
@@ -147,7 +138,21 @@ int main(int argc, char** argv) {
 
   auto lib = Library (&argc, &argv);
 
-  test_3d(&lib);
+  if (argc != 6) {
+    Omega_h_fail("a.out <in_mesh> <out_vtk> <out_sync_vtk> <out_reduce_vtk> <out_adapt>\n");
+  };
+  char const* path_in = nullptr;
+  char const* path_vtk = nullptr;
+  char const* path_sync = nullptr;
+  char const* path_reduce = nullptr;
+  char const* path_adapt = nullptr;
+  path_in = argv[1];
+  path_vtk = argv[2];
+  path_sync = argv[3];
+  path_reduce = argv[4];
+  path_adapt = argv[5];
+
+  test_3d(&lib, path_in, path_vtk, path_sync, path_reduce, path_adapt);
 
   return 0;
 }

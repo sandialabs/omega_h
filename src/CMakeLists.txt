@@ -483,7 +483,12 @@ if(BUILD_TESTING)
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
   osh_add_exe(boundary_field_test)
   set(TEST_EXES ${TEST_EXES} boundary_field_test)
-  test_func(boundary_field_test 1 ./boundary_field_test)
+  test_func(boundary_field_test 1 ./boundary_field_test
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.osh
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.vtu
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem_bField.osh)
   if(Omega_h_USE_MPI)
     osh_add_exe(reverse_class_testp)
     set(TEST_EXES ${TEST_EXES} reverse_class_testp)
@@ -492,7 +497,12 @@ if(BUILD_TESTING)
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
     osh_add_exe(boundary_field_testp)
     set(TEST_EXES ${TEST_EXES} boundary_field_testp)
-    test_func(boundary_field_testp 2 ./boundary_field_testp)
+    test_func(boundary_field_testp 2 ./boundary_field_testp
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
+    ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
   endif()
 endif()
 

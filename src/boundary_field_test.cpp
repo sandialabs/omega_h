@@ -12,7 +12,6 @@
 using namespace Omega_h;
 
 template <Int dim>
-//TODO this function was made non-static to get around weird compile error
 void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
@@ -66,11 +65,11 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
 
 }
-void test_2d(Library *lib) {
+void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
+             const char *bfield_file) {
 
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/plate_6elem.osh",
-                lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
 
   auto nverts = mesh.nverts();
   auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
@@ -86,14 +85,11 @@ void test_2d(Library *lib) {
   Write<Real> vals3(mesh.nverts()*3, 500);
   Read<Real> vals_r3(vals3);
 
-  vtk::write_vtu ("./../../omega_h/meshes/plate_6elem.vtu",
-                   &mesh);
-  binary::write ("./../../omega_h/meshes/plate_6elem_bField.osh",
-                   &mesh);
+  vtk::write_vtu (vtu_file, &mesh);
+  binary::write (bfield_file, &mesh);
 
   auto new_mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/plate_6elem_bField.osh",
-                lib->world(), &new_mesh);
+  binary::read (bfield_file, lib->world(), &new_mesh);
   auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1"); 
   OMEGA_H_CHECK(new_bField == vals_r);
   OMEGA_H_CHECK(new_bField.size() < nverts);
@@ -101,12 +97,12 @@ void test_2d(Library *lib) {
   return;
 }
 
-void test_3d(Library *lib) {
+void test_3d(Library *lib, const std::string &mesh_file,
+             const char* out_file) {
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/box_3d.osh",
-                lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
   OMEGA_H_CHECK(mesh.has_boundaryField(0, "field1"));
-  run_adapt<3>(&mesh, "./../../omega_h/meshes/box3d_adapt.vtk");
+  run_adapt<3>(&mesh, out_file);
 
   return;
 }
@@ -115,8 +111,22 @@ int main(int argc, char** argv) {
 
   auto lib = Library (&argc, &argv);
 
-  test_2d(&lib);
-  test_3d(&lib);
+  if (argc != 6) {
+    Omega_h_fail("a.out <2d_in_mesh> <3d_in_mesh> <3d_out_mesh> <2d_out_vtu> <2d_out_osh>\n");
+  };
+  char const* path_2d = nullptr;
+  char const* path_3d = nullptr;
+  char const* path_3d_out = nullptr;
+  char const* path_2d_vtu = nullptr;
+  char const* path_2d_bfield = nullptr;
+  path_2d = argv[1];
+  path_3d = argv[2];
+  path_3d_out = argv[3];
+  path_2d_vtu = argv[4];
+  path_2d_bfield = argv[5];
+
+  test_2d(&lib, path_2d, path_2d_vtu, path_2d_bfield);
+  test_3d(&lib, path_3d, path_3d_out);
 
   return 0;
 }
