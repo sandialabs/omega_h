@@ -2,6 +2,9 @@
 #define OMEGA_H_FAIL_HPP
 
 #include <Omega_h_config.h>
+#include <csignal>
+#include <cstdarg>
+#include <iostream>
 #include <cassert>
 
 #ifdef OMEGA_H_THROW
@@ -25,7 +28,30 @@ __declspec(noreturn)
 #else
 __attribute__((noreturn, format(printf, 1, 2)))
 #endif
-void fail(char const* format, ...);
+
+#if defined(__clang__) && !defined(__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
+static inline void fail(char const* format, ...) {
+  va_list vlist;
+  va_start(vlist, format);
+#ifdef OMEGA_H_THROW
+  char buffer[2048];
+  std::vsnprintf(buffer, sizeof(buffer), format, vlist);
+  va_end(vlist);
+  throw Omega_h::exception(buffer);
+#else
+  std::vfprintf(stderr, format, vlist);
+  va_end(vlist);
+  std::abort();
+#endif
+}
+
+#if defined(__clang__) && !defined(__APPLE__)
+#pragma clang diagnostic pop
+#endif
 
 }  // namespace Omega_h
 
@@ -34,6 +60,8 @@ void fail(char const* format, ...);
 #if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
+#define OMEGA_H_CHECK(cond) assert(cond)
+#elif defined(OMPTARGET)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \

@@ -165,6 +165,12 @@ endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
+if (Omega_h_USE_Kokkos)
+  if( "OPENMPTARGET" IN_LIST Kokkos_DEVICES )
+    target_compile_definitions(omega_h PUBLIC OMPTARGET=1)
+  endif()
+endif()
+
 set_property(TARGET omega_h PROPERTY CXX_STANDARD "11")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)

@@ -45,7 +45,13 @@ class Few {
     }
   }
   OMEGA_H_INLINE Few() {}
+#ifdef OMPTARGET
+#pragma omp declare target
+#endif
   OMEGA_H_INLINE ~Few() {}
+#ifdef OMPTARGET
+#pragma omp end declare target
+#endif
   OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
   }

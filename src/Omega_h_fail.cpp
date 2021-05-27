@@ -3,8 +3,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <Omega_h_fail.hpp>
-
 extern "C" void Omega_h_signal_handler(int s);
 
 namespace Omega_h {
@@ -13,30 +11,6 @@ namespace Omega_h {
 exception::exception(std::string const& msg_in) : msg(msg_in) {}
 
 const char* exception::what() const noexcept { return msg.c_str(); }
-#endif
-
-#if defined(__clang__) && !defined(__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-#endif
-
-void fail(char const* format, ...) {
-  va_list vlist;
-  va_start(vlist, format);
-#ifdef OMEGA_H_THROW
-  char buffer[2048];
-  std::vsnprintf(buffer, sizeof(buffer), format, vlist);
-  va_end(vlist);
-  throw Omega_h::exception(buffer);
-#else
-  std::vfprintf(stderr, format, vlist);
-  va_end(vlist);
-  std::abort();
-#endif
-}
-
-#if defined(__clang__) && !defined(__APPLE__)
-#pragma clang diagnostic pop
 #endif
 
 static struct {

@@ -114,9 +114,15 @@ class Few {
   R3D_INLINE Few() {
     for (Int i = 0; i < n; ++i) new (data() + i) T();
   }
+#ifdef OMPTARGET
+#pragma omp declare target
+#endif
   R3D_INLINE ~Few() {
     for (Int i = 0; i < n; ++i) (data()[i]).~T();
   }
+#ifdef OMPTARGET
+#pragma omp end declare target
+#endif
   R3D_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }
