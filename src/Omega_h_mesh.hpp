@@ -125,26 +125,50 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
-  Adj ask_revClass (Int edim);
+/* ask_revClass (Int edim, LOs g_ids): takes input of entity dimension
+ * 'edim', and an 1d array of model entity IDs on local part to return
+ * a CSR structure containing IDs of mesh entities classified on the 
+ * requested input model entities
+ */
   Adj ask_revClass (Int edim, LOs g_ids);
-  bool has_revClass (Int edim) const;
-  Adj get_revClass (Int edim) const;
+
+/* ask_revClass (Int edim): takes input of entity dimension 'edim' and
+ * returns a CSR structure containing reverse classification for all the
+ * model entities of that dimension
+ */
+  Adj ask_revClass (Int edim);
+
+/* ask_revClass_downAdj (Int from, Int to): takes input of a higher
+ * dimension 'from' and a lower dimension 'to'. This function can be
+ * understood as a two step process. Firstly, for all the model entities
+ * of dimension 'from', we get the reverse classified mesh entities.
+ * Then combine the reverse classification, and downward adjacency information.
+ * The final output is a CSR containing downward adjacent
+ * entities of dimension 'to' which bound the reverse classified mesh
+ * entities of dimension 'from'.
+ */
   Adj ask_revClass_downAdj (Int from, Int to);
-  Adj derive_revClass (Int edim);
+
+/* has_revClass (Int edim): Input is a entity dimension 'edim'. This function
+ * checks if the reverse classification for that dimension is present in
+ * memory or not.
+ */
+  bool has_revClass (Int edim) const;
+
+  Adj get_revClass (Int edim) const;
 
   template <typename T>
   void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps);
   template <typename T>
-  void add_boundaryField(
-    Int ent_dim, std::string const& name, Int ncomps, Read<T> array,
-    bool internal = false);
+  void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
+                         Read<T> array, bool internal = false);
   template <typename T>
   Read<T> get_boundaryField_array(Int ent_dim, std::string const& name) const;
   template <typename T>
-  void set_boundaryField_array(
-    Int ent_dim, std::string const& name, Read<T> array, bool internal = false);
+  void set_boundaryField_array(Int ent_dim, std::string const& name,
+                               Read<T> array, bool internal = false);
   void reduce_boundaryField(Int ent_dim, std::string const& name,
-     Omega_h_Op op);
+                            Omega_h_Op op);
   void sync_boundaryField(Int ent_dim, std::string const& name);
   bool has_boundaryField(Int ent_dim, std::string const& name) const;
   void remove_boundaryField(Int ent_dim, std::string const& name);
@@ -254,6 +278,7 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+  Adj derive_revClass (Int edim);
 
  public:
   ClassSets class_sets;
