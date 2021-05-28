@@ -126,10 +126,10 @@ class Mesh {
   Graph ask_dual();
 
 /* ask_revClass (Int edim, LOs g_ids): takes input of entity dimension
- * 'edim', and an 1d array of model entity IDs (on local part) to return
+ * 'edim', and an 1d array of model entity IDs to return
  * a CSR structure (Adj) containing IDs of mesh entities classified on the 
  * requested input model entities. Note here that 'edim' is equal to the
- * model as well as mesh entity dimension
+ * model entity dimension as well as the dimension of returned mesh entities
  */
   Adj ask_revClass (Int edim, LOs g_ids);
 
