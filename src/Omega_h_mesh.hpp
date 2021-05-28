@@ -126,25 +126,28 @@ class Mesh {
   Graph ask_dual();
 
 /* ask_revClass (Int edim, LOs g_ids): takes input of entity dimension
- * 'edim', and an 1d array of model entity IDs on local part to return
- * a CSR structure containing IDs of mesh entities classified on the 
- * requested input model entities
+ * 'edim', and an 1d array of model entity IDs (on local part) to return
+ * a CSR structure (Adj) containing IDs of mesh entities classified on the 
+ * requested input model entities. Note here that 'edim' is equal to the
+ * model as well as mesh entity dimension
  */
   Adj ask_revClass (Int edim, LOs g_ids);
 
-/* ask_revClass (Int edim): takes input of entity dimension 'edim' and
- * returns a CSR structure containing reverse classification for all the
- * model entities of that dimension
+/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs g_ids) above.
+ * Here, the output is for all model entities of dimension 'edim' instead
+ * of a input list
  */
   Adj ask_revClass (Int edim);
 
 /* ask_revClass_downAdj (Int from, Int to): takes input of a higher
- * dimension 'from' and a lower dimension 'to'. This function can be
+ * dimension 'from' and a lower dimension 'to'. The value of 'from' is equal
+ * to the mesh and model entity dimensions used to get reverse class.
+ * (similar to 'edim' for ask_revClass functions above.) This function can be
  * understood as a two step process. Firstly, for all the model entities
  * of dimension 'from', we get the reverse classified mesh entities.
  * Then combine the reverse classification, and downward adjacency information.
  * The final output is a CSR containing downward adjacent
- * entities of dimension 'to' which bound the reverse classified mesh
+ * mesh entities of dimension 'to' which bound the reverse classified mesh
  * entities of dimension 'from'.
  */
   Adj ask_revClass_downAdj (Int from, Int to);
