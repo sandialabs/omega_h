@@ -76,17 +76,17 @@ void test_box(Library *lib, const std::string &mesh_file) {
   if (!rank) {
     auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
     OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({17}));
-    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 0, 1, 1, 1, 1, 1}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 1, 1}));
   }
 
   if (rank) {
     auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
     OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({7}));
-    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 1}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 1}));
 
     auto vtx6_rc = mesh.ask_revClass(0, LOs({6}));
     OMEGA_H_CHECK (vtx6_rc.ab2b == LOs({7}));
-    OMEGA_H_CHECK (vtx6_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 1}));
+    OMEGA_H_CHECK (vtx6_rc.a2ab == LOs({0, 1}));
   }
 
   return;

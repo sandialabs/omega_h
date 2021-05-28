@@ -20,10 +20,10 @@ void test_2d(Library *lib, const std::string &mesh_file) {
   OMEGA_H_CHECK (mesh.has_revClass(2));
   OMEGA_H_CHECK (face_rc.ab2b == face_rc_get.ab2b);
   OMEGA_H_CHECK (face_rc.a2ab == face_rc_get.a2ab);
-  OMEGA_H_CHECK (face_rc.ab2b == face_1_2_rc.ab2b);
-  OMEGA_H_CHECK (face_rc.a2ab == face_1_2_rc.a2ab);
   OMEGA_H_CHECK (face_rc.ab2b == LOs({0, 1, 2, 3, 4, 5}));
   OMEGA_H_CHECK (face_rc.a2ab == LOs({0, 0, 0, 6}));
+  OMEGA_H_CHECK (face_1_2_rc.ab2b == LOs({0, 1, 2, 3, 4, 5}));
+  OMEGA_H_CHECK (face_1_2_rc.a2ab == LOs({0, 0, 6}));
 
   OMEGA_H_CHECK (!mesh.has_revClass(1));
   auto edge_rc = mesh.ask_revClass(1);

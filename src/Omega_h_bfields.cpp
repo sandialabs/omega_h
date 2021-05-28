@@ -108,36 +108,34 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   }
   auto edim_rc = ask_revClass(edim);
   auto n_gents = g_ids.size();
-  auto max_gent_id = get_max(g_ids);
-  auto max_gent_id_avail = (edim_rc.a2ab.size() - 1);
-  if (max_gent_id > max_gent_id_avail) {
-    fprintf(stderr, "input model id %d greater than local max. model id\n",
-            max_gent_id);
-    OMEGA_H_NORETURN(Adj());
-  }
+  auto max_gent_id = (edim_rc.a2ab.size() - 1);
 
   auto ab2b = edim_rc.ab2b;
   auto a2ab = edim_rc.a2ab;
-  Write<LO> degree(max_gent_id+1, 0, "new_rc_degrees");
+  Write<LO> degree(n_gents, 0, "new_rc_degrees");
 
   auto count = OMEGA_H_LAMBDA (LO i) {
     auto gent = g_ids[i];
-    auto start = a2ab[gent];
-    auto end = a2ab[gent + 1];
-    degree[gent] = end - start;
+    if (gent <= max_gent_id) {
+      auto start = a2ab[gent];
+      auto end = a2ab[gent + 1];
+      degree[i] = end - start;
+    }
   };
   parallel_for(n_gents, std::move(count));
 
-  auto total_ments = get_sum(Read<LO>(degree));
-  auto new_a2ab_r = offset_scan(Read<LO>(degree), "new_rc_a2ab");
+  auto total_ments = get_sum(LOs(degree));
+  auto new_a2ab_r = offset_scan(LOs(degree), "new_rc_a2ab");
   Write<LO> new_ab2b(total_ments, 0, "new_rc_ab2b");
 
   auto get_values = OMEGA_H_LAMBDA (LO i) {
     auto gent = g_ids[i];
-    auto start = a2ab[gent];
-    auto end = a2ab[gent + 1];
-    for (LO j = start; j < end; ++j) {
-      new_ab2b[new_a2ab_r[gent] + j - start] = ab2b[j];
+    if (gent <= max_gent_id) {
+      auto start = a2ab[gent];
+      auto end = a2ab[gent + 1];
+      for (LO j = start; j < end; ++j) {
+        new_ab2b[new_a2ab_r[i] + j - start] = ab2b[j];
+      }
     }
   };
   parallel_for(n_gents, std::move(get_values));
