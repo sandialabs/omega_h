@@ -160,21 +160,33 @@ class Mesh {
 
   Adj get_revClass (Int edim) const;
 
+/* Takes input of entity dimension, name of field and number of components.
+ * to create a space where the array of values can be stored
+ */
   template <typename T>
   void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps);
-  template <typename T>
-  void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
-                         Read<T> array, bool internal = false);
-  template <typename T>
-  Read<T> get_boundaryField_array(Int ent_dim, std::string const& name) const;
+
+/* Takes input of entity dimension, name of field and array of values and
+ * stores the values in memory.
+ */
   template <typename T>
   void set_boundaryField_array(Int ent_dim, std::string const& name,
                                Read<T> array, bool internal = false);
+
+/* Takes input of entity dimension, name of field and deletes the field
+ * information from memory
+ */
+  void remove_boundaryField(Int ent_dim, std::string const& name);
+
+  template <typename T>
+  Read<T> get_boundaryField_array(Int ent_dim, std::string const& name) const;
   void reduce_boundaryField(Int ent_dim, std::string const& name,
                             Omega_h_Op op);
+  template <typename T>
+  void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
+                         Read<T> array, bool internal = false);
   void sync_boundaryField(Int ent_dim, std::string const& name);
   bool has_boundaryField(Int ent_dim, std::string const& name) const;
-  void remove_boundaryField(Int ent_dim, std::string const& name);
 
   template <typename T>
   void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);

@@ -94,20 +94,6 @@ void test_3d(Library *lib, const std::string &mesh_file) {
   return;
 }
 
-void test_gitr(Library *lib) {
-
-  auto mesh = Mesh(lib);
-  binary::read ("/lore/nathd/ITER_data/NEW_MESH/OmegaH.osh", lib->world(), &mesh);
-  auto class_dim = mesh.get_array<I8>(2, "class_dim");
-  auto check_classDim = OMEGA_H_LAMBDA (LO i) {
-    OMEGA_H_CHECK(class_dim[i] == 2);
-  };
-  parallel_for(mesh.nents(2), std::move(check_classDim));
-  
-
-  return;
-}
-
 int main(int argc, char** argv) {
 
   auto lib = Library (&argc, &argv);
@@ -122,7 +108,6 @@ int main(int argc, char** argv) {
 
   test_2d(&lib, path_2d);
   test_3d(&lib, path_3d);
-  test_gitr(&lib);
 
   return 0;
 }
