@@ -112,10 +112,9 @@ if (Omega_h_USE_CUDA)
   enable_language(CUDA)
   #check for versions of cuda/thrust that dont't work with omegah
   if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 11.2
-      AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.3
-      AND NOT Omega_h_USE_Kokkos)
+      AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.3)
     message(FATAL_ERROR "CUDA 11.2 does not support Omega_h, "
-      "use an older or newer version or enable kokkos")
+      "use an older or newer version")
   endif()
 endif()
 
