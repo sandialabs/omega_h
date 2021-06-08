@@ -24,6 +24,12 @@ int classId(pEntity e) {
   return GEN_tag(g);
 }
 
+int classType(pEntity e) {
+  pGEntity g = EN_whatIn(e);
+  assert(g);
+  return GEN_type(g);
+}
+
 void call_print(LOs a) {
   printf("\n");
   auto a_w = Write<LO> (a.size());
@@ -84,7 +90,18 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> rgn_vertices[4];
   std::vector<int> face_vertices[2];
   std::vector<int> edge_vertices[1];
-  /* TODO:transfer classification info */
+  /* TODO:transfer classification info (for simplex or hypercube for now)*/
+  std::vector<int> ent_class_ids[4];
+  std::vector<int> ent_class_dim[4];
+
+  ent_class_ids[0].reserve(numVtx);
+  ent_class_dim[0].reserve(numVtx);
+  ent_class_ids[1].reserve(numEdges);
+  ent_class_dim[1].reserve(numEdges);
+  ent_class_ids[2].reserve(numFaces);
+  ent_class_dim[2].reserve(numFaces);
+  ent_class_ids[3].reserve(numRegions);
+  ent_class_dim[3].reserve(numRegions);
 
   Int max_dim;
   if (numRegions) {
@@ -109,9 +126,18 @@ void read_internal(pMesh m, Mesh* mesh) {
     for(int j=0; j<max_dim; j++) {
       host_coords[v * max_dim + j] = xyz[j];
     }
+    ent_class_ids[0].push_back(classId(vtx));
+    ent_class_dim[0].push_back(classType(vtx));
     ++v;
   }
   VIter_delete(vertices);
+
+  HostWrite<LO> host_class_ids_vtx(numVtx);
+  HostWrite<I8> host_class_dim_vtx(numVtx);
+  for (int i = 0; i < numVtx; ++i) {
+    host_class_ids_vtx[i] = ent_class_ids[0][static_cast<std::size_t>(i)];
+    host_class_dim_vtx[i] = ent_class_dim[0][static_cast<std::int8_t>(i)];
+  }
 
   mesh->set_dim(max_dim);
   if (is_simplex || is_hypercube) {
@@ -123,11 +149,19 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     mesh->set_verts(numVtx);
     mesh->add_coords(host_coords.write());
+    mesh->add_tag<ClassId>(0, "class_id", 1,
+                           Read<ClassId>(host_class_ids_vtx.write()));
+    mesh->add_tag<I8>(0, "class_dim", 1,
+                      Read<I8>(host_class_dim_vtx.write()));
   }
   else {
     mesh->set_family(OMEGA_H_MIXED);
     mesh->set_verts_type(numVtx);
     mesh->add_coords_mix(host_coords.write());
+    mesh->add_tag<ClassId>(Topo_type::vertex, "class_id", 1,
+                           Read<ClassId>(host_class_ids_vtx.write()));
+    mesh->add_tag<I8>(Topo_type::vertex, "class_dim", 1,
+                      Read<I8>(host_class_dim_vtx.write()));
   }
 
   edge_vertices[0].reserve(numEdges*2);
@@ -142,9 +176,18 @@ void read_internal(pMesh m, Mesh* mesh) {
       edge_vertices[0].push_back(EN_id(vtx));
       V_coord(vtx,xyz);
     }
+    ent_class_ids[1].push_back(classId(edge));
+    ent_class_dim[1].push_back(classType(edge));
   }
   EIter_delete(edges);
   
+  HostWrite<LO> host_class_ids_edge(numEdges);
+  HostWrite<I8> host_class_dim_edge(numEdges);
+  for (int i = 0; i < numEdges; ++i) {
+    host_class_ids_edge[i] = ent_class_ids[1][static_cast<std::size_t>(i)];
+    host_class_dim_edge[i] = ent_class_dim[1][static_cast<std::int8_t>(i)];
+  }
+
   HostWrite<LO> host_e2v(numEdges*2);
   for (Int i = 0; i < numEdges; ++i) {
     for (Int j = 0; j < 2; ++j) {
@@ -155,9 +198,17 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto ev2v = Read<LO>(host_e2v.write());
   if (is_simplex || is_hypercube) {
     mesh->set_ents(1, Adj(ev2v));
+    mesh->add_tag<ClassId>(1, "class_id", 1,
+                           Read<ClassId>(host_class_ids_edge.write()));
+    mesh->add_tag<I8>(1, "class_dim", 1,
+                      Read<I8>(host_class_dim_edge.write()));
   }
   else {
     mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
+    mesh->add_tag<ClassId>(Topo_type::edge, "class_id", 1,
+                           Read<ClassId>(host_class_ids_edge.write()));
+    mesh->add_tag<I8>(Topo_type::edge, "class_dim", 1,
+                      Read<I8>(host_class_dim_edge.write()));
   }
   printf("ok2\n");
 
@@ -206,8 +257,18 @@ void read_internal(pMesh m, Mesh* mesh) {
     else {
       Omega_h_fail ("Face is neither tri nor quad \n");
     }
+    ent_class_ids[2].push_back(classId(face));
+    ent_class_dim[2].push_back(classType(face));
   }
   FIter_delete(faces);
+
+  HostWrite<LO> host_class_ids_face(numFaces);
+  HostWrite<I8> host_class_dim_face(numFaces);
+  for (int i = 0; i < numFaces; ++i) {
+    host_class_ids_face[i] = ent_class_ids[2][static_cast<std::size_t>(i)];
+    host_class_dim_face[i] = ent_class_dim[2][static_cast<std::int8_t>(i)];
+  }
+
   Adj edge2vert;
   Adj vert2edge;
   if (is_simplex || is_hypercube) {
@@ -232,6 +293,10 @@ void read_internal(pMesh m, Mesh* mesh) {
     down = reflect_down(tri2verts, edge2vert.ab2b, vert2edge,
                         OMEGA_H_SIMPLEX, 2, 1);
     mesh->set_ents(2, down);
+    mesh->add_tag<ClassId>(2, "class_id", 1,
+                           Read<ClassId>(host_class_ids_face.write()));
+    mesh->add_tag<I8>(2, "class_dim", 1,
+                      Read<I8>(host_class_dim_face.write()));
   }
   else if (is_hypercube) {
   }
@@ -254,6 +319,10 @@ void read_internal(pMesh m, Mesh* mesh) {
     down = reflect_down(quad2verts, edge2vert.ab2b, vert2edge,
                         OMEGA_H_HYPERCUBE, 2, 1);
     mesh->set_ents(2, down);
+    mesh->add_tag<ClassId>(2, "class_id", 1,
+                           Read<ClassId>(host_class_ids_face.write()));
+    mesh->add_tag<I8>(2, "class_dim", 1,
+                      Read<I8>(host_class_dim_face.write()));
   }
   else if (is_simplex) {
   }
@@ -313,9 +382,18 @@ void read_internal(pMesh m, Mesh* mesh) {
     else {
       Omega_h_fail ("Region is not tet, hex, wedge, or pyramid \n");
     }
+    ent_class_ids[3].push_back(classId(rgn));
+    ent_class_dim[3].push_back(classType(rgn));
   }
   RIter_delete(regions);
   
+  HostWrite<LO> host_class_ids_rgn(numRegions);
+  HostWrite<I8> host_class_dim_rgn(numRegions);
+  for (int i = 0; i < numRegions; ++i) {
+    host_class_ids_rgn[i] = ent_class_ids[3][static_cast<std::size_t>(i)];
+    host_class_dim_rgn[i] = ent_class_dim[3][static_cast<std::int8_t>(i)];
+  }
+
   Adj tri2vert;
   Adj vert2tri;
   Adj quad2vert;
@@ -344,6 +422,10 @@ void read_internal(pMesh m, Mesh* mesh) {
     down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
                         OMEGA_H_SIMPLEX, 3, 2);
     mesh->set_ents(3, down);
+    mesh->add_tag<ClassId>(3, "class_id", 1,
+                           Read<ClassId>(host_class_ids_rgn.write()));
+    mesh->add_tag<I8>(3, "class_dim", 1,
+                      Read<I8>(host_class_dim_rgn.write()));
   }
   else if (is_hypercube) {
   }
@@ -366,6 +448,10 @@ void read_internal(pMesh m, Mesh* mesh) {
     down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
                         OMEGA_H_HYPERCUBE, 3, 2);
     mesh->set_ents(3, down);
+    mesh->add_tag<ClassId>(3, "class_id", 1,
+                           Read<ClassId>(host_class_ids_rgn.write()));
+    mesh->add_tag<I8>(3, "class_dim", 1,
+                      Read<I8>(host_class_dim_rgn.write()));
   }
   else if (is_simplex) {
   }
@@ -414,7 +500,9 @@ void read_internal(pMesh m, Mesh* mesh) {
   if ((!is_simplex) && (!is_hypercube)) {
     mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
   }
+  printf("ok5\n");
 
+  return;
 }
 
 Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
