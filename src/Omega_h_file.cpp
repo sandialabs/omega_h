@@ -362,7 +362,6 @@ static void read_sets(std::istream& stream, Mesh* mesh, bool needs_swapping) {
 
 void write(std::ostream& stream, Mesh* mesh) {
   begin_code("binary::write(stream,Mesh)");
-  printf("ok0 write\n");
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
 // write_value(stream, latest_version); moved to /version at version 4
 #ifdef OMEGA_H_USE_ZLIB
@@ -375,7 +374,6 @@ void write(std::ostream& stream, Mesh* mesh) {
   write_meta(stream, mesh, needs_swapping);
   LO nverts = mesh->nverts();
   write_value(stream, nverts, needs_swapping);
-  printf("ok1 write\n");
   for (Int d = 1; d <= mesh->dim(); ++d) {
     auto down = mesh->ask_down(d, d - 1);
     write_array(stream, down.ab2b, is_compressed, needs_swapping);
@@ -519,22 +517,16 @@ I32 read_version(filesystem::path const& path, CommPtr comm) {
 
 void write(filesystem::path const& path, Mesh* mesh) {
   begin_code("binary::write(path,Mesh)");
-  printf("ok0 write path\n");
   if (path.extension().string() != ".osh" && can_print(mesh)) {
-    printf("ok0 write path if\n");
     std::cout
         << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
     std::cout << "instead of just \"" << path << "\"\n";
   }
-  printf("ok1 write path\n");
   filesystem::create_directory(path);
-  printf("ok2 write path\n");
   mesh->comm()->barrier();
-  printf("ok3 write path\n");
   auto filepath = path;
   filepath /= std::to_string(mesh->comm()->rank());
   filepath += ".osh";
-  printf("ok4 write path\n");
   std::ofstream file(filepath.c_str());
   OMEGA_H_CHECK(file.is_open());
   write(file, mesh);

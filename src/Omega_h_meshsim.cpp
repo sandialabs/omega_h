@@ -27,6 +27,7 @@ int classId(pEntity e) {
 int classType(pEntity e) {
   pGEntity g = EN_whatIn(e);
   assert(g);
+  assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
   return GEN_type(g);
 }
 
@@ -136,7 +137,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   HostWrite<I8> host_class_dim_vtx(numVtx);
   for (int i = 0; i < numVtx; ++i) {
     host_class_ids_vtx[i] = ent_class_ids[0][static_cast<std::size_t>(i)];
-    host_class_dim_vtx[i] = ent_class_dim[0][static_cast<std::int8_t>(i)];
+    host_class_dim_vtx[i] = ent_class_dim[0][static_cast<std::size_t>(i)];
   }
 
   mesh->set_dim(max_dim);
@@ -185,7 +186,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   HostWrite<I8> host_class_dim_edge(numEdges);
   for (int i = 0; i < numEdges; ++i) {
     host_class_ids_edge[i] = ent_class_ids[1][static_cast<std::size_t>(i)];
-    host_class_dim_edge[i] = ent_class_dim[1][static_cast<std::int8_t>(i)];
+    host_class_dim_edge[i] = ent_class_dim[1][static_cast<std::size_t>(i)];
   }
 
   HostWrite<LO> host_e2v(numEdges*2);
@@ -266,7 +267,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   HostWrite<I8> host_class_dim_face(numFaces);
   for (int i = 0; i < numFaces; ++i) {
     host_class_ids_face[i] = ent_class_ids[2][static_cast<std::size_t>(i)];
-    host_class_dim_face[i] = ent_class_dim[2][static_cast<std::int8_t>(i)];
+    host_class_dim_face[i] = ent_class_dim[2][static_cast<std::size_t>(i)];
   }
 
   Adj edge2vert;
@@ -391,7 +392,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   HostWrite<I8> host_class_dim_rgn(numRegions);
   for (int i = 0; i < numRegions; ++i) {
     host_class_ids_rgn[i] = ent_class_ids[3][static_cast<std::size_t>(i)];
-    host_class_dim_rgn[i] = ent_class_dim[3][static_cast<std::int8_t>(i)];
+    host_class_dim_rgn[i] = ent_class_dim[3][static_cast<std::size_t>(i)];
   }
 
   Adj tri2vert;
@@ -516,6 +517,8 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
   pMesh m = M_load(mesh_fname.c_str(), g, p);
   auto mesh = Mesh(comm->library());
+  mesh.set_comm(comm);
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
   meshsim::read_internal(m, &mesh);
   M_release(m);
   GM_release(g);

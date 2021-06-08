@@ -26,6 +26,9 @@ int main(int argc, char** argv) {
     printf("ok2 meshsim2osh\n");
     std::cout << mesh_out.c_str() << "\n";
     Omega_h::binary::write(mesh_out, &mesh);
+    Omega_h::vtk::FullWriter writer(
+      "/lore/joshia5/Meshes/mixed_mesh/cube_with_cutTriCube_5k_Full", &mesh);
+    writer.write();
   }
 
   return 0;
