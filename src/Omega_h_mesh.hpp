@@ -130,6 +130,7 @@ class Mesh {
  * a CSR structure (Adj) containing IDs of mesh entities classified on the 
  * requested input model entities. Note here that 'edim' is equal to the
  * model entity dimension as well as the dimension of returned mesh entities
+ * NOTE: if the model entity is a region, the memory usage is high
  */
   Adj ask_revClass (Int edim, LOs g_ids);
 
