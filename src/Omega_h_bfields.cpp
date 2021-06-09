@@ -43,6 +43,28 @@ Adj Mesh::get_revClass (Int edim) const {
   return *(revClass_[edim]);
 }
 
+void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h) {
+  OMEGA_H_TIME_FUNCTION;
+  LO const nl = l2lh.size() - 1;
+  auto f = OMEGA_H_LAMBDA(LO const l) {
+    LO const begin = l2lh[l];
+    LO const end = l2lh[l + 1];
+    for (LO j = begin; j < end; ++j) {
+      LO k_min = j;
+      GO min_h = lh2h[j];
+      for (LO k = j + 1; k < end; ++k) {
+        GO const h = lh2h[k];
+        if (h < min_h) {
+          k_min = k;
+          min_h = h;
+        }
+      }
+      swap2(lh2h[j], lh2h[k_min]);
+    }
+  };
+  parallel_for(nl, std::move(f));
+}
+
 Adj Mesh::derive_revClass (Int edim) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
@@ -83,6 +105,8 @@ Adj Mesh::derive_revClass (Int edim) {
     }
   };
   parallel_for(nents(edim), std::move(get_values));
+
+  sort_by_high_index(a2ab_r, ab2b);
 
   return Adj(a2ab_r, LOs(ab2b));
 
