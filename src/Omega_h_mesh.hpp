@@ -165,38 +165,38 @@ class Mesh {
  * to create a space where the array of values can be stored
  */
   template <typename T>
-  void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps);
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps);
 
 /* Takes input of entity dimension, name of field and array of values and
  * stores the values in memory.
  */
   template <typename T>
-  void set_boundaryField_array(Int ent_dim, std::string const& name,
+  void set_rcField_array(Int ent_dim, std::string const& name,
                                Read<T> array, bool internal = false);
 
 /* Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
-  void remove_boundaryField(Int ent_dim, std::string const& name);
+  void remove_rcField(Int ent_dim, std::string const& name);
 
   template <typename T>
-  Read<T> get_boundaryField_array(Int ent_dim, std::string const& name) const;
-  void reduce_boundaryField(Int ent_dim, std::string const& name,
+  Read<T> get_rcField_array(Int ent_dim, std::string const& name) const;
+  void reduce_rcField(Int ent_dim, std::string const& name,
                             Omega_h_Op op);
   template <typename T>
-  void add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
                          Read<T> array, bool internal = false);
-  void sync_boundaryField(Int ent_dim, std::string const& name);
-  bool has_boundaryField(Int ent_dim, std::string const& name) const;
+  void sync_rcField(Int ent_dim, std::string const& name);
+  bool has_rcField(Int ent_dim, std::string const& name) const;
 
   template <typename T>
-  void change_tagToBoundary(Int ent_dim, Int ncomps, std::string const& name);
+  void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name);
   template <typename T>
   void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name);
 
-  void change_all_bFieldsToMesh();
-  void change_all_bFieldsToBoundary();
-  bool has_anyBoundaryField();
+  void change_all_rcFieldsToMesh();
+  void change_all_rcFieldsTorc();
+  bool has_anyrcField();
   bool has_allMeshTags();
 
  public:
@@ -358,18 +358,18 @@ __host__
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
-  extern template void Mesh::change_tagToBoundary<T>(                          \
+  extern template void Mesh::change_tagTorc<T>(                          \
       Int ent_dim, Int ncomps, std::string const& name);                       \
   extern template void Mesh::change_tagToMesh<T>(                              \
       Int ent_dim, Int ncomps, std::string const& name);                       \
-  extern template Read<T> Mesh::get_boundaryField_array<T>(                    \
+  extern template Read<T> Mesh::get_rcField_array<T>(                    \
       Int dim, std::string const& name) const;                                 \
-  extern template void Mesh::add_boundaryField<T>(                             \
+  extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps);                           \
-  extern template void Mesh::add_boundaryField<T>(                             \
+  extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
-  extern template void Mesh::set_boundaryField_array(                          \
+  extern template void Mesh::set_rcField_array(                          \
       Int dim, std::string const& name, Read<T> array, bool internal);         
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

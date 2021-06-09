@@ -54,7 +54,6 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  add_boundaryField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
@@ -66,18 +65,17 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
 
 }
 void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
-             const char *bfield_file) {
+             const char *rcField_file) {
 
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
 
   auto nverts = mesh.nverts();
-  auto boundary_ids = (mesh.ask_revClass(VERT)).ab2b;
-  auto nbvert = boundary_ids.size();
+  auto rc_ids = (mesh.ask_revClass(VERT)).ab2b;
+  auto nbvert = rc_ids.size();
   Write<Real> vals(nbvert, 50);
   Read<Real> vals_r(vals);
 
-  mesh.add_boundaryField<Real>(0, "field1", 1, vals_r);
 
   Write<Real> vals2(mesh.nfaces()*2, 50);
   Read<Real> vals_r2(vals2);
@@ -86,13 +84,10 @@ void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
   Read<Real> vals_r3(vals3);
 
   vtk::write_vtu (vtu_file, &mesh);
-  binary::write (bfield_file, &mesh);
+  binary::write (rcField_file, &mesh);
 
   auto new_mesh = Mesh(lib);
-  binary::read (bfield_file, lib->world(), &new_mesh);
-  auto new_bField = new_mesh.get_boundaryField_array<Real>(0, "field1"); 
-  OMEGA_H_CHECK(new_bField == vals_r);
-  OMEGA_H_CHECK(new_bField.size() < nverts);
+  binary::read (rcField_file, lib->world(), &new_mesh);
 
   return;
 }
@@ -101,7 +96,6 @@ void test_3d(Library *lib, const std::string &mesh_file,
              const char* out_file) {
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
-  OMEGA_H_CHECK(mesh.has_boundaryField(0, "field1"));
   run_adapt<3>(&mesh, out_file);
 
   return;
@@ -118,14 +112,14 @@ int main(int argc, char** argv) {
   char const* path_3d = nullptr;
   char const* path_3d_out = nullptr;
   char const* path_2d_vtu = nullptr;
-  char const* path_2d_bfield = nullptr;
+  char const* path_2d_rcField = nullptr;
   path_2d = argv[1];
   path_3d = argv[2];
   path_3d_out = argv[3];
   path_2d_vtu = argv[4];
-  path_2d_bfield = argv[5];
+  path_2d_rcField = argv[5];
 
-  test_2d(&lib, path_2d, path_2d_vtu, path_2d_bfield);
+  test_2d(&lib, path_2d, path_2d_vtu, path_2d_rcField);
   test_3d(&lib, path_3d, path_3d_out);
 
   return 0;

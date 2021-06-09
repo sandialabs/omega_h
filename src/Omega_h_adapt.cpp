@@ -214,11 +214,11 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.egads_model) {
     ScopedTimer snap_timer("snap");
 
-    mesh->change_all_bFieldsToBoundary();
+    mesh->change_all_rcFieldsTorc();
 
     mesh->set_parting(OMEGA_H_GHOSTED);
 
-    mesh->change_all_bFieldsToMesh();
+    mesh->change_all_rcFieldsToMesh();
 
     auto warp = egads_get_snap_warp(
         mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
@@ -280,7 +280,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
 
-  mesh->change_all_bFieldsToMesh();
+  mesh->change_all_rcFieldsToMesh();
 
   if (!pre_adapt(mesh, opts)) return false;
   setup_conservation_tags(mesh, opts);
@@ -292,42 +292,42 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   correct_integral_errors(mesh, opts);
   auto t4 = now();
 
-  mesh->change_all_bFieldsToBoundary();
+  mesh->change_all_rcFieldsTorc();
 
   mesh->set_parting(OMEGA_H_ELEM_BASED);
 
-  mesh->change_all_bFieldsToMesh();
+  mesh->change_all_rcFieldsToMesh();
 
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
 
-  mesh->change_all_bFieldsToBoundary();
+  mesh->change_all_rcFieldsTorc();
 
   return true;
 }
 
-void add_boundaryField_transferMap(AdaptOpts *opts, std::string const &name,
+void add_rcField_transferMap(AdaptOpts *opts, std::string const &name,
     Omega_h_Transfer const transfer) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
 
   opts->xfer_opts.type_map[new_name] = transfer;
 
 }
 
-void add_boundaryField_integralMap(AdaptOpts *opts, std::string const &name,
+void add_rcField_integralMap(AdaptOpts *opts, std::string const &name,
     std::string const &map) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
 
   opts->xfer_opts.integral_map[new_name] = map;
 

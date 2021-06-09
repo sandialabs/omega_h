@@ -137,7 +137,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
 
       //TODO call this after creating a new flag to check if conversion is
       // needed
-      size_t found = name.find("_boundary");
+      size_t found = name.find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I8> (ent_dim, ncomps, name);
@@ -148,12 +148,12 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
       }
 
     } else if (is<I32>(tag)) {
 
-      size_t found = (tag->name()).find("_boundary");
+      size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I32> (ent_dim, ncomps, name);
@@ -164,12 +164,12 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
       }
 
     } else if (is<I64>(tag)) {
 
-      size_t found = (tag->name()).find("_boundary");
+      size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I64> (ent_dim, ncomps, name);
@@ -180,12 +180,12 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
       }
 
     } else if (is<Real>(tag)) {
 
-      size_t found = (tag->name()).find("_boundary");
+      size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<Real> (ent_dim, ncomps, name);
@@ -196,7 +196,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
       }
 
     }

@@ -272,7 +272,7 @@ void write_tag(
 
   if (is<I8>(tag)) {
 
-    size_t found = (tag->name()).find("_boundary");
+    size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name());
     }
@@ -281,12 +281,12 @@ void write_tag(
         stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
     }
 
   } else if (is<I32>(tag)) {
 
-    size_t found = (tag->name()).find("_boundary");
+    size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name());
     }
@@ -295,12 +295,12 @@ void write_tag(
         stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
     }
 
   } else if (is<I64>(tag)) {
 
-    size_t found = (tag->name()).find("_boundary");
+    size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name());
     }
@@ -309,12 +309,12 @@ void write_tag(
         stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
     }
 
   } else if (is<Real>(tag)) {
   
-    size_t found = (tag->name()).find("_boundary");
+    size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name());
     }
@@ -342,7 +342,7 @@ void write_tag(
     }
 
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
     }
 
   } else {
@@ -367,27 +367,27 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     auto array = read_array<I8>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
 
-    size_t found = name.find("_boundary");
+    size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I8> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
     }
 
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
 
-    size_t found = name.find("_boundary");
+    size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I32> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
     }
 
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
 
-    size_t found = name.find("_boundary");
+    size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<I64> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
     }
 
   } else {
@@ -404,9 +404,9 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     }
     mesh->add_tag(ent_dim, name, ncomps, array, true);
 
-    size_t found = name.find("_boundary");
+    size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToBoundary<Real> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
     }
 
   }

@@ -344,7 +344,7 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
          && tagbase->ncomps() == 1) {
 /*
-    size_t found = tagbase->name().find("_boundary");
+    size_t found = tagbase->name().find("_rc");
     if ((tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
          && tagbase->ncomps() == 1) ||
         (found != std::string::npos)) {
@@ -389,7 +389,7 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
     if (tagbase->name() == "magnetic face flux") {
-    //size_t found = tagbase->name().find("_boundary");
+    //size_t found = tagbase->name().find("_rc");
     //if ((tagbase->name() == "magnetic face flux") || (found !=
       //  std::string::npos)) {
 

@@ -62,7 +62,7 @@ set(Omega_h_SOURCES
   Omega_h_math_lang.cpp
   Omega_h_matrix.cpp
   Omega_h_mesh.cpp
-  Omega_h_bfields.cpp
+  Omega_h_rcFields.cpp
   Omega_h_metric.cpp
   Omega_h_metric_input.cpp
   Omega_h_migrate.cpp
@@ -481,9 +481,9 @@ if(BUILD_TESTING)
   test_func(reverse_class_test 1 ./reverse_class_test 
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
-  osh_add_exe(boundary_field_test)
-  set(TEST_EXES ${TEST_EXES} boundary_field_test)
-  test_func(boundary_field_test 1 ./boundary_field_test
+  osh_add_exe(rc_field_test)
+  set(TEST_EXES ${TEST_EXES} rc_field_test)
+  test_func(rc_field_test 1 ./rc_field_test
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
     ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh
     ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.osh
@@ -495,9 +495,9 @@ if(BUILD_TESTING)
     test_func(reverse_class_testp 2 ./reverse_class_testp 
     ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
-    osh_add_exe(boundary_field_testp)
-    set(TEST_EXES ${TEST_EXES} boundary_field_testp)
-    test_func(boundary_field_testp 2 ./boundary_field_testp
+    osh_add_exe(rc_field_testp)
+    set(TEST_EXES ${TEST_EXES} rc_field_testp)
+    test_func(rc_field_testp 2 ./rc_field_testp
     ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
     ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
     ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk

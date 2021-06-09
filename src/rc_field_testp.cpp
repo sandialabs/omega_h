@@ -49,7 +49,7 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
-  add_boundaryField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  add_rcField_transferMap(&opts, "field", OMEGA_H_INHERIT);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
@@ -65,42 +65,42 @@ void test_3d(Library *lib, const std::string &mesh_file, const char* vtk_file,
              const char *adapt_file) {
 
   // TODO: change the adapt b.field transfer test to work for FACE
-  // without having to add pseudo bfields to all other dims
+  // without having to add pseudo rcFields to all other dims
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
 
   auto vtx_rc = mesh.ask_revClass(0);
-  auto vert_boundary_ids = (mesh.ask_revClass(0)).ab2b;
-  auto nbvert = vert_boundary_ids.size();
+  auto vert_rc_ids = (mesh.ask_revClass(0)).ab2b;
+  auto nbvert = vert_rc_ids.size();
   OMEGA_H_CHECK (nbvert < mesh.nverts());
-  auto edge_boundary_ids = (mesh.ask_revClass(1)).ab2b;
-  auto nbedge = edge_boundary_ids.size();
+  auto edge_rc_ids = (mesh.ask_revClass(1)).ab2b;
+  auto nbedge = edge_rc_ids.size();
   auto face_rc = mesh.ask_revClass(2);
   auto face_a2abSize = face_rc.a2ab.size();
   OMEGA_H_CHECK(face_a2abSize);
-  auto face_boundary_ids = (mesh.ask_revClass(2)).ab2b;
-  auto nbface = face_boundary_ids.size();
-  auto reg_boundary_ids = (mesh.ask_revClass(3)).ab2b;
-  auto nbreg = reg_boundary_ids.size();
+  auto face_rc_ids = (mesh.ask_revClass(2)).ab2b;
+  auto nbface = face_rc_ids.size();
+  auto reg_rc_ids = (mesh.ask_revClass(3)).ab2b;
+  auto nbreg = reg_rc_ids.size();
 
-  mesh.add_boundaryField<LO>(0, "field", 1);
+  mesh.add_rcField<LO>(0, "field", 1);
   Write<LO> valsr_v(nbvert, 100);
-  mesh.set_boundaryField_array(0, "field", Read<LO>(valsr_v));
+  mesh.set_rcField_array(0, "field", Read<LO>(valsr_v));
 
-  mesh.add_boundaryField<LO>(1, "field", 1);
+  mesh.add_rcField<LO>(1, "field", 1);
   const auto rank = lib->world()->rank();
   if ((!rank)) {
     Write<LO> vals(nbedge, 100);
     Read<LO> vals_r(vals);
-    mesh.set_boundaryField_array(1, "field", vals_r);
+    mesh.set_rcField_array(1, "field", vals_r);
   }
   else {
     Write<LO> vals(nbedge, 50.45632);
     Read<LO> vals_r(vals);
-    mesh.set_boundaryField_array(1, "field", vals_r);
+    mesh.set_rcField_array(1, "field", vals_r);
   }
 
-  mesh.add_boundaryField<LO>(2, "field", 1);
+  mesh.add_rcField<LO>(2, "field", 1);
   Write<LO> valsf(nbface, 12);
   auto ab2b = face_rc.ab2b;
   auto a2ab = face_rc.a2ab;
@@ -115,18 +115,18 @@ void test_3d(Library *lib, const std::string &mesh_file, const char* vtk_file,
   };
   parallel_for(face_a2abSize-1, std::move(assign_field_vals),
                "assign_field_vals");
-  mesh.set_boundaryField_array(2, "field", Read<LO>(valsf));
+  mesh.set_rcField_array(2, "field", Read<LO>(valsf));
  
-  mesh.add_boundaryField<LO>(3, "field", 1);
+  mesh.add_rcField<LO>(3, "field", 1);
   Write<LO> valsr(nbreg, 100);
   Read<LO> valsr_r(valsr);
-  mesh.set_boundaryField_array(3, "field", valsr_r);
+  mesh.set_rcField_array(3, "field", valsr_r);
 
   vtk::write_parallel (vtk_file, &mesh);
 
-  mesh.sync_boundaryField(1, "field");
+  mesh.sync_rcField(1, "field");
   vtk::write_parallel (sync_file, &mesh);
-  mesh.reduce_boundaryField(1, "field", OMEGA_H_SUM);
+  mesh.reduce_rcField(1, "field", OMEGA_H_SUM);
   vtk::write_parallel (reduce_file, &mesh);
 
   run_adapt<3>(&mesh, adapt_file);

@@ -15,7 +15,7 @@ void unmap_tags(
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
 
-      size_t found = (tag->name().find("_boundary"));
+      size_t found = (tag->name().find("_rc"));
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name());
@@ -25,13 +25,13 @@ void unmap_tags(
           unmap(new_ents2old_ents, as<I8>(tag)->array(), tag->ncomps()));
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I8> (ent_dim, tag->ncomps(),
+        new_mesh->change_tagTorc<I8> (ent_dim, tag->ncomps(),
                                             tag->name());
       }
 
     } else if (is<I32>(tag)) {
 
-      size_t found = (tag->name().find("_boundary"));
+      size_t found = (tag->name().find("_rc"));
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name());
@@ -41,13 +41,13 @@ void unmap_tags(
           unmap(new_ents2old_ents, as<I32>(tag)->array(), tag->ncomps()));
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I32> (ent_dim, tag->ncomps(),
+        new_mesh->change_tagTorc<I32> (ent_dim, tag->ncomps(),
                                              tag->name());
       }
 
     } else if (is<I64>(tag)) {
 
-      size_t found = (tag->name().find("_boundary"));
+      size_t found = (tag->name().find("_rc"));
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name());
@@ -57,13 +57,13 @@ void unmap_tags(
           unmap(new_ents2old_ents, as<I64>(tag)->array(), tag->ncomps()));
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<I64> (ent_dim, tag->ncomps(),
+        new_mesh->change_tagTorc<I64> (ent_dim, tag->ncomps(),
                                              tag->name());
       }
 
     } else if (is<Real>(tag)) {
 
-      size_t found = (tag->name().find("_boundary"));
+      size_t found = (tag->name().find("_rc"));
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
           old_mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(),
@@ -74,7 +74,7 @@ void unmap_tags(
           unmap(new_ents2old_ents, as<Real>(tag)->array(), tag->ncomps()));
 
       if (found != std::string::npos) {
-        new_mesh->change_tagToBoundary<Real> (ent_dim, tag->ncomps(),
+        new_mesh->change_tagTorc<Real> (ent_dim, tag->ncomps(),
                                               tag->name());
       }
 

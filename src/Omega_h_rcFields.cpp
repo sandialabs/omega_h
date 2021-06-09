@@ -13,18 +13,18 @@ namespace Omega_h {
 #endif
 
 #define OMEGA_H_INST(T)                                                        \
-  template void Mesh::change_tagToBoundary<T>(                                 \
+  template void Mesh::change_tagTorc<T>(                                 \
       Int ent_dim, Int ncomps, std::string const& name);                       \
   template void Mesh::change_tagToMesh<T>(                                     \
       Int ent_dim, Int ncomps, std::string const& name);                       \
-  template Read<T> Mesh::get_boundaryField_array<T>(                           \
+  template Read<T> Mesh::get_rcField_array<T>(                           \
       Int dim, std::string const& name) const;                                 \
-  template void Mesh::add_boundaryField<T>(                                    \
+  template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps);                           \
-  template void Mesh::add_boundaryField<T>(                                    \
+  template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
-  template void Mesh::set_boundaryField_array(                                 \
+  template void Mesh::set_rcField_array(                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         
 OMEGA_H_INST(I8)
 OMEGA_H_INST(I32)
@@ -168,18 +168,18 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
 }
 
 template <typename T>
-void Mesh::change_tagToBoundary(Int ent_dim, Int ncomps,
+void Mesh::change_tagTorc(Int ent_dim, Int ncomps,
                                 std::string const &name) {
 
   OMEGA_H_TIME_FUNCTION;
   auto mesh_field = get_array<T>(ent_dim, name);
   OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
 
-  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
-  auto n_bEnts = boundary_ids.size();
+  auto rc_ids = (ask_revClass(ent_dim)).ab2b;
+  auto n_bEnts = rc_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
   auto f = OMEGA_H_LAMBDA(LO i) {
-    auto id = boundary_ids[i];
+    auto id = rc_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
       b_field[i*ncomps + n] = mesh_field[id*ncomps + n];
     }
@@ -196,20 +196,20 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
                             std::string const &name) {
 
   OMEGA_H_TIME_FUNCTION;
-  auto boundary_field = get_array<T>(ent_dim, name);
+  auto rc_field = get_array<T>(ent_dim, name);
   auto n_ents = nents (ent_dim);
-  OMEGA_H_CHECK (boundary_field.size() <= n_ents*ncomps);
+  OMEGA_H_CHECK (rc_field.size() <= n_ents*ncomps);
 
-  auto boundary_ids = (ask_revClass(ent_dim)).ab2b;
-  auto n_bEnts = boundary_ids.size();
+  auto rc_ids = (ask_revClass(ent_dim)).ab2b;
+  auto n_bEnts = rc_ids.size();
 
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
 
   auto f = OMEGA_H_LAMBDA (LO i) {
-    auto id = boundary_ids[i];
+    auto id = rc_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
       if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
-        mesh_field[id*ncomps + n] = boundary_field[i*ncomps + n];
+        mesh_field[id*ncomps + n] = rc_field[i*ncomps + n];
       }
     }
   };
@@ -221,33 +221,33 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
 }
 
 template <typename T>
-Read<T> Mesh::get_boundaryField_array
+Read<T> Mesh::get_rcField_array
   (Int ent_dim, std::string const& name) const {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
     OMEGA_H_NORETURN(Read<T>());
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   OMEGA_H_CHECK(has_tag(ent_dim, new_name));
   return get_tag<T>(ent_dim, new_name)->array();
 
 }
 
 template <typename T>
-void Mesh::add_boundaryField(Int ent_dim, std::string const& name,
+void Mesh::add_rcField(Int ent_dim, std::string const& name,
                              Int ncomps) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
   add_tag<T>(ent_dim, new_name, ncomps);
 
@@ -255,76 +255,76 @@ void Mesh::add_boundaryField(Int ent_dim, std::string const& name,
 }
 
 template <typename T>
-void Mesh::add_boundaryField(Int ent_dim, std::string const& name, Int ncomps,
+void Mesh::add_rcField(Int ent_dim, std::string const& name, Int ncomps,
   Read<T> array, bool internal) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
   add_tag<T>(ent_dim, new_name, ncomps, array, internal);
 
   return;
 }
 
-bool Mesh::has_boundaryField(Int ent_dim, std::string const& name) const {
+bool Mesh::has_rcField(Int ent_dim, std::string const& name) const {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   if (!has_ents(ent_dim)) return false;
   return has_tag(ent_dim, new_name);
 
 }
 
-void Mesh::remove_boundaryField(Int ent_dim, std::string const& name) {
+void Mesh::remove_rcField(Int ent_dim, std::string const& name) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   if (!has_ents(ent_dim)) return;
   remove_tag(ent_dim, new_name);
 
 }
 
 template <typename T>
-void Mesh::set_boundaryField_array
+void Mesh::set_rcField_array
   (Int ent_dim, std::string const& name, Read<T> array, bool internal) {
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
   OMEGA_H_CHECK(has_tag(ent_dim, new_name));
   set_tag<T>(ent_dim, new_name, array, internal);
 
   return;
 }
 
-void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
+void Mesh::reduce_rcField(Int ent_dim, std::string const& name,
      Omega_h_Op op) {
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
   else {
     OMEGA_H_CHECK(has_tag(ent_dim, new_name));
@@ -341,7 +341,7 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
           ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I8> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -354,7 +354,7 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
           ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I32> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -367,7 +367,7 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
           ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I64> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -380,21 +380,21 @@ void Mesh::reduce_boundaryField(Int ent_dim, std::string const& name,
           ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
   }
 }
 
-void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
+void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
 
   std::string new_name = name;
-  new_name.append("_boundary");
+  new_name.append("_rc");
 
-  size_t found = name.find("_boundary");
+  size_t found = name.find("_rc");
   if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_boundary' at end of field name\n");
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
   }
   else {
     OMEGA_H_CHECK(has_tag(ent_dim, new_name));
@@ -411,7 +411,7 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
           sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I8> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -424,7 +424,7 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
           sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I32> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -437,7 +437,7 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
           sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<I64> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
@@ -450,14 +450,14 @@ void Mesh::sync_boundaryField(Int ent_dim, std::string const& name) {
           sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagToBoundary<Real> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name);
 
       break;
     }
   }
 }
 
-void Mesh::change_all_bFieldsToMesh() {
+void Mesh::change_all_rcFieldsToMesh() {
 
   OMEGA_H_TIME_FUNCTION;
   for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
@@ -468,7 +468,7 @@ void Mesh::change_all_bFieldsToMesh() {
 
       if (is<I8>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
             change_tagToMesh<I8> (ent_dim, ncomps, name);
@@ -476,7 +476,7 @@ void Mesh::change_all_bFieldsToMesh() {
 
       } else if (is<I32>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
           change_tagToMesh<I32> (ent_dim, ncomps, name);
@@ -484,7 +484,7 @@ void Mesh::change_all_bFieldsToMesh() {
 
       } else if (is<I64>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
             change_tagToMesh<I64> (ent_dim, ncomps, name);
@@ -492,7 +492,7 @@ void Mesh::change_all_bFieldsToMesh() {
 
       } else if (is<Real>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
             change_tagToMesh<Real> (ent_dim, ncomps, name);
@@ -504,7 +504,7 @@ void Mesh::change_all_bFieldsToMesh() {
   return;  
 }
 
-void Mesh::change_all_bFieldsToBoundary() {
+void Mesh::change_all_rcFieldsTorc() {
 
   OMEGA_H_TIME_FUNCTION;
   for (Int ent_dim = 0; ent_dim < dim(); ++ent_dim) {
@@ -515,34 +515,34 @@ void Mesh::change_all_bFieldsToBoundary() {
 
       if (is<I8>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToBoundary<I8> (ent_dim, ncomps, name);
+            change_tagTorc<I8> (ent_dim, ncomps, name);
         }
 
       } else if (is<I32>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-          change_tagToBoundary<I32> (ent_dim, ncomps, name);
+          change_tagTorc<I32> (ent_dim, ncomps, name);
         }
 
       } else if (is<I64>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToBoundary<I64> (ent_dim, ncomps, name);
+            change_tagTorc<I64> (ent_dim, ncomps, name);
         }
 
       } else if (is<Real>(tag)) {
 
-        size_t found = name.find("_boundary");
+        size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToBoundary<Real> (ent_dim, ncomps, name);
+            change_tagTorc<Real> (ent_dim, ncomps, name);
         }
       }
     }
@@ -559,7 +559,7 @@ bool Mesh::has_allMeshTags() {
     for (Int t = 0; t < ntags(ent_dim); ++t) {
       auto tag = get_tag(ent_dim, t);
       auto const &name = tag->name();
-      size_t found = name.find("_boundary");
+      size_t found = name.find("_rc");
       if (found != std::string::npos) out = false;
     }
   }
@@ -568,7 +568,7 @@ bool Mesh::has_allMeshTags() {
 
 }
 
-bool Mesh::has_anyBoundaryField() {
+bool Mesh::has_anyrcField() {
 
   return (!has_allMeshTags());
 
