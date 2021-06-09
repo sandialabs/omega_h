@@ -114,7 +114,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   pFace face;
   int count_tri = 0;
   int count_quad = 0;
-  while (face = (pFace) FIter_next(faces)) {
+  while ((face = (pFace) FIter_next(faces))) {
     if (F_numEdges(face) == 3) {
       count_tri += 1;
     }
@@ -131,13 +131,13 @@ void read_internal(pMesh m, Mesh* mesh) {
   face_vertices[1].reserve(count_quad*4);
 
   faces = M_faceIter(m);
-  while (face = (pFace) FIter_next(faces)) {
+  while ((face = (pFace) FIter_next(faces))) {
     if (F_numEdges(face) == 3) {
       pVertex tri_vertex;
       pPList tri_vertices = F_vertices(face,1);
       assert (PList_size(tri_vertices) == 3);
       void *iter = 0;
-      while (tri_vertex = (pVertex) PList_next(tri_vertices, &iter)) {
+      while ((tri_vertex = (pVertex) PList_next(tri_vertices, &iter))) {
         face_vertices[0].push_back(EN_id(tri_vertex));
       }
       PList_delete(tri_vertices);
@@ -147,7 +147,7 @@ void read_internal(pMesh m, Mesh* mesh) {
       pPList quad_vertices = F_vertices(face,1);
       assert (PList_size(quad_vertices) == 4);
       void *iter = 0;
-      while (quad_vertex = (pVertex) PList_next(quad_vertices, &iter)) {
+      while ((quad_vertex = (pVertex) PList_next(quad_vertices, &iter))) {
         face_vertices[1].push_back(EN_id(quad_vertex));
       }
       PList_delete(quad_vertices);
@@ -187,7 +187,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   LO count_wedge = 0;
   LO count_pyramid = 0;
   pRegion rgn;
-  while (rgn = (pRegion) RIter_next(regions)) {
+  while ((rgn = (pRegion) RIter_next(regions))) {
     if (R_topoType(rgn) == Rtet) {
       count_tet += 1;
     }
@@ -220,7 +220,7 @@ void read_internal(pMesh m, Mesh* mesh) {
       pPList verts = R_vertices(rgn,1);
       assert (PList_size(verts) == 4);
       void *iter = 0;
-      while (vert = (pVertex) PList_next(verts, &iter)) {
+      while ((vert = (pVertex) PList_next(verts, &iter))) {
         elem_vertices[0].push_back(EN_id(vert));
       }
       PList_delete(verts);
@@ -230,7 +230,7 @@ void read_internal(pMesh m, Mesh* mesh) {
       pPList verts = R_vertices(rgn,1);
       assert (PList_size(verts) == 8);
       void *iter = 0;
-      while (vert = (pVertex) PList_next(verts, &iter)) {
+      while ((vert = (pVertex) PList_next(verts, &iter))) {
         elem_vertices[1].push_back(EN_id(vert));
       }
       PList_delete(verts);
@@ -240,7 +240,7 @@ void read_internal(pMesh m, Mesh* mesh) {
       pPList verts = R_vertices(rgn,1);
       assert (PList_size(verts) == 6);
       void *iter = 0;
-      while (vert = (pVertex) PList_next(verts, &iter)) {
+      while ((vert = (pVertex) PList_next(verts, &iter))) {
         elem_vertices[2].push_back(EN_id(vert));
       }
       PList_delete(verts);
@@ -250,7 +250,7 @@ void read_internal(pMesh m, Mesh* mesh) {
       pPList verts = R_vertices(rgn,1);
       assert (PList_size(verts) == 5);
       void *iter = 0;
-      while (vert = (pVertex) PList_next(verts, &iter)) {
+      while ((vert = (pVertex) PList_next(verts, &iter))) {
         elem_vertices[3].push_back(EN_id(vert));
       }
       PList_delete(verts);
