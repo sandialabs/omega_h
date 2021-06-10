@@ -340,8 +340,9 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
     bool is_compressed, I32 version, bool needs_swapping) {
   std::string name;
   read(stream, name, needs_swapping);
-  auto tag = mesh->get_tagbase(d, name);
-  auto class_ids = tag->class_ids();
+  auto class_ids = LOs();
+  //TODO: auto tag = mesh->get_tagbase(d, name);
+  //auto class_ids = tag->class_ids();
   I8 ncomps;
   read_value(stream, ncomps, needs_swapping);
   I8 type;

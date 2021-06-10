@@ -363,8 +363,9 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
-  auto tag = mesh->get_tagbase(ent_dim, name);
-  auto class_ids = tag->class_ids();
+  auto class_ids = LOs() ;
+  //TODO:auto tag = mesh->get_tagbase(ent_dim, name);
+  //auto class_ids = tag->class_ids();
   /* tags like "global" are set by the construction mechanism,
      and it is somewhat complex to anticipate when they exist
      so we can just remove them if they are going to be reset. */
