@@ -165,8 +165,8 @@ class Mesh {
  * same as the model entity IDs which
  */
   template <typename T>
-  void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
-                   LOs class_ids);
+  void add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
+                   Int ncomps);
 /* Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
@@ -377,7 +377,7 @@ __host__
   extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps);                           \
   extern template void Mesh::add_rcField<T>(                             \
-      Int dim, std::string const& name, Int ncomps, LOs class_ids);            \
+      LOs class_ids, Int dim, std::string const& name, Int ncomps);            \
   extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \

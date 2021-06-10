@@ -22,7 +22,7 @@ namespace Omega_h {
   template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps);                           \
   template void Mesh::add_rcField<T>(                                    \
-      Int dim, std::string const& name, Int ncomps, LOs class_ids);            \
+      LOs class_ids, Int dim, std::string const& name, Int ncomps);            \
   template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
@@ -242,8 +242,8 @@ Read<T> Mesh::get_rcField_array
 }
 
 template <typename T>
-void Mesh::add_rcField(Int ent_dim, std::string const& name,
-                       Int ncomps, LOs class_ids) {
+void Mesh::add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
+                       Int ncomps) {
 
   size_t found = name.find("_rc");
   if (found != std::string::npos) {
