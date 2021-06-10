@@ -7,6 +7,7 @@
 #endif
 #include <cassert>
 #include <iostream>
+#include <cstdio>
 
 #ifdef OMEGA_H_THROW
 #include <exception>
@@ -58,12 +59,28 @@ void fail(char const* format, ...);
     if (!(cond)) std::cout << "ERROR: " << a << std::endl;  \
     OMEGA_H_CHECK(cond) ;                                   \
   } while(0)
+#  define OMEGA_H_CHECK_PRINTF(cond, format, ...) do { \
+    if (!(cond)) {                                  \
+      std::printf("ERROR: " format "\n", __VA_ARGS__);   \
+    }                                               \
+    OMEGA_H_CHECK(cond) ;                           \
+  } while(0)
 #  define OMEGA_H_CHECK_OP(l,op,r) do {                                 \
-    if (!((l) op (r))) std::cout << "ERROR: " << "!(" << #l << "  " << #op << " " << #r << ") : " << "! (" << (l) << " " << #op << " " << (r) << ")" << std::endl; \
+    if (!((l) op (r))) {                                                \
+      std::printf("ERROR: !( %s %s %s ) : ! ( %s %s %s )\n", #l, #op, #r, std::to_string(l).c_str(), #op, std::to_string(r).c_str()); \
+    }                                                                   \
     OMEGA_H_CHECK((l) op (r));                                          \
   } while(0)
+#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
+#    define OMEGA_H_CHECK_OP_1(l,op,r)                               \
+  ((!((l) op (r))) ? ((void)0)                                          \
+              : Omega_h::fail(                                                     \
+     "assertion %s %s %s [%d %s %d] failed at %s +%d\n%s\n", #l, #op, #r, l, #op, r, __FILE__, __LINE__, Omega_h::Stacktrace::demangled_stacktrace().c_str()))
+#  endif
+
 #else // NDEBUG
-#  define OMEGA_H_CHECK_MSG(cond,a) OMEGA_H_CHECK(cond)
+#  define OMEGA_H_CHECK_MSG(cond, a) OMEGA_H_CHECK(cond)
+#  define OMEGA_H_CHECK_PRINTF(cond, format, ...) OMEGA_H_CHECK(cond)
 #  define OMEGA_H_CHECK_OP(l,op,r) OMEGA_H_CHECK((l) op (r))
 #endif // NDEBUG
 

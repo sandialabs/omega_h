@@ -2,6 +2,7 @@
 #define OMEGA_H_DBG_HPP
 #include "Omega_h_comm.hpp"
 #include "Omega_h_fail.hpp"
+#include "Omega_h_scalar.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -130,34 +131,34 @@ std::vector<T> rangeExclusive(T start, T stop, U step=1) {
 }
 
 template<class T=int>
-std::string to_string(const std::vector<T>& v) {
+std::string to_string(const std::vector<T>& v, const std::string& sep_in=" ") {
   std::ostringstream out; 
   std::string sep = "";
   for(auto i : v) {
-    out << sep << i;
-    sep = " ";
+    out << sep << promoted_t<T>(i);
+    sep = sep_in;
   }
   return out.str();
 }
 
 template<class T=int>
-std::string to_string(const std::set<T>& v) {
+std::string to_string(const std::set<T>& v, const std::string& sep_in=" ") {
   std::ostringstream out; 
   std::string sep = "";
   for(auto i : v) {
-    out << sep << i;
-    sep = " ";
+    out << sep << promoted_t<T>(i);
+    sep = sep_in;
   }
   return out.str();
 }
 
 template<class K, class V>
-std::string to_string(const std::map<K,V>& v) {
+std::string to_string(const std::map<K,V>& v, const std::string& sep_in=" ") {
   std::ostringstream out; 
   std::string sep = "";
   for(auto i : v) {
     out << sep << "{" << i.first << " : " << i.second << "}";
-    sep = " ";
+    sep = sep_in;
   }
   return out.str();
 }
