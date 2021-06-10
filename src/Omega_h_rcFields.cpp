@@ -22,6 +22,8 @@ namespace Omega_h {
   template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps);                           \
   template void Mesh::add_rcField<T>(                                    \
+      Int dim, std::string const& name, Int ncomps, LOs class_ids);            \
+  template void Mesh::add_rcField<T>(                                    \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
   template void Mesh::set_rcField_array(                                 \
@@ -123,15 +125,15 @@ Adj Mesh::ask_revClass (Int edim) {
   return derived_rc;
 }
 
-Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
+Adj Mesh::ask_revClass (Int edim, LOs class_ids) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
-  if (!g_ids.size()) {
+  if (!class_ids.size()) {
     fprintf(stderr, "Model entity IDs cannot be empty\n");
     OMEGA_H_NORETURN(Adj());
   }
   auto edim_rc = ask_revClass(edim);
-  auto n_gents = g_ids.size();
+  auto n_gents = class_ids.size();
   auto max_gent_id = (edim_rc.a2ab.size() - 1);
 
   auto ab2b = edim_rc.ab2b;
@@ -139,7 +141,7 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   Write<LO> degree(n_gents, 0, "new_rc_degrees");
 
   auto count = OMEGA_H_LAMBDA (LO i) {
-    auto gent = g_ids[i];
+    auto gent = class_ids[i];
     if (gent <= max_gent_id) {
       auto start = a2ab[gent];
       auto end = a2ab[gent + 1];
@@ -153,7 +155,7 @@ Adj Mesh::ask_revClass (Int edim, LOs g_ids) {
   Write<LO> new_ab2b(total_ments, 0, "new_rc_ab2b");
 
   auto get_values = OMEGA_H_LAMBDA (LO i) {
-    auto gent = g_ids[i];
+    auto gent = class_ids[i];
     if (gent <= max_gent_id) {
       auto start = a2ab[gent];
       auto end = a2ab[gent + 1];
@@ -239,7 +241,29 @@ Read<T> Mesh::get_rcField_array
 
 template <typename T>
 void Mesh::add_rcField(Int ent_dim, std::string const& name,
-                             Int ncomps) {
+                       Int ncomps, LOs class_ids) {
+
+  size_t found = name.find("_rc");
+  if (found != std::string::npos) {
+    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
+  }
+
+  std::string new_name = name;
+  new_name.append("_rc");
+  OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
+  check_dim2(ent_dim);
+  check_tag_name(new_name);
+  OMEGA_H_CHECK(ncomps >= 0);
+  OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
+  OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
+  TagPtr ptr(new Tag<T>(name, ncomps, class_ids));
+  tags_[ent_dim].push_back(std::move(ptr));
+
+  return;
+}
+
+template <typename T>
+void Mesh::add_rcField(Int ent_dim, std::string const& name, Int ncomps) {
 
   size_t found = name.find("_rc");
   if (found != std::string::npos) {
@@ -297,6 +321,7 @@ void Mesh::remove_rcField(Int ent_dim, std::string const& name) {
   if (!has_ents(ent_dim)) return;
   remove_tag(ent_dim, new_name);
 
+  return;
 }
 
 template <typename T>

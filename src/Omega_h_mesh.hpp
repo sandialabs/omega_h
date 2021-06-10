@@ -125,16 +125,16 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
-/* ask_revClass (Int edim, LOs g_ids): takes input of entity dimension
+/* ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
  * 'edim', and an 1d array of model entity IDs to return
  * a CSR structure (Adj) containing IDs of mesh entities classified on the 
  * requested input model entities. Note here that 'edim' is equal to the
  * model entity dimension as well as the dimension of returned mesh entities
  * NOTE: if the model entity is a region, the memory usage is high
  */
-  Adj ask_revClass (Int edim, LOs g_ids);
+  Adj ask_revClass (Int edim, LOs class_ids);
 
-/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs g_ids) above.
+/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
  * Here, the output is for all model entities of dimension 'edim' instead
  * of a input list
  */
@@ -159,25 +159,32 @@ class Mesh {
  */
   bool has_revClass (Int edim) const;
 
-  Adj get_revClass (Int edim) const;
-
-/* Takes input of entity dimension, name of field and number of components.
- * to create a space where the array of values can be stored
+/* Takes input of entity dimension, name of field and number of components,
+ * and the model entity IDs to create a space where the rcField values can 
+ * be stored
  */
   template <typename T>
-  void add_rcField(Int ent_dim, std::string const& name, Int ncomps);
-
-/* Takes input of entity dimension, name of field and array of values and
- * stores the values in memory.
- */
-  template <typename T>
-  void set_rcField_array(Int ent_dim, std::string const& name,
-                               Read<T> array, bool internal = false);
-
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
+                   LOs class_ids);
 /* Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
   void remove_rcField(Int ent_dim, std::string const& name);
+
+  Adj get_revClass (Int edim) const;
+
+/* Takes input of entity dimension, name of field and number of components.
+ * to create a space where the rcField values can be stored
+ */
+  template <typename T>
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps);
+
+/* Takes input of entity dimension, name of rcField, values of rcField, and
+ * stores the values in memory.
+ */
+  template <typename T>
+  void set_rcField_array(Int ent_dim, std::string const& name,
+                         Read<T> array, bool internal = false);
 
   template <typename T>
   Read<T> get_rcField_array(Int ent_dim, std::string const& name) const;
@@ -185,7 +192,7 @@ class Mesh {
                             Omega_h_Op op);
   template <typename T>
   void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
-                         Read<T> array, bool internal = false);
+                   Read<T> array, bool internal = false);
   void sync_rcField(Int ent_dim, std::string const& name);
   bool has_rcField(Int ent_dim, std::string const& name) const;
 
@@ -366,6 +373,8 @@ __host__
       Int dim, std::string const& name) const;                                 \
   extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps);                           \
+  extern template void Mesh::add_rcField<T>(                             \
+      Int dim, std::string const& name, Int ncomps, LOs class_ids);            \
   extern template void Mesh::add_rcField<T>(                             \
       Int dim, std::string const& name, Int ncomps, Read<T> array,             \
       bool internal);                                                          \
