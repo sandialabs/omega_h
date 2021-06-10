@@ -161,7 +161,8 @@ class Mesh {
 
 /* Takes input of entity dimension, name of field and number of components,
  * and the model entity IDs to create a space where the rcField values can 
- * be stored
+ * be stored.NOTE: the model entity IDs specified as input must be exact
+ * same as the model entity IDs which
  */
   template <typename T>
   void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
@@ -197,9 +198,11 @@ class Mesh {
   bool has_rcField(Int ent_dim, std::string const& name) const;
 
   template <typename T>
-  void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name);
+  void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name,
+                      LOs class_ids);
   template <typename T>
-  void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name);
+  void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
+                        LOs class_ids);
 
   void change_all_rcFieldsToMesh();
   void change_all_rcFieldsTorc();
@@ -366,9 +369,9 @@ __host__
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
   extern template void Mesh::change_tagTorc<T>(                          \
-      Int ent_dim, Int ncomps, std::string const& name);                       \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   extern template void Mesh::change_tagToMesh<T>(                              \
-      Int ent_dim, Int ncomps, std::string const& name);                       \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   extern template Read<T> Mesh::get_rcField_array<T>(                    \
       Int dim, std::string const& name) const;                                 \
   extern template void Mesh::add_rcField<T>(                             \

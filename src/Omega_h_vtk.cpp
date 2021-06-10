@@ -269,54 +269,59 @@ void write_tag(
 
   auto ncomps = tag->ncomps();
   auto name = tag->name();
+  auto class_ids = tag->class_ids();
 
   if (is<I8>(tag)) {
 
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name());
+      mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name(),
+                                  tag->class_ids());
     }
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
     }
 
   } else if (is<I32>(tag)) {
 
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name());
+      mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name(),
+                                  tag->class_ids());
     }
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
     }
 
   } else if (is<I64>(tag)) {
 
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name());
+      mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name(),
+                                  tag->class_ids());
     }
 
     write_array(
         stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
 
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
     }
 
   } else if (is<Real>(tag)) {
   
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name());
+      mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name(),
+                                  tag->class_ids());
     }
 
     Reals array = as<Real>(tag)->array();
@@ -342,7 +347,7 @@ void write_tag(
     }
 
     if (found != std::string::npos) {
-      mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
     }
 
   } else {
@@ -358,6 +363,8 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
+  auto tag = mesh->get_tagbase(ent_dim, name);
+  auto class_ids = tag->class_ids();
   /* tags like "global" are set by the construction mechanism,
      and it is somewhat complex to anticipate when they exist
      so we can just remove them if they are going to be reset. */
@@ -369,7 +376,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
     size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
     }
 
   } else if (type == OMEGA_H_I32) {
@@ -378,7 +385,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
     size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
     }
 
   } else if (type == OMEGA_H_I64) {
@@ -387,7 +394,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
     size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
     }
 
   } else {
@@ -406,7 +413,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
     size_t found = name.find("_rc");
     if (found != std::string::npos) {
-      mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
     }
 
   }

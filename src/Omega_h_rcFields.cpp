@@ -14,9 +14,9 @@ namespace Omega_h {
 
 #define OMEGA_H_INST(T)                                                        \
   template void Mesh::change_tagTorc<T>(                                 \
-      Int ent_dim, Int ncomps, std::string const& name);                       \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   template void Mesh::change_tagToMesh<T>(                                     \
-      Int ent_dim, Int ncomps, std::string const& name);                       \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   template Read<T> Mesh::get_rcField_array<T>(                           \
       Int dim, std::string const& name) const;                                 \
   template void Mesh::add_rcField<T>(                                    \
@@ -170,14 +170,15 @@ Adj Mesh::ask_revClass (Int edim, LOs class_ids) {
 }
 
 template <typename T>
-void Mesh::change_tagTorc(Int ent_dim, Int ncomps,
-                                std::string const &name) {
+void Mesh::change_tagTorc(Int ent_dim, Int ncomps, std::string const &name,
+                          LOs class_ids) {
 
   OMEGA_H_TIME_FUNCTION;
   auto mesh_field = get_array<T>(ent_dim, name);
   OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
 
   auto rc_ids = (ask_revClass(ent_dim)).ab2b;
+  if (class_ids.size() >= 1) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
   auto f = OMEGA_H_LAMBDA(LO i) {
@@ -194,8 +195,8 @@ void Mesh::change_tagTorc(Int ent_dim, Int ncomps,
 }
 
 template <typename T>
-void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
-                            std::string const &name) {
+void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name,
+                            LOs class_ids) {
 
   OMEGA_H_TIME_FUNCTION;
   auto rc_field = get_array<T>(ent_dim, name);
@@ -203,6 +204,7 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps,
   OMEGA_H_CHECK (rc_field.size() <= n_ents*ncomps);
 
   auto rc_ids = (ask_revClass(ent_dim)).ab2b;
+  if (class_ids.size() >= 1) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
 
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
@@ -359,53 +361,65 @@ void Mesh::reduce_rcField(Int ent_dim, std::string const& name,
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
 
-      if (nents(ent_dim))
-        change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) {
+        change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name,
+                              tagbase->class_ids());
+      }
 
       auto out = reduce_array(
           ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_I32: {
 
-      if (nents(ent_dim))
-        change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) {
+        change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name,
+                              tagbase->class_ids());
+      }
 
       auto out = reduce_array(
           ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name,
+                           tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_I64: {
 
-      if (nents(ent_dim)) 
-        change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) {
+        change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), new_name,
+                               tagbase->class_ids());
+      }
 
       auto out = reduce_array(
           ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_F64: {
 
-      if (nents(ent_dim)) 
-        change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) { 
+        change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), new_name, 
+                                tagbase->class_ids());
+      }
 
       auto out = reduce_array(
           ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
@@ -429,53 +443,65 @@ void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
 
-      if (nents(ent_dim)) 
-        change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) {
+        change_tagToMesh<I8> (ent_dim, tagbase->ncomps(), new_name,
+                              tagbase->class_ids());
+      }
 
       auto out =
           sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I8> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_I32: {
 
-      if (nents(ent_dim)) 
-        change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) { 
+        change_tagToMesh<I32> (ent_dim, tagbase->ncomps(), new_name,
+                               tagbase->class_ids());
+      }
 
       auto out =
           sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I32> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_I64: {
 
-      if (nents(ent_dim)) 
-        change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) { 
+        change_tagToMesh<I64> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
+      }
 
       auto out =
           sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<I64> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
     case OMEGA_H_F64: {
 
-      if (nents(ent_dim))
-        change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), new_name);
+      if (nents(ent_dim)) {
+        change_tagToMesh<Real> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
+      }
 
       auto out =
           sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, new_name, out);
 
-      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name);
+      change_tagTorc<Real> (ent_dim, tagbase->ncomps(), new_name,
+                          tagbase->class_ids());
 
       break;
     }
@@ -490,13 +516,14 @@ void Mesh::change_all_rcFieldsToMesh() {
       auto tag = get_tag(ent_dim, t);
       auto const &name = tag->name();
       auto ncomps = tag->ncomps();
+      auto class_ids = tag->class_ids();
 
       if (is<I8>(tag)) {
 
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToMesh<I8> (ent_dim, ncomps, name);
+            change_tagToMesh<I8> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<I32>(tag)) {
@@ -504,7 +531,7 @@ void Mesh::change_all_rcFieldsToMesh() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-          change_tagToMesh<I32> (ent_dim, ncomps, name);
+          change_tagToMesh<I32> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<I64>(tag)) {
@@ -512,7 +539,7 @@ void Mesh::change_all_rcFieldsToMesh() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToMesh<I64> (ent_dim, ncomps, name);
+            change_tagToMesh<I64> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<Real>(tag)) {
@@ -520,7 +547,7 @@ void Mesh::change_all_rcFieldsToMesh() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagToMesh<Real> (ent_dim, ncomps, name);
+            change_tagToMesh<Real> (ent_dim, ncomps, name, class_ids);
         }
       }
     }
@@ -537,13 +564,14 @@ void Mesh::change_all_rcFieldsTorc() {
       auto tag = get_tag(ent_dim, t);
       auto const &name = tag->name();
       auto ncomps = tag->ncomps();
+      auto class_ids = tag->class_ids();
 
       if (is<I8>(tag)) {
 
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagTorc<I8> (ent_dim, ncomps, name);
+            change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<I32>(tag)) {
@@ -551,7 +579,7 @@ void Mesh::change_all_rcFieldsTorc() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-          change_tagTorc<I32> (ent_dim, ncomps, name);
+          change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<I64>(tag)) {
@@ -559,7 +587,7 @@ void Mesh::change_all_rcFieldsTorc() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagTorc<I64> (ent_dim, ncomps, name);
+            change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
         }
 
       } else if (is<Real>(tag)) {
@@ -567,7 +595,7 @@ void Mesh::change_all_rcFieldsTorc() {
         size_t found = name.find("_rc");
         if (found != std::string::npos) {
           if (nents(ent_dim)) 
-            change_tagTorc<Real> (ent_dim, ncomps, name);
+            change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
         }
       }
     }

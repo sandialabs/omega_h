@@ -132,6 +132,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
     auto tag = old_mesh->get_tag(ent_dim, i);
     auto const& name = tag->name();
     auto ncomps = tag->ncomps();
+    auto class_ids = tag->class_ids();
 
     if (is<I8>(tag)) {
 
@@ -140,7 +141,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       size_t found = name.find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
-          old_mesh->change_tagToMesh<I8> (ent_dim, ncomps, name);
+          old_mesh->change_tagToMesh<I8> (ent_dim, ncomps, name, class_ids);
       }
 
       auto array = as<I8>(tag)->array();
@@ -148,7 +149,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagTorc<I8> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
       }
 
     } else if (is<I32>(tag)) {
@@ -156,7 +157,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
-          old_mesh->change_tagToMesh<I32> (ent_dim, ncomps, name);
+          old_mesh->change_tagToMesh<I32> (ent_dim, ncomps, name, class_ids);
       }
 
       auto array = as<I32>(tag)->array();
@@ -164,7 +165,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagTorc<I32> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
       }
 
     } else if (is<I64>(tag)) {
@@ -172,7 +173,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
-          old_mesh->change_tagToMesh<I64> (ent_dim, ncomps, name);
+          old_mesh->change_tagToMesh<I64> (ent_dim, ncomps, name, class_ids);
       }
 
       auto array = as<I64>(tag)->array();
@@ -180,7 +181,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagTorc<I64> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
       }
 
     } else if (is<Real>(tag)) {
@@ -188,7 +189,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       size_t found = (tag->name()).find("_rc");
       if (found != std::string::npos) {
         if (old_mesh->nents(ent_dim)) 
-          old_mesh->change_tagToMesh<Real> (ent_dim, ncomps, name);
+          old_mesh->change_tagToMesh<Real> (ent_dim, ncomps, name, class_ids);
       }
 
       auto array = as<Real>(tag)->array();
@@ -196,7 +197,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array, true);
 
       if (found != std::string::npos) {
-        new_mesh->change_tagTorc<Real> (ent_dim, ncomps, name);
+        new_mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
       }
 
     }
