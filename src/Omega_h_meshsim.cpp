@@ -211,7 +211,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::edge, "class_dim", 1,
                       Read<I8>(host_class_dim_edge.write()));
   }
-  printf("ok2\n");
 
   FIter faces = M_faceIter(m);
   pFace face;
@@ -311,7 +310,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   auto tri2verts = Read<LO>(host_tri2verts.write());
   Adj down;
-  printf("ok2.9\n");
   if (is_simplex) {
     down = reflect_down(tri2verts, edge2vert.ab2b, vert2edge,
                         OMEGA_H_SIMPLEX, 2, 1);
@@ -322,6 +320,8 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_face.write()));
   }
   else if (is_hypercube) {
+    //empty since a quad/hex mesh has no triangles and to avoid dropping into
+    //the 'else'
   }
   else {
     down = reflect_down(tri2verts, edge2vert.ab2b, vert2edge,
@@ -332,7 +332,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::triangle, "class_dim", 1,
                       Read<I8>(host_class_dim_tri.write()));
   }
-  printf("ok3\n");
 
   HostWrite<LO> host_quad2verts(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
@@ -352,6 +351,7 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_face.write()));
   }
   else if (is_simplex) {
+    //empty to avoid dropping into the 'else'
   }
   else {
     down = reflect_down(quad2verts, edge2vert.ab2b, vert2edge,
@@ -481,7 +481,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
     vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
   }
-  printf("ok4\n");
 
   HostWrite<LO> host_tet2verts(count_tet*4);
   for (Int i = 0; i < count_tet; ++i) {
@@ -501,6 +500,7 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_rgn.write()));
   }
   else if (is_hypercube) {
+    //empty to avoid dropping into the 'else'
   }
   else {
     down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
@@ -511,7 +511,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::tetrahedron, "class_dim", 1,
                       Read<I8>(host_class_dim_tet.write()));
   }
-  printf("ok5\n");
 
   HostWrite<LO> host_hex2verts(count_hex*8);
   for (Int i = 0; i < count_hex; ++i) {
@@ -531,6 +530,7 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_rgn.write()));
   }
   else if (is_simplex) {
+    //empty to avoid dropping into the 'else'
   }
   else {
     down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
@@ -589,7 +589,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::pyramid, "class_dim", 1,
                       Read<I8>(host_class_dim_pyramid.write()));
   }
-  printf("ok5\n");
 
   return;
 }
