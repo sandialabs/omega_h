@@ -351,10 +351,13 @@ if(BUILD_TESTING)
   if(Omega_h_USE_SimModSuite)
     osh_add_exe(mixed_writeMesh)
     set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
-    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh)
+    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh
+              ${CMAKE_SOURCE_DIR}/meshes)
+
     osh_add_exe(mixed_test)
     set(TEST_EXES ${TEST_EXES} mixed_test)
-    test_func(run_mixed_test 1 ./mixed_test)
+    test_func(run_mixed_test 1 ./mixed_test
+              ${CMAKE_SOURCE_DIR}/meshes)
   endif()
 
   osh_add_exe(unit_array_algs)

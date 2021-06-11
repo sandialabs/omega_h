@@ -79,7 +79,7 @@ void finalize_write(int numVerts, const double *coords, int numElems,
   Sim_logOff();
 }
 
-void hex_gen(CommPtr comm) {
+void hex_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 8;
@@ -95,13 +95,13 @@ void hex_gen(CommPtr comm) {
                           };
     int numElems = 1;
     int elementType[1] = {13};
-    int elementData[8+5] = {0,1,2,3,4,5,6,7};
+    int elementData[8] = {0,1,2,3,4,5,6,7};
     pVertex vReturn[8];
     pEntity eReturn[1];
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_hex.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_hex.smd";
+    std::string mesh_path = mesh_dir + "/Example_hex.sms";
+    std::string model_path = mesh_dir + "/Example_hex.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -112,7 +112,7 @@ void hex_gen(CommPtr comm) {
   }
 }
 
-void wedge_gen(CommPtr comm) {
+void wedge_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 6;
@@ -128,10 +128,10 @@ void wedge_gen(CommPtr comm) {
     int elementData[6] = {0,1,2,3,4,5};
     pVertex vReturn[6];
     pEntity eReturn[1];
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_wedge.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_wedge.smd";
+    std::string mesh_path = mesh_dir + "/Example_wedge.sms";
+    std::string model_path = mesh_dir + "/Example_wedge.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -142,7 +142,7 @@ void wedge_gen(CommPtr comm) {
   }
 }
 
-void pyramid_gen(CommPtr comm) {
+void pyramid_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 5;
@@ -158,10 +158,10 @@ void pyramid_gen(CommPtr comm) {
     int elementData[5] = {0,1,2,3,4};
     pVertex vReturn[5];
     pEntity eReturn[1];
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_pym.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_pym.smd";
+    std::string mesh_path = mesh_dir + "/Example_pym.sms";
+    std::string model_path = mesh_dir + "/Example_pym.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -172,7 +172,7 @@ void pyramid_gen(CommPtr comm) {
   }
 }
 
-void tetOnWedge_gen(CommPtr comm) {
+void tetOnWedge_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 7;
@@ -186,13 +186,13 @@ void tetOnWedge_gen(CommPtr comm) {
                           };
     int numElems = 2;
     int elementType[2] = {12, 10};
-    int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
+    int elementData[6+4] = {0,1,2,3,4,5, 3,4,5,6};
     pVertex vReturn[7];
     pEntity eReturn[2];
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_tet_wedge.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_tet_wedge.smd";
+    std::string mesh_path = mesh_dir + "/Example_tet_wedge.sms";
+    std::string model_path = mesh_dir + "/Example_tet_wedge.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -203,7 +203,7 @@ void tetOnWedge_gen(CommPtr comm) {
   }
 }
 
-void pymOnHex_gen(CommPtr comm) {
+void pymOnHex_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 9;
@@ -223,10 +223,10 @@ void pymOnHex_gen(CommPtr comm) {
     int elementData[8+5] = {0,1,2,3,4,5,6,7, 4,5,6,7,8};
     pVertex vReturn[9];
     pEntity eReturn[2];
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_pym_hex.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_pym_hex.smd";
+    std::string mesh_path = mesh_dir + "/Example_pym_hex.sms";
+    std::string model_path = mesh_dir + "/Example_pym_hex.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -237,7 +237,7 @@ void pymOnHex_gen(CommPtr comm) {
   }
 }
 
-void allType_gen(CommPtr comm) {
+void allType_gen(CommPtr comm, std::string const mesh_dir) {
   auto mesh = Mesh(comm->library());
   try {
     int numVerts = 12;
@@ -260,10 +260,10 @@ void allType_gen(CommPtr comm) {
 8,9,1,0,10,11,4,3};
     pVertex vReturn[12]; 
     pEntity eReturn[4]; 
-    const char *mesh_path = "/users/joshia5/simmodeler/Example_allType.sms";
-    const char *model_path = "/users/joshia5/simmodeler/Example_allType.smd";
+    std::string mesh_path = mesh_dir + "/Example_allType.sms";
+    std::string model_path = mesh_dir + "/Example_allType.smd";
     finalize_write(numVerts, coords, numElems, elementType, elementData,
-                   vReturn, eReturn, mesh_path, model_path);
+                   vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
     cerr<<"  Error code: "<<SimError_code(err)<<endl;
@@ -275,15 +275,20 @@ void allType_gen(CommPtr comm) {
 }
 
 int main(int argc, char *argv[]) {
+
+  if (argc != 2) {
+    Omega_h_fail("Usage: a.out <path to meshes directory>\n");
+  }
+  auto const mesh_dir = argv[1];
   auto lib = Library(&argc, &argv);
   auto comm = lib.world();
 
-  hex_gen(comm);
-  wedge_gen(comm);
-  pyramid_gen(comm);
-  tetOnWedge_gen(comm);
-  pymOnHex_gen(comm);
-  allType_gen(comm);
+  hex_gen(comm, mesh_dir);
+  wedge_gen(comm, mesh_dir);
+  pyramid_gen(comm, mesh_dir);
+  tetOnWedge_gen(comm, mesh_dir);
+  pymOnHex_gen(comm, mesh_dir);
+  allType_gen(comm, mesh_dir);
 
   return 0;
 }

@@ -150,88 +150,91 @@ void test_adjs(Mesh* mesh) {
   }
 }
 
-void test_finer_meshes(CommPtr comm) {
+void test_finer_meshes(CommPtr comm, std::string mesh_dir) {
 
   //tet=4609, hex=249, wedge=262, pyramid=313
-  std::string mesh_in = "/users/joshia5/Meshes/mixed_mesh/localconcave_tutorial_mixedvol_geomsim3-case1.sms";
-  std::string model_in = "/users/joshia5/Models/mixed_mesh/localconcave_tutorial_mixedvol_geomsim3.smd";
+  std::string mesh_in = std::string(mesh_dir) +
+                        "/localconcave_tutorial_mixedvol_geomsim3-case1.sms";
+  std::string model_in = std::string(mesh_dir) +
+                         "/localconcave_tutorial_mixedvol_geomsim3.smd";
   auto mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/geomsim3_4type.vtu", &mesh, Topo_type::pyramid);
 
   //tet=1246, hex=8, wedge=0, pyramid=229
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/localconcave_tutorial_mixedvol_geomsim2-case1.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/localconcave_tutorial_mixedvol_geomsim2.smd";
+  mesh_in = std::string(mesh_dir) +
+            "/localconcave_tutorial_mixedvol_geomsim2-case1.sms";
+  model_in = std::string(mesh_dir) +
+             "/localconcave_tutorial_mixedvol_geomsim2.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
 
   //tet=3274, hex=68, wedge=0, pyramid=171
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/localconcave_tutorial_mixedvol_geomsim-case1.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/localconcave_tutorial_mixedvol_geomsim.smd";
+  mesh_in = std::string(mesh_dir) +
+            "/localconcave_tutorial_mixedvol_geomsim-case1.sms";
+  model_in = std::string(mesh_dir) +
+             "/localconcave_tutorial_mixedvol_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid);
 
   //tet=4437, hex=0, wedge=0, pyramid=0
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/localconcave_tutorial-case1_v7.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/localconcave_tutorial_geomsim.smd";
+  mesh_in = std::string(mesh_dir) +
+            "/localconcave_tutorial-case1_v7.sms";
+  model_in = std::string(mesh_dir) +
+             "/localconcave_tutorial_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/geomsim_tet.vtu", &mesh);
 
 }
 
 int main(int argc, char** argv) {
   test_degree();
 
+  if (argc != 2) {
+    Omega_h_fail("Usage: a.out <path to meshes directory>\n");
+  }
+  auto const mesh_dir = argv[1];
   auto lib = Library(&argc, &argv);
   auto comm = lib.world();
 
   /* Generate these meshes using the mixed_writeMesh ctest */
-  std::string mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_hex.sms";
-  std::string model_in = "/users/joshia5/Models/mixed_mesh/Example_hex.smd";
+  //TODO: add support for writing mixed meshes containing tags(class info) to vtk
+  std::string mesh_in = std::string(mesh_dir) + "/Example_hex.sms";
+  std::string model_in = std::string(mesh_dir) + "/Example_hex.smd";
   auto mesh = meshsim::read(mesh_in, model_in, comm);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/hex.vtu", &mesh);
 
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_wedge.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/Example_wedge.smd";
+  mesh_in = std::string(mesh_dir) + "/Example_wedge.sms";
+  model_in = std::string(mesh_dir) + "/Example_wedge.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/wedge.vtu", &mesh, Topo_type::pyramid);
 
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_pym.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/Example_pym.smd";
+  mesh_in = std::string(mesh_dir) + "/Example_pym.sms";
+  model_in = std::string(mesh_dir) + "/Example_pym.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/pym.vtu", &mesh, Topo_type::pyramid);
 
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_tet_wedge.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/Example_tet_wedge.smd";
+  mesh_in = std::string(mesh_dir) + "/Example_tet_wedge.sms";
+  model_in = std::string(mesh_dir) + "/Example_tet_wedge.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/tet_wedge.vtu", &mesh, Topo_type::pyramid);
 
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_pym_hex.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/Example_pym_hex.smd";
+  mesh_in = std::string(mesh_dir) + "/Example_pym_hex.sms";
+  model_in = std::string(mesh_dir) + "/Example_pym_hex.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/pym_hex.vtu", &mesh, Topo_type::pyramid);
 
-  mesh_in = "/users/joshia5/Meshes/mixed_mesh/Example_allType.sms";
-  model_in = "/users/joshia5/Models/mixed_mesh/Example_allType.smd";
+  mesh_in = std::string(mesh_dir) + "/Example_allType.sms";
+  model_in = std::string(mesh_dir) + "/Example_allType.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
   test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/Meshes/mixed_mesh/4elems.vtu", &mesh, Topo_type::pyramid);
 
-  /* call if the finer test meshes are available */
-  test_finer_meshes(comm);
+  test_finer_meshes(comm, mesh_dir);
 
   return 0;
 }
