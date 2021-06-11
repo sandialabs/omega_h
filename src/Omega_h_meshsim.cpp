@@ -114,7 +114,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
 
-  printf("meshsim ok0\n");
   HostWrite<Real> host_coords(numVtx*max_dim);
   VIter vertices = M_vertexIter(m);
   pVertex vtx;
@@ -212,7 +211,6 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_edge.write()));
   }
 
-  printf("meshsim ok1\n");
   FIter faces = M_faceIter(m);
   pFace face;
   int count_tri = 0;
@@ -239,7 +237,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   face_class_ids[1].reserve(count_quad);
   face_class_dim[1].reserve(count_quad);
 
-  printf("meshsim ok2\n");
   faces = M_faceIter(m);
   while ((face = (pFace) FIter_next(faces))) {
     if (F_numEdges(face) == 3) {
@@ -274,7 +271,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   FIter_delete(faces);
 
-  printf("meshsim ok3\n");
   HostWrite<LO> host_class_ids_face(numFaces);
   HostWrite<I8> host_class_dim_face(numFaces);
   for (int i = 0; i < numFaces; ++i) {
@@ -294,7 +290,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     host_class_dim_quad[i] = face_class_dim[1][static_cast<std::size_t>(i)];
   }
 
-  printf("meshsim ok4\n");
   Adj edge2vert;
   Adj vert2edge;
   if (is_simplex || is_hypercube) {
@@ -337,7 +332,6 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_tri.write()));
   }
 
-  printf("meshsim ok5\n");
   HostWrite<LO> host_quad2verts(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
     for (Int j = 0; j < 4; ++j) {
@@ -368,7 +362,6 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_quad.write()));
   }
 
-  printf("meshsim ok6\n");
   rgn_vertices[0].reserve(count_tet*4);
   rgn_vertices[1].reserve(count_hex*8);
   rgn_vertices[2].reserve(count_wedge*6);
@@ -442,7 +435,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   RIter_delete(regions);
   
-  printf("meshsim ok7\n");
   HostWrite<LO> host_class_ids_rgn(numRegions);
   HostWrite<I8> host_class_dim_rgn(numRegions);
   for (int i = 0; i < numRegions; ++i) {
@@ -473,7 +465,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     host_class_ids_pyramid[i] = rgn_class_ids[3][static_cast<std::size_t>(i)];
     host_class_dim_pyramid[i] = rgn_class_dim[3][static_cast<std::size_t>(i)];
   }
-  printf("meshsim ok8\n");
 
   Adj tri2vert;
   Adj vert2tri;
@@ -532,19 +523,14 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto hex2verts = Read<LO>(host_hex2verts.write());
-  printf("meshsim ok9\n");
   if (is_hypercube) {
     down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
                         OMEGA_H_HYPERCUBE, 3, 2);
-  printf("meshsim ok9.1\n");
     mesh->set_ents(3, down);
-  printf("meshsim ok9.2\n");
     mesh->add_tag<ClassId>(3, "class_id", 1,
                            Read<ClassId>(host_class_ids_rgn.write()));
-  printf("meshsim ok9.3\n");
     mesh->add_tag<I8>(3, "class_dim", 1,
                       Read<I8>(host_class_dim_rgn.write()));
-  printf("meshsim ok9.4\n");
   }
   else if (is_simplex) {
     //empty to avoid dropping into the 'else'
@@ -558,7 +544,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::hexahedron, "class_dim", 1,
                       Read<I8>(host_class_dim_hex.write()));
   }
-  printf("meshsim ok10\n");
 
   HostWrite<LO> host_wedge2verts(count_wedge*6);
   for (Int i = 0; i < count_wedge; ++i) {
@@ -608,7 +593,6 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_pyramid.write()));
   }
 
-  printf("meshsim ok11\n");
   return;
 }
 
