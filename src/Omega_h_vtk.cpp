@@ -291,7 +291,7 @@ void write_tag(
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name(),
-                                  tag->class_ids());
+                                   tag->class_ids());
     }
 
     write_array(
@@ -306,7 +306,7 @@ void write_tag(
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name(),
-                                  tag->class_ids());
+                                   tag->class_ids());
     }
 
     write_array(
@@ -321,7 +321,7 @@ void write_tag(
     size_t found = (tag->name()).find("_rc");
     if (found != std::string::npos) {
       mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name(),
-                                  tag->class_ids());
+                                    tag->class_ids());
     }
 
     Reals array = as<Real>(tag)->array();

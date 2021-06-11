@@ -68,10 +68,10 @@ void test_cutBox(Library *lib, const std::string &mesh_file) {
 }
 
 void test_box(Library *lib, const std::string &mesh_file) {
-  
+ 
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
-  auto rank = lib->world()->rank(); 
+  auto rank = lib->world()->rank();
  
   if (!rank) {
     auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));

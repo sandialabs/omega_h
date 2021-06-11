@@ -1,5 +1,5 @@
+#include <iostream>
 #include "Omega_h_mesh.hpp"
-
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_for.hpp"
@@ -178,7 +178,7 @@ void Mesh::change_tagTorc(Int ent_dim, Int ncomps, std::string const &name,
   OMEGA_H_CHECK (mesh_field.size() == nents(ent_dim)*ncomps);
 
   auto rc_ids = (ask_revClass(ent_dim)).ab2b;
-  if (class_ids.size() >= 1) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
+  if (class_ids.exists()) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
   auto f = OMEGA_H_LAMBDA(LO i) {
@@ -204,7 +204,7 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name,
   OMEGA_H_CHECK (rc_field.size() <= n_ents*ncomps);
 
   auto rc_ids = (ask_revClass(ent_dim)).ab2b;
-  if (class_ids.size() >= 1) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
+  if (class_ids.exists()) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
 
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
