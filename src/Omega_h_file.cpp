@@ -275,10 +275,16 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
   std::string name = tag->name();
   write(stream, name, needs_swapping);
   auto ncomps = I8(tag->ncomps());
-  auto class_ids = tag->class_ids();
   write_value(stream, ncomps, needs_swapping);
   I8 type = tag->type();
   write_value(stream, type, needs_swapping);
+  auto class_ids = tag->class_ids();
+/*
+  if (tag->class_ids().exists()) {
+    write(stream, "class_ids", needs_swapping);
+    write_array(stream, as<I32>(tag)->class_ids(), is_compressed, needs_swapping);
+  }
+*/
   if (is<I8>(tag)) {
 
     size_t found = (name).find("_rc");
@@ -340,9 +346,6 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
     bool is_compressed, I32 version, bool needs_swapping) {
   std::string name;
   read(stream, name, needs_swapping);
-  auto class_ids = LOs();
-  //TODO: auto tag = mesh->get_tagbase(d, name);
-  //auto class_ids = tag->class_ids();
   I8 ncomps;
   read_value(stream, ncomps, needs_swapping);
   I8 type;
@@ -355,6 +358,17 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
       read_value(stream, outflags_i8, needs_swapping);
     }
   }
+  auto class_ids = LOs{};
+/*
+  //TODO: auto tag = mesh->get_tagbase(d, name);
+  //auto class_ids = tag->class_ids();
+  std::string next_line;
+  read(stream, next_line, needs_swapping);
+  if ((next_line)) {
+    write(stream, "class_ids", needs_swapping);
+    write_array(stream, as<I32>(tag)->class_ids(), is_compressed, needs_swapping);
+  }
+*/
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed, needs_swapping);

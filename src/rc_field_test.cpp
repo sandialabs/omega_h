@@ -75,7 +75,13 @@ void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
   auto nbvert = rc_ids.size();
   Write<Real> vals(nbvert, 50);
   Read<Real> vals_r(vals);
+  mesh.add_rcField<Real>(0, "field1", 1, vals_r);
 
+  auto face_1_2_rc = mesh.ask_revClass(2, LOs({1, 2}));
+  auto face_1_2_rc_ids = face_1_2_rc.ab2b; 
+  Write<Real> vals_f_1_2(face_1_2_rc_ids.size(), 50);
+  mesh.add_rcField<Real>(LOs({1, 2}), 2, "face_1_2", 1);
+  mesh.set_rcField_array(2, "face_1_2", Reals(vals_f_1_2));
 
   Write<Real> vals2(mesh.nfaces()*2, 50);
   Read<Real> vals_r2(vals2);

@@ -258,7 +258,7 @@ void Mesh::add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
   OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-  TagPtr ptr(new Tag<T>(name, ncomps, class_ids));
+  TagPtr ptr(new Tag<T>(new_name, ncomps, class_ids));
   tags_[ent_dim].push_back(std::move(ptr));
 
   return;
