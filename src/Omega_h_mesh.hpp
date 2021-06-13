@@ -159,14 +159,22 @@ class Mesh {
  */
   bool has_revClass (Int edim) const;
 
-/* Takes input of entity dimension, name of field and number of components,
- * and the model entity IDs to create a space where the rcField values can 
- * be stored.NOTE: the model entity IDs specified as input must be exact
- * same as the model entity IDs which
+/* Takes input of model entity IDs, entity dimension, name of field and number
+ * of components, to create a the rcField. This function
+ * is used when fields are to be stored with mesh entities returned by
+ * ask_revClass (Int edim, LOs class_ids)
  */
   template <typename T>
   void add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
                    Int ncomps);
+
+/* Takes input of entity dimension, name of rcField, values of rcField, and
+ * stores the values in memory.
+ */
+  template <typename T>
+  void set_rcField_array(Int ent_dim, std::string const& name,
+                         Read<T> array, bool internal = false);
+
 /* Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
@@ -175,17 +183,12 @@ class Mesh {
   Adj get_revClass (Int edim) const;
 
 /* Takes input of entity dimension, name of field and number of components.
- * to create a space where the rcField values can be stored
+ * to create a space where the rcField values can be stored. This function
+ * is used when fields are to be stored with mesh entities returned by
+ * ask_revClass (Int edim)
  */
   template <typename T>
   void add_rcField(Int ent_dim, std::string const& name, Int ncomps);
-
-/* Takes input of entity dimension, name of rcField, values of rcField, and
- * stores the values in memory.
- */
-  template <typename T>
-  void set_rcField_array(Int ent_dim, std::string const& name,
-                         Read<T> array, bool internal = false);
 
   template <typename T>
   Read<T> get_rcField_array(Int ent_dim, std::string const& name) const;
