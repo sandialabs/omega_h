@@ -17,6 +17,10 @@ int main(int argc, char** argv) {
   auto model_in = cmdline.get<std::string>("model-in(geomSim)");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm);
+  auto family = mesh.family();
+  if ((family == OMEGA_H_SIMPLEX) || family == OMEGA_H_HYPERCUBE) {
+    Omega_h::binary::write(mesh_out, &mesh);
+  }
 
   return 0;
 }
