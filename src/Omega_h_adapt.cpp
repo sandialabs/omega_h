@@ -316,7 +316,7 @@ void add_rcField_transferMap(AdaptOpts *opts, std::string const &name,
   new_name.append("_rc");
 
   opts->xfer_opts.type_map[new_name] = transfer;
-
+  return;
 }
 
 void add_rcField_integralMap(AdaptOpts *opts, std::string const &name,
@@ -330,8 +330,7 @@ void add_rcField_integralMap(AdaptOpts *opts, std::string const &name,
   new_name.append("_rc");
 
   opts->xfer_opts.integral_map[new_name] = map;
-
+  return;
 }
-
 
 }  // end namespace Omega_h
