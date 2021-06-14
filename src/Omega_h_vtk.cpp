@@ -270,6 +270,7 @@ void write_tag(
   auto ncomps = tag->ncomps();
   auto name = tag->name();
   auto class_ids = tag->class_ids();
+  //TODO: write class id info for rc tag to file
 
   if (is<I8>(tag)) {
 
@@ -339,7 +340,6 @@ void write_tag(
         write_array(stream, tag->name(), symm_ncomps(3),
             resize_symms(array, space_dim, 3), compress);
       } else {
-
         write_array(stream, tag->name(), tag->ncomps(), array, compress);
       }
     } else {
@@ -364,8 +364,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     return false;
   }
   auto class_ids = LOs() ;
-  //TODO:auto tag = mesh->get_tagbase(ent_dim, name);
-  //auto class_ids = tag->class_ids();
+  //TODO: read class id info for rc tag to file
   /* tags like "global" are set by the construction mechanism,
      and it is somewhat complex to anticipate when they exist
      so we can just remove them if they are going to be reset. */

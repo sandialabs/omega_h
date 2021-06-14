@@ -162,7 +162,6 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
-
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
@@ -215,7 +214,6 @@ template <typename T>
 void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, std::string const& name) {
-std::cout << name << "\n";
   auto old_tag = old_mesh->get_tag<T>(prod_dim, name);
   auto ncomps = old_tag->ncomps();
   auto nprods = keys2prods.last();
@@ -343,12 +341,6 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     auto tagbase = old_mesh->get_tag(EDGE, i);
     if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
          && tagbase->ncomps() == 1) {
-/*
-    size_t found = tagbase->name().find("_rc");
-    if ((tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
-         && tagbase->ncomps() == 1) ||
-        (found != std::string::npos)) {
-*/    
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -389,10 +381,6 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
     if (tagbase->name() == "magnetic face flux") {
-    //size_t found = tagbase->name().find("_rc");
-    //if ((tagbase->name() == "magnetic face flux") || (found !=
-      //  std::string::npos)) {
-
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Read<Real> prod_data(prods2new_ents.size(), 0);
       transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,
@@ -410,7 +398,6 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
   if (prod_dim == VERT) {
     transfer_linear_interp(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-
     transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
   }
@@ -638,7 +625,6 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
 template <typename T>
 static void transfer_copy_tmpl(
     Mesh* new_mesh, Int prod_dim, TagBase const* tagbase) {
-
   auto old_tag = as<T>(tagbase);
   auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();

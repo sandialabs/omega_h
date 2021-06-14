@@ -279,12 +279,8 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
   I8 type = tag->type();
   write_value(stream, type, needs_swapping);
   auto class_ids = tag->class_ids();
-/*
-  if (tag->class_ids().exists()) {
-    write(stream, "class_ids", needs_swapping);
-    write_array(stream, as<I32>(tag)->class_ids(), is_compressed, needs_swapping);
-  }
-*/
+  //TODO: write class id info for rc tag to file
+
   if (is<I8>(tag)) {
 
     size_t found = (name).find("_rc");
@@ -359,16 +355,8 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
     }
   }
   auto class_ids = LOs{};
-/*
-  //TODO: auto tag = mesh->get_tagbase(d, name);
-  //auto class_ids = tag->class_ids();
-  std::string next_line;
-  read(stream, next_line, needs_swapping);
-  if ((next_line)) {
-    write(stream, "class_ids", needs_swapping);
-    write_array(stream, as<I32>(tag)->class_ids(), is_compressed, needs_swapping);
-  }
-*/
+  //TODO: read class id info for rc tag to file
+
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed, needs_swapping);

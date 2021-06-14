@@ -231,7 +231,6 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     TagPtr ptr(tag);
     tags_[ent_dim].push_back(std::move(ptr));
   }
-  //OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -272,7 +271,6 @@ void Mesh::set_tag(
         topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
-  //OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -1200,7 +1198,7 @@ __host__
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
-      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
 OMEGA_H_INST(I8)
 OMEGA_H_INST(I32)
 OMEGA_H_INST(I64)
