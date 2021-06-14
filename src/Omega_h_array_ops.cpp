@@ -494,15 +494,16 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 */
 
 int max_exponent(Reals a) {
+  auto const init = ArithTraits<int>::min();
   if (a.size() == 0) {
-    return 0;
+    return init;
   }
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
-  auto const init = ArithTraits<int>::min();
   auto const op = maximum<int>();
   auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
+    if (a[i] == 0.0) return init;
     std::frexp(a[i], &expo);
     return expo;
   };
