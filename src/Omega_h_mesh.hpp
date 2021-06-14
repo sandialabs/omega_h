@@ -173,7 +173,7 @@ class Mesh {
  */
   template <typename T>
   void set_rcField_array(Int ent_dim, std::string const& name,
-                         Read<T> array, bool internal = false);
+                         Read<T> array);
 
 /* Takes input of entity dimension, name of field and deletes the field
  * information from memory
@@ -196,7 +196,7 @@ class Mesh {
                             Omega_h_Op op);
   template <typename T>
   void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
-                   Read<T> array, bool internal = false);
+                   Read<T> array);
   void sync_rcField(Int ent_dim, std::string const& name);
   bool has_rcField(Int ent_dim, std::string const& name) const;
 
@@ -371,21 +371,20 @@ __host__
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
-  extern template void Mesh::change_tagTorc<T>(                          \
+  extern template void Mesh::change_tagTorc<T>(                                \
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   extern template void Mesh::change_tagToMesh<T>(                              \
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
-  extern template Read<T> Mesh::get_rcField_array<T>(                    \
+  extern template Read<T> Mesh::get_rcField_array<T>(                          \
       Int dim, std::string const& name) const;                                 \
-  extern template void Mesh::add_rcField<T>(                             \
+  extern template void Mesh::add_rcField<T>(                                   \
       Int dim, std::string const& name, Int ncomps);                           \
-  extern template void Mesh::add_rcField<T>(                             \
+  extern template void Mesh::add_rcField<T>(                                   \
       LOs class_ids, Int dim, std::string const& name, Int ncomps);            \
-  extern template void Mesh::add_rcField<T>(                             \
-      Int dim, std::string const& name, Int ncomps, Read<T> array,             \
-      bool internal);                                                          \
-  extern template void Mesh::set_rcField_array(                          \
-      Int dim, std::string const& name, Read<T> array, bool internal);         
+  extern template void Mesh::add_rcField<T>(                                   \
+      Int dim, std::string const& name, Int ncomps, Read<T> array);            \
+  extern template void Mesh::set_rcField_array(                                \
+      Int dim, std::string const& name, Read<T> array);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

@@ -13,21 +13,20 @@ namespace Omega_h {
 #endif
 
 #define OMEGA_H_INST(T)                                                        \
-  template void Mesh::change_tagTorc<T>(                                 \
+  template void Mesh::change_tagTorc<T>(                                       \
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
   template void Mesh::change_tagToMesh<T>(                                     \
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
-  template Read<T> Mesh::get_rcField_array<T>(                           \
+  template Read<T> Mesh::get_rcField_array<T>(                                 \
       Int dim, std::string const& name) const;                                 \
-  template void Mesh::add_rcField<T>(                                    \
+  template void Mesh::add_rcField<T>(                                          \
       Int dim, std::string const& name, Int ncomps);                           \
-  template void Mesh::add_rcField<T>(                                    \
+  template void Mesh::add_rcField<T>(                                          \
       LOs class_ids, Int dim, std::string const& name, Int ncomps);            \
-  template void Mesh::add_rcField<T>(                                    \
-      Int dim, std::string const& name, Int ncomps, Read<T> array,             \
-      bool internal);                                                          \
-  template void Mesh::set_rcField_array(                                 \
-      Int dim, std::string const& name, Read<T> array, bool internal);         
+  template void Mesh::add_rcField<T>(                                          \
+      Int dim, std::string const& name, Int ncomps, Read<T> array);            \
+  template void Mesh::set_rcField_array(                                       \
+      Int dim, std::string const& name, Read<T> array); 
 OMEGA_H_INST(I8)
 OMEGA_H_INST(I32)
 OMEGA_H_INST(I64)
@@ -282,7 +281,7 @@ void Mesh::add_rcField(Int ent_dim, std::string const& name, Int ncomps) {
 
 template <typename T>
 void Mesh::add_rcField(Int ent_dim, std::string const& name, Int ncomps,
-  Read<T> array, bool internal) {
+                       Read<T> array) {
 
   size_t found = name.find("_rc");
   if (found != std::string::npos) {
@@ -292,7 +291,7 @@ void Mesh::add_rcField(Int ent_dim, std::string const& name, Int ncomps,
   std::string new_name = name;
   new_name.append("_rc");
   OMEGA_H_CHECK(!has_tag(ent_dim, new_name));
-  add_tag<T>(ent_dim, new_name, ncomps, array, internal);
+  add_tag<T>(ent_dim, new_name, ncomps, array);
 
   return;
 }
@@ -328,7 +327,7 @@ void Mesh::remove_rcField(Int ent_dim, std::string const& name) {
 
 template <typename T>
 void Mesh::set_rcField_array
-  (Int ent_dim, std::string const& name, Read<T> array, bool internal) {
+  (Int ent_dim, std::string const& name, Read<T> array) {
 
   size_t found = name.find("_rc");
   if (found != std::string::npos) {
@@ -338,7 +337,7 @@ void Mesh::set_rcField_array
   std::string new_name = name;
   new_name.append("_rc");
   OMEGA_H_CHECK(has_tag(ent_dim, new_name));
-  set_tag<T>(ent_dim, new_name, array, internal);
+  set_tag<T>(ent_dim, new_name, array);
 
   return;
 }
