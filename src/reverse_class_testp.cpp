@@ -24,13 +24,11 @@ void call_print(LOs a) {
   return;
 }
 
-void test_3d_p(Library *lib) {
+void test_cutBox(Library *lib, const std::string &mesh_file) {
 
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_1k_4p.osh",
-                lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
 
-  // test reverse class APIs
   OMEGA_H_CHECK (!mesh.has_revClass(3));
   auto reg_rc = mesh.ask_revClass(3);
   auto reg_rc_get = mesh.get_revClass(3);
@@ -69,13 +67,45 @@ void test_3d_p(Library *lib) {
   return;
 }
 
+void test_box(Library *lib, const std::string &mesh_file) {
+ 
+  auto mesh = Mesh(lib);
+  binary::read (mesh_file, lib->world(), &mesh);
+  auto rank = lib->world()->rank();
+ 
+  if (!rank) {
+    auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
+    OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({17}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 1, 1}));
+  }
+
+  if (rank) {
+    auto vtx2_6_rc = mesh.ask_revClass(0, LOs({2, 6}));
+    OMEGA_H_CHECK (vtx2_6_rc.ab2b == LOs({7}));
+    OMEGA_H_CHECK (vtx2_6_rc.a2ab == LOs({0, 0, 1}));
+
+    auto vtx6_rc = mesh.ask_revClass(0, LOs({6}));
+    OMEGA_H_CHECK (vtx6_rc.ab2b == LOs({7}));
+    OMEGA_H_CHECK (vtx6_rc.a2ab == LOs({0, 1}));
+  }
+
+  return;
+}
+
 int main(int argc, char** argv) {
 
-  auto lib = Library(&argc,&argv);
-  
-  test_3d_p(&lib);
-  // using mfem adapt tests, it was confirmed that rc info is
-  // destroyed during adapt
+  auto lib = Library(&argc, &argv);
+
+  if (argc != 3) {
+    Omega_h_fail("a.out <3d_in_boxMesh> <3d_in_cutMesh>\n");
+  }
+  char const* path_box = nullptr;
+  char const* path_cutBox = nullptr;
+  path_box = argv[1];
+  path_cutBox = argv[2];
+
+  test_cutBox(&lib, path_cutBox);
+  test_box(&lib, path_box);
 
   return 0;
 }

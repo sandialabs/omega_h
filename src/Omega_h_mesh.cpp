@@ -17,6 +17,8 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_int_scan.hpp"
+#include "Omega_h_atomics.hpp"
 
 namespace Omega_h {
 
@@ -229,7 +231,6 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     TagPtr ptr(tag);
     tags_[ent_dim].push_back(std::move(ptr));
   }
-  OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -270,7 +271,6 @@ void Mesh::set_tag(
         topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
-  OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -1193,7 +1193,7 @@ __host__
   template void Mesh::set_tag(                                                 \
       Topo_type ent_type, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
-  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);   \
+  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);     \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
@@ -1204,98 +1204,5 @@ OMEGA_H_INST(I32)
 OMEGA_H_INST(I64)
 OMEGA_H_INST(Real)
 #undef OMEGA_H_INST
-
-bool Mesh::has_revClass (Int edim) const {
-  check_dim2 (edim);
-  return bool (revClass_[edim]);
-}
-
-Adj Mesh::get_revClass (Int edim) const {
-  check_dim2 (edim);
-  OMEGA_H_CHECK (has_revClass (edim));
-  return *(revClass_[edim]);
-}
-
-Adj Mesh::derive_revClass (Int edim) {
-  OMEGA_H_TIME_FUNCTION;
-  check_dim2 (edim);
-
-  HostRead<LO> class_ids_h(get_array<ClassId>(edim, "class_id"));
-  HostRead<I8> class_dim_h(get_array<I8>(edim, "class_dim"));
-  auto max_gents = get_max(get_array<ClassId>(edim, "class_id")) + 1;
-
-  HostWrite<LO> a2ab_h(max_gents + 1, 0, 0);
-  
-  std::vector<int> classified_ment_ids[max_gents];
-  LO count_rc_ments = 0;
-
-  for (LO i = 0; i < nents(edim); ++i) {
-    if (class_dim_h[i] == edim) {
-      auto gent_id = class_ids_h[i];
-      classified_ment_ids[gent_id].push_back(i);
-      ++a2ab_h[gent_id + 1];
-      ++count_rc_ments;
-    }
-  }
- 
-  std::vector<int> ab2b_vec;
-  for (LO i = 0; i < max_gents; ++i) {
-    for (LO j = 0; j < a2ab_h[i + 1]; ++j) {
-      ab2b_vec.push_back(classified_ment_ids[i][j]);
-    }
-  }
-
-  LO offset = 0;
-  for (LO i = 1; i < a2ab_h.size(); ++i) {
-    offset += a2ab_h[i];
-    a2ab_h[i] = offset;
-  }
-
-  HostWrite<LO> ab2b_h(count_rc_ments);
-  for (LO i = 0; i < count_rc_ments; ++i) {
-    ab2b_h[i] =  ab2b_vec[static_cast<std::size_t>(i)];
-  }
-
-  return Adj(a2ab_h.write(), ab2b_h.write()); 
-}
-
-Adj Mesh::ask_revClass (Int edim) {
-  OMEGA_H_TIME_FUNCTION;
-  check_dim2 (edim);
-  if (has_revClass (edim)) {
-    return get_revClass (edim);
-  }
-  Adj derived_rc = derive_revClass (edim);
-  revClass_[edim] = std::make_shared<Adj>(derived_rc);
-  return derived_rc;
-}
-
-Adj Mesh::ask_revClass_downAdj (Int from, Int to) {
-  auto rc = ask_revClass (from);
-  auto ab2b = rc.ab2b;
-  auto a2ab = rc.a2ab;
-  auto n_gents = a2ab.size() - 1;
-  auto nhighs = ab2b.size();
-  auto down_ments = (ask_down(from, to)).ab2b;
-  auto h2l_degree = element_degree (family(), from, to);
-
-  Write<LO> g_hl2l (nhighs*h2l_degree);
-  Write<LO> g2g_hl (n_gents + 1);
-
-  auto f1 = OMEGA_H_LAMBDA(LO h) {
-    LO h_id = ab2b[h];
-    for (LO l = 0; l < h2l_degree; ++l) {
-      g_hl2l[h*h2l_degree + l] = down_ments[h_id*h2l_degree + l];
-    }
-  };
-  parallel_for(nhighs, f1, "createDownAb2b");
-
-  auto f2 = OMEGA_H_LAMBDA(LO g) {
-    g2g_hl[g] = a2ab[g]*h2l_degree;
-  };
-  parallel_for(n_gents + 1, f2, "createDownA2ab");
-
-  return Adj(LOs(g2g_hl), LOs(g_hl2l));
-}
 
 }  // end namespace Omega_h

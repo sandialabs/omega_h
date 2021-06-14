@@ -125,10 +125,92 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
+/* ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
+ * 'edim', and an 1d array of model entity IDs to return
+ * a CSR structure (Adj) containing IDs of mesh entities classified on the 
+ * requested input model entities. Note here that 'edim' is equal to the
+ * model entity dimension as well as the dimension of returned mesh entities
+ * NOTE: if the model entity is a region, the memory usage is high
+ */
+  Adj ask_revClass (Int edim, LOs class_ids);
+
+/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
+ * Here, the output is for all model entities of dimension 'edim' instead
+ * of a input list
+ */
   Adj ask_revClass (Int edim);
-  bool has_revClass (Int edim) const;
-  Adj get_revClass (Int edim) const;
+
+/* ask_revClass_downAdj (Int from, Int to): takes input of a higher
+ * dimension 'from' and a lower dimension 'to'. The value of 'from' is equal
+ * to the mesh and model entity dimensions used to get reverse class.
+ * (similar to 'edim' for ask_revClass functions above.) This function can be
+ * understood as a two step process. Firstly, for all the model entities
+ * of dimension 'from', we get the reverse classified mesh entities.
+ * Then combine the reverse classification, and downward adjacency information.
+ * The final output is a CSR containing downward adjacent
+ * mesh entities of dimension 'to' which bound the reverse classified mesh
+ * entities of dimension 'from'.
+ */
   Adj ask_revClass_downAdj (Int from, Int to);
+
+/* has_revClass (Int edim): Input is a entity dimension 'edim'. This function
+ * checks if the reverse classification for that dimension is present in
+ * memory or not.
+ */
+  bool has_revClass (Int edim) const;
+
+/* Takes input of model entity IDs, entity dimension, name of field and number
+ * of components, to create a the rcField. This function
+ * is used when fields are to be stored with mesh entities returned by
+ * ask_revClass (Int edim, LOs class_ids)
+ */
+  template <typename T>
+  void add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
+                   Int ncomps);
+
+/* Takes input of entity dimension, name of rcField, values of rcField, and
+ * stores the values in memory.
+ */
+  template <typename T>
+  void set_rcField_array(Int ent_dim, std::string const& name,
+                         Read<T> array);
+
+/* Takes input of entity dimension, name of field and deletes the field
+ * information from memory
+ */
+  void remove_rcField(Int ent_dim, std::string const& name);
+
+  Adj get_revClass (Int edim) const;
+
+/* Takes input of entity dimension, name of field and number of components.
+ * to create a space where the rcField values can be stored. This function
+ * is used when fields are to be stored with mesh entities returned by
+ * ask_revClass (Int edim)
+ */
+  template <typename T>
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps);
+
+  template <typename T>
+  Read<T> get_rcField_array(Int ent_dim, std::string const& name) const;
+  void reduce_rcField(Int ent_dim, std::string const& name,
+                            Omega_h_Op op);
+  template <typename T>
+  void add_rcField(Int ent_dim, std::string const& name, Int ncomps,
+                   Read<T> array);
+  void sync_rcField(Int ent_dim, std::string const& name);
+  bool has_rcField(Int ent_dim, std::string const& name) const;
+
+  template <typename T>
+  void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name,
+                      LOs class_ids);
+  template <typename T>
+  void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
+                        LOs class_ids);
+
+  void change_all_rcFieldsToMesh();
+  void change_all_rcFieldsTorc();
+  bool has_anyrcField();
+  bool has_allMeshTags();
 
  public:
   typedef std::shared_ptr<TagBase> TagPtr;
@@ -177,7 +259,6 @@ class Mesh {
   Library* library_;
 
   AdjPtr revClass_[DIMS];
-  Adj derive_revClass (Int edim);
 
  public:
   void add_coords(Reals array);
@@ -226,6 +307,7 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+  Adj derive_revClass (Int edim);
 
  public:
   ClassSets class_sets;
@@ -288,7 +370,21 @@ __host__
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
-      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);                       \
+  extern template void Mesh::change_tagTorc<T>(                                \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
+  extern template void Mesh::change_tagToMesh<T>(                              \
+      Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);        \
+  extern template Read<T> Mesh::get_rcField_array<T>(                          \
+      Int dim, std::string const& name) const;                                 \
+  extern template void Mesh::add_rcField<T>(                                   \
+      Int dim, std::string const& name, Int ncomps);                           \
+  extern template void Mesh::add_rcField<T>(                                   \
+      LOs class_ids, Int dim, std::string const& name, Int ncomps);            \
+  extern template void Mesh::add_rcField<T>(                                   \
+      Int dim, std::string const& name, Int ncomps, Read<T> array);            \
+  extern template void Mesh::set_rcField_array(                                \
+      Int dim, std::string const& name, Read<T> array);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

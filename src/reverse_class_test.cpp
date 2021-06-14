@@ -8,21 +8,22 @@
 #include "Omega_h_array_ops.hpp"
 using namespace Omega_h;
 
-void test_2d(Library *lib) {
+void test_2d(Library *lib, const std::string &mesh_file) {
 
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/plate_6elem.osh",
-                lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
 
-  // test rc API
   OMEGA_H_CHECK (!mesh.has_revClass(2));
   auto face_rc = mesh.ask_revClass(2);
+  auto face_1_2_rc = mesh.ask_revClass(2, LOs({1, 2}));
   auto face_rc_get = mesh.get_revClass(2);
   OMEGA_H_CHECK (mesh.has_revClass(2));
   OMEGA_H_CHECK (face_rc.ab2b == face_rc_get.ab2b);
   OMEGA_H_CHECK (face_rc.a2ab == face_rc_get.a2ab);
   OMEGA_H_CHECK (face_rc.ab2b == LOs({0, 1, 2, 3, 4, 5}));
   OMEGA_H_CHECK (face_rc.a2ab == LOs({0, 0, 0, 6}));
+  OMEGA_H_CHECK (face_1_2_rc.ab2b == LOs({0, 1, 2, 3, 4, 5}));
+  OMEGA_H_CHECK (face_1_2_rc.a2ab == LOs({0, 0, 6}));
 
   OMEGA_H_CHECK (!mesh.has_revClass(1));
   auto edge_rc = mesh.ask_revClass(1);
@@ -39,7 +40,7 @@ void test_2d(Library *lib) {
   OMEGA_H_CHECK (vert_rc.a2ab == vert_rc_get.a2ab);
   OMEGA_H_CHECK (vert_rc.ab2b == LOs({3, 2, 1, 0}));
   OMEGA_H_CHECK (vert_rc.a2ab == LOs({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2,
-                                      2, 2, 2, 3, 3, 3, 3, 4, 4}));
+                                      2, 2, 2, 3, 3, 3, 3, 4}));
 
   auto rc_face2vert = mesh.ask_revClass_downAdj (2, 0);
   auto f_classids = mesh.get_array<ClassId>(2, "class_id");
@@ -52,11 +53,10 @@ void test_2d(Library *lib) {
   return;
 }
 
-void test_3d(Library *lib) {
+void test_3d(Library *lib, const std::string &mesh_file) {
 
   auto mesh = Mesh(lib);
-  binary::read ("./../../omega_h/meshes/unitbox_cutTriCube_1k.osh",
-                lib->world(), &mesh);
+  binary::read (mesh_file, lib->world(), &mesh);
 
   // test reverse class APIs
   OMEGA_H_CHECK (!mesh.has_revClass(3));
@@ -97,11 +97,17 @@ void test_3d(Library *lib) {
 int main(int argc, char** argv) {
 
   auto lib = Library (&argc, &argv);
+  
+  if (argc != 3) {
+    Omega_h_fail("a.out <2d_in_mesh> <3d_in_mesh>\n");
+  }
+  char const* path_2d = nullptr;
+  char const* path_3d = nullptr;
+  path_2d = argv[1];
+  path_3d = argv[2];
 
-  test_2d(&lib);
-  test_3d(&lib);
-  // using mfem adapt tests, it was confirmed that rc info is
-  // destroyed during adapt
+  test_2d(&lib, path_2d);
+  test_3d(&lib, path_3d);
 
   return 0;
 }

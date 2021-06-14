@@ -340,6 +340,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto quad2verts = Read<LO>(host_quad2verts.write());
+
   if (is_hypercube) {
     down = reflect_down(quad2verts, edge2vert.ab2b, vert2edge,
                         OMEGA_H_HYPERCUBE, 2, 1);
@@ -523,6 +524,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto hex2verts = Read<LO>(host_hex2verts.write());
+  
   if (is_hypercube) {
     down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
                         OMEGA_H_HYPERCUBE, 3, 2);

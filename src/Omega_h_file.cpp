@@ -271,21 +271,68 @@ static void read_meta(
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag,
-    bool is_compressed, bool needs_swapping) {
+    Int ent_dim, Mesh *mesh, bool is_compressed, bool needs_swapping) {
   std::string name = tag->name();
   write(stream, name, needs_swapping);
   auto ncomps = I8(tag->ncomps());
   write_value(stream, ncomps, needs_swapping);
   I8 type = tag->type();
   write_value(stream, type, needs_swapping);
+  auto class_ids = tag->class_ids();
+  //TODO: write class id info for rc tag to file
+
   if (is<I8>(tag)) {
+
+    size_t found = (name).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I8> (ent_dim, ncomps, name, class_ids);
+    }
+
     write_array(stream, as<I8>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<I32>(tag)) {
+
+    size_t found = (name).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I32> (ent_dim, ncomps, name, class_ids);
+    }
+
     write_array(stream, as<I32>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<I64>(tag)) {
+
+    size_t found = (name).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I64> (ent_dim, ncomps, name, class_ids);
+    }
+
     write_array(stream, as<I64>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<Real>(tag)) {
+
+    size_t found = (name).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<Real> (ent_dim, ncomps, name, class_ids);
+    }
+
     write_array(stream, as<Real>(tag)->array(), is_compressed, needs_swapping);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else {
     Omega_h_fail("unexpected tag type in binary write\n");
   }
@@ -307,22 +354,49 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
       read_value(stream, outflags_i8, needs_swapping);
     }
   }
+  auto class_ids = LOs{};
+  //TODO: read class id info for rc tag to file
+
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I8> (d, ncomps, name, class_ids);
+    }
+
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I32> (d, ncomps, name, class_ids);
+    }
+
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I64> (d, ncomps, name, class_ids);
+    }
+
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<Real> (d, ncomps, name, class_ids);
+    }
+
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
@@ -385,7 +459,7 @@ void write(std::ostream& stream, Mesh* mesh) {
     auto nsaved_tags = mesh->ntags(d);
     write_value(stream, nsaved_tags, needs_swapping);
     for (Int i = 0; i < mesh->ntags(d); ++i) {
-      write_tag(stream, mesh->get_tag(d, i), is_compressed, needs_swapping);
+      write_tag(stream, mesh->get_tag(d, i), d, mesh, is_compressed, needs_swapping);
     }
     if (mesh->comm()->size() > 1) {
       auto owners = mesh->ask_owners(d);
