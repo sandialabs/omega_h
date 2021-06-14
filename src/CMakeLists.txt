@@ -496,16 +496,16 @@ if(BUILD_TESTING)
     osh_add_exe(reverse_class_testp)
     set(TEST_EXES ${TEST_EXES} reverse_class_testp)
     test_func(reverse_class_testp 2 ./reverse_class_testp 
-    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
-    ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
     osh_add_exe(rc_field_testp)
     set(TEST_EXES ${TEST_EXES} rc_field_testp)
     test_func(rc_field_testp 2 ./rc_field_testp
-    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
-    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
-    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk
-    ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
-    ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
   endif()
 endif()
 

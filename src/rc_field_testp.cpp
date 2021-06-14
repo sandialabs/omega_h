@@ -19,7 +19,7 @@ void set_target_metric(Mesh* mesh) {
   auto calc_metrics = OMEGA_H_LAMBDA(LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
-    for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
+    for (Int i = 0; i < dim - 1; ++i) h[i] = 0.2;
     h[dim - 1] = 0.001 + 0.198 * std::abs(z - 0.5);
     auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(target_metrics_w, v, m);
