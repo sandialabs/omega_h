@@ -202,10 +202,10 @@ class Mesh {
 
   template <typename T>
   void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name,
-                      LOs class_ids);
+                      LOs class_ids = {});
   template <typename T>
   void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
-                        LOs class_ids);
+                        LOs class_ids = {});
 
   void change_all_rcFieldsToMesh();
   void change_all_rcFieldsTorc();

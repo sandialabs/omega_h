@@ -37,9 +37,7 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   set_target_metric<dim>(mesh);
 
   OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
-
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-
   OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
 
   mesh->ask_lengths();
@@ -102,6 +100,18 @@ void test_3d(Library *lib, const std::string &mesh_file,
              const char* out_file) {
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
+
+  auto face_22_rc = mesh.ask_revClass(2, LOs({22}));
+  auto face_22_rc_ids = face_22_rc.ab2b; 
+  Write<Real> vals_f_22(face_22_rc_ids.size(), 50);
+  mesh.add_rcField<Real>(LOs({22}), 2, "face_22", 1);
+  mesh.set_rcField_array(2, "face_22", Reals(vals_f_22));
+  binary::write ("box3d_withFace22Field.osh", &mesh);
+  auto new_mesh = Mesh(lib);
+  binary::read ("box3d_withFace22Field.osh", lib->world(), &new_mesh);
+  auto vals_f_22_read = new_mesh.get_rcField_array<Real>(2, "face_22");
+  OMEGA_H_CHECK(vals_f_22_read == Reals(vals_f_22));
+
   run_adapt<3>(&mesh, out_file);
 
   return;
