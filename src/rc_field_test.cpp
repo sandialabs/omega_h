@@ -25,6 +25,7 @@ void set_target_metric(Mesh* mesh) {
   };
   parallel_for(mesh->nverts(), f);
   mesh->set_tag(VERT, "target_metric", Reals(target_metrics_w));
+  return;
 }
 
 template <Int dim>
@@ -52,6 +53,7 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
+  add_rcField_transferMap(&opts, "field", OMEGA_H_INHERIT);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
@@ -61,7 +63,9 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
 
+  return;
 }
+
 void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
              const char *rcField_file) {
 
@@ -111,6 +115,24 @@ void test_3d(Library *lib, const std::string &mesh_file,
   binary::read ("box3d_withFace22Field.osh", lib->world(), &new_mesh);
   auto vals_f_22_read = new_mesh.get_rcField_array<Real>(2, "face_22");
   OMEGA_H_CHECK(vals_f_22_read == Reals(vals_f_22));
+
+  auto vert_rc_ids = (mesh.ask_revClass(0)).ab2b;
+  auto nbvert = vert_rc_ids.size();
+  auto edge_rc_ids = (mesh.ask_revClass(1)).ab2b;
+  auto nbedge = edge_rc_ids.size();
+  auto face_rc_ids = (mesh.ask_revClass(2)).ab2b;
+  auto nbface = face_rc_ids.size();
+  auto reg_rc_ids = (mesh.ask_revClass(3)).ab2b;
+  auto nbreg = reg_rc_ids.size();
+
+  Write<LO> vals_v(nbvert, 100);
+  Write<LO> vals_e(nbedge, 100);
+  Write<LO> vals_f(nbface, 100);
+  Write<LO> vals_r(nbreg, 100);
+  mesh.add_rcField<LO>(0, "field", 1, LOs(vals_v));
+  mesh.add_rcField<LO>(1, "field", 1, LOs(vals_e));
+  mesh.add_rcField<LO>(2, "field", 1, LOs(vals_f));
+  mesh.add_rcField<LO>(3, "field", 1, LOs(vals_r));
 
   run_adapt<3>(&mesh, out_file);
 
