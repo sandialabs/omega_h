@@ -40,6 +40,7 @@ class Mesh {
   void set_library(Library* library);
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
+  void set_periodic(bool is_periodic);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
@@ -54,6 +55,7 @@ class Mesh {
     return dim_;
   }
   inline Omega_h_Family family() const { return family_; }
+  inline bool is_periodic() const { return periodic_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
   Int ent_dim(Topo_type ent_type) const;
@@ -159,6 +161,7 @@ class Mesh {
   void react_to_set_tag(Int dim, std::string const& name);
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
+  bool periodic_;
   Int dim_;
   CommPtr comm_;
   Int parting_;
@@ -175,6 +178,10 @@ class Mesh {
   ParentPtr parents_[DIMS];
   ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
+  //for periodic
+  Remotes match_owners_[DIMS];
+  LOs model_ents_[DIMS];
+  LOs model_matches_[DIMS-1];
 
   AdjPtr revClass_[DIMS];
   Adj derive_revClass (Int edim);
@@ -226,6 +233,20 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+
+  void set_model_ents(Int ent_dim, LOs Ids); 
+  void set_model_matches(Int ent_dim, LOs matches); 
+  LOs get_model_ents(Int ent_dim); 
+  LOs get_model_matches(Int ent_dim); 
+  void set_match_owners(Int dim, Remotes owners);
+  Remotes ask_match_owners(Int dim);
+  c_Remotes matches_[DIMS];
+  void set_matches(Int dim, c_Remotes matches);
+  c_Remotes get_matches(Int dim);
+  void swap_root_owner(Int dim);
+  void sync_tag_periodic(Int dim, std::string const& name);
+  template <typename T>
+  Read<T> sync_array_periodic(Int ent_dim, Read<T> a, Int width);
 
  public:
   ClassSets class_sets;

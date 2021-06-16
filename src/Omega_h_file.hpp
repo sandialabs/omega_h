@@ -31,9 +31,11 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 
 #ifdef OMEGA_H_USE_SIMMODSUITE
 namespace meshsim {
-Mesh read(filesystem::path const& mesh, filesystem::path const& model,
-    CommPtr comm);
+void read(filesystem::path const& mesh_fname, filesystem::path const& model,
+    CommPtr comm, Mesh *mesh, int is_in);
 void call_print(LOs a);
+void print_owners(Remotes owners, int rank);
+void print_matches(c_Remotes matches, int rank, int d);
 }  // namespace meshsim
 #endif
 

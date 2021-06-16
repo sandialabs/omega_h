@@ -4,12 +4,15 @@
 #include <Omega_h_library.hpp>
 #include <Omega_h_timer.hpp>
 
+
+#include <Omega_h_for.hpp>
+
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
   if (argc != 4) {
     if (!world->rank()) {
-      std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh\n";
+      std::cout << "usage: " << argv[0] << " in.osh <nparts> out.osh \n";
     }
     return -1;
   }
@@ -52,7 +55,8 @@ int main(int argc, char** argv) {
           "partitioning to a smaller part count not yet implemented\n");
     }
   }
-  if (is_in || is_out) mesh.set_comm(comm_out);
+
+  if (is_in || is_out) mesh.set_comm(comm_out); //dist changes here but not owners
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
     Omega_h::binary::write(path_out, &mesh);
