@@ -31,7 +31,7 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 
 #ifdef OMEGA_H_USE_SIMMODSUITE
 namespace meshsim {
-void read(filesystem::path const& mesh_fname, filesystem::path const& model,
+void matchRead(filesystem::path const& mesh_fname, filesystem::path const& model,
     CommPtr comm, Mesh *mesh, int is_in);
 void call_print(LOs a);
 void print_owners(Remotes owners, int rank);

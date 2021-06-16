@@ -118,7 +118,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   RIter regions = M_regionIter(m);
   pRegion rgn;
   LO i = 0;
-  while (rgn = (pRegion) RIter_next(regions)) {
+  while ((rgn = (pRegion) RIter_next(regions))) {
     if(R_topoType(rgn) != Rtet)
       Omega_h_fail("Non-simplex element found!\n");
     ++i;
@@ -148,7 +148,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   int count_matches = 0;
   int count_matched = 0;
 
-  while (vtx = (pVertex) VIter_next(vertices)) {
+  while ((vtx = (pVertex) VIter_next(vertices))) {
     double xyz[3];
     V_coord(vtx,xyz);
     if(max_dim < 3 && xyz[2] != 0)
@@ -170,7 +170,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     void *iterM = 0;
     pVertex match;
     count_matches = 0;
-    while(match = (pVertex)PList_next(matches, &iterM)) {
+    while ((match = (pVertex)PList_next(matches, &iterM))) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(vtx))) {
         ent_matches[0].push_back(EN_id(match));
         ent_match_classId[0].push_back(classId(match));
@@ -206,16 +206,16 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   model_ents[0].reserve(g_numVtx);
   GVIter g_verts = GM_vertexIter(g);
   pGVertex g_vert;
-  while (g_vert = (pGVertex) GVIter_next(g_verts)) {
+  while ((g_vert = (pGVertex) GVIter_next(g_verts))) {
     VIter verts;
     pVertex vert;
     verts = M_classifiedVertexIter(m, g_vert, 0);
     int match_gEnt = -1;
-    while (vert = (pVertex) VIter_next(verts)) {
+    while ((vert = (pVertex) VIter_next(verts))) {
       pPList matches = EN_getMatchingEnts(vert, 0, 0);
       void *iterM = 0;
       pVertex match;
-      while (match = (pVertex)PList_next(matches, &iterM)) {
+      while ((match = (pVertex)PList_next(matches, &iterM))) {
         if ((PList_size(matches)>1) && (EN_id(match) != EN_id(vert))) {
           if (classType(match) == 0) match_gEnt = classId(match);//match is vert
         }
@@ -233,16 +233,16 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   model_ents[1].reserve(g_numEdge);
   GEIter g_edges = GM_edgeIter(g);
   pGEdge g_edge;
-  while (g_edge = (pGEdge) GEIter_next(g_edges)) {
+  while ((g_edge = (pGEdge) GEIter_next(g_edges))) {
     EIter edges;
     pEdge edge;
     edges = M_classifiedEdgeIter(m, g_edge, 0);
     int match_gEnt = -1;
-    while (edge = (pEdge) EIter_next(edges)) {
+    while ((edge = (pEdge) EIter_next(edges))) {
       pPList matches = EN_getMatchingEnts(edge, 0, 0);
       void *iterM = 0;
       pEdge match;
-      while (match = (pEdge)PList_next(matches, &iterM)) {
+      while ((match = (pEdge)PList_next(matches, &iterM))) {
         if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
           if (classType(match) == 1) match_gEnt = classId(match);//match is edge
         }
@@ -260,16 +260,16 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   model_ents[2].reserve(g_numFace);
   GFIter g_faces = GM_faceIter(g);
   pGFace g_face;
-  while (g_face = (pGFace) GFIter_next(g_faces)) {
+  while ((g_face = (pGFace) GFIter_next(g_faces))) {
     FIter faces;
     pFace face;
     faces = M_classifiedFaceIter(m, g_face, 0);
     int match_gEnt = -1;
-    while (face = (pFace) FIter_next(faces)) {
+    while ((face = (pFace) FIter_next(faces))) {
       pPList matches = EN_getMatchingEnts(face, 0, 0);
       void *iterM = 0;
       pFace match;
-      while (match = (pFace)PList_next(matches, &iterM)) {
+      while ((match = (pFace)PList_next(matches, &iterM))) {
         if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
           if (classType(match) == 2) match_gEnt = classId(match);//match is face
         }
@@ -290,7 +290,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   EIter edges = M_edgeIter(m);
   pEdge edge;
   count_matched = 0;
-  while (edge = (pEdge) EIter_next(edges)) {
+  while ((edge = (pEdge) EIter_next(edges))) {
     #ifdef DEBUG_MODE
     printf("sim edge %d hasverts\n", EN_id(edge));
     #endif
@@ -311,7 +311,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     void *iterM = 0;
     pEdge match;
     count_matches = 0;
-    while (match = (pEdge)PList_next(matches, &iterM)) {
+    while ((match = (pEdge)PList_next(matches, &iterM))) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
         #ifdef DEBUG_MODE
         printf("original edge %d with verts\n", EN_id(edge));
@@ -341,12 +341,13 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   FIter faces = M_faceIter(m);
   pFace face;
   count_matched = 0;
-  while (face = (pFace) FIter_next(faces)) {
+  while ((face = (pFace) FIter_next(faces))) {
     pPList verts = F_vertices(face,1);
     assert(PList_size(verts) == 3);
     void *iter = 0; // must initialize to 0
-    while(vtx = (pVertex)PList_next(verts, &iter))
+    while ((vtx = (pVertex)PList_next(verts, &iter))) {
       ent_nodes[2].push_back(EN_id(vtx));
+    }
     PList_delete(verts);
     ent_class_ids[2].push_back(classId(face));
 
@@ -354,7 +355,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     void *iterM = 0;
     pFace match;
     count_matches = 0;
-    while(match = (pFace)PList_next(matches, &iterM)) {
+    while ((match = (pFace)PList_next(matches, &iterM))) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
         #ifdef DEBUG_MODE
         printf("\noriginal face %d with verts\n", EN_id(face));
@@ -394,23 +395,25 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   ent_nodes[3].reserve(numRegions*4);
   ent_class_ids[3].reserve(numRegions);
   regions = M_regionIter(m);
-  while (rgn = (pRegion) RIter_next(regions)) {
+  while ((rgn = (pRegion) RIter_next(regions))) {
 
     pPList matches = EN_getMatchingEnts(rgn, 0, 0);
     void *iterM = 0;
     pFace match;
     count_matches = 0;
-    while(match = (pFace)PList_next(matches, &iterM)) {
-      if ((PList_size(matches)>1) && (EN_id(match) != EN_id(rgn)))
+    while ((match = (pFace)PList_next(matches, &iterM))) {
+      if ((PList_size(matches)>1) && (EN_id(match) != EN_id(rgn))) {
         Omega_h_fail("region matches found\n");
+      }
     }
     PList_delete(matches);
 
     pPList verts = R_vertices(rgn,1);
     assert(PList_size(verts) == 4);
     void *iter = 0; // must initialize to 0
-    while(vtx = (pVertex)PList_next(verts, &iter))
+    while ((vtx = (pVertex)PList_next(verts, &iter))) {
       ent_nodes[3].push_back(EN_id(vtx));
+    }
     PList_delete(verts);
     ent_class_ids[3].push_back(classId(rgn));
   }
@@ -532,7 +535,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   //
 }
 
-void read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm, Mesh *mesh, int is_in) {
   SimPartitionedMesh_start(NULL,NULL);
   SimModel_start();
