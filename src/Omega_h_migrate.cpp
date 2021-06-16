@@ -452,8 +452,9 @@ void migrate_mesh(
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
 
-    if ((mesh->is_periodic()) && (d < mesh->dim()))
+    if ((mesh->is_periodic() > 0) && (d < dim)) {
       migrate_matches(mesh, &new_mesh, d, &old_owners2new_ents);
+    }
 
     old_owners2new_ents = old_low_owners2new_lows;
   }
@@ -464,8 +465,9 @@ void migrate_mesh(
   push_ents(
       mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
 
-  if (mesh->is_periodic())
+  if (mesh->is_periodic() > 0) {
     migrate_matches(mesh, &new_mesh, VERT, &old_owners2new_ents);
+  }
 
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {

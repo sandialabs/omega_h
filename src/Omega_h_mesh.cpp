@@ -78,7 +78,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
 
 void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
 
-void Mesh::set_periodic(bool is_periodic) { periodic_ = is_periodic; }
+void Mesh::set_periodic(I8 is_periodic) { periodic_ = is_periodic; }
 
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
@@ -1178,10 +1178,12 @@ Mesh Mesh::copy_meta() const {
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
   m.class_sets = this->class_sets;
-  m.periodic_ = this->periodic_;
-  for (LO d = 0; d<DIMS; ++d) {
-    m.model_ents_[d] = this->model_ents_[d];
-    m.model_matches_[d] = this->model_matches_[d];
+  if (this->periodic_ > 0) {
+    m.periodic_ = this->periodic_;
+    for (LO d = 0; d<DIMS; ++d) {
+      m.model_ents_[d] = this->model_ents_[d];
+      m.model_matches_[d] = this->model_matches_[d];
+    }
   }
   return m;
 }

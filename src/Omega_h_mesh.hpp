@@ -40,7 +40,7 @@ class Mesh {
   void set_library(Library* library);
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
-  void set_periodic(bool is_periodic);
+  void set_periodic(I8 is_periodic);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
@@ -55,7 +55,7 @@ class Mesh {
     return dim_;
   }
   inline Omega_h_Family family() const { return family_; }
-  inline bool is_periodic() const { return periodic_; }
+  inline I8 is_periodic() const { return periodic_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
   Int ent_dim(Topo_type ent_type) const;
@@ -243,7 +243,7 @@ class Mesh {
   void react_to_set_tag(Int dim, std::string const& name);
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
-  bool periodic_;
+  I8 periodic_ = -1;
   Int dim_;
   CommPtr comm_;
   Int parting_;

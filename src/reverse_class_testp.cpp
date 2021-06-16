@@ -8,22 +8,6 @@
 #include "Omega_h_array_ops.hpp"
 using namespace Omega_h;
 
-void call_print(LOs a) {
-  fprintf(stderr,"\n");
-  auto a_w = Write<LO> (a.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    a_w[i] = a[i];
-  };
-  parallel_for(a.size(), r2w);
-  auto a_host = HostWrite<LO>(a_w);
-  for (int i=0; i<a_host.size(); ++i) {
-    fprintf(stderr," %d,", a_host[i]);
-  };
-  fprintf(stderr,"\n");
-  fprintf(stderr,"\n");
-  return;
-}
-
 void test_cutBox(Library *lib, const std::string &mesh_file) {
 
   auto mesh = Mesh(lib);

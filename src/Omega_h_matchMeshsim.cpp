@@ -69,26 +69,6 @@ void print_owners(Remotes owners, int rank) {
   return;
 }
 
-void call_print(LOs a) {
-  printf("\n");
-  auto a_w = Write<LO> (a.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    a_w[i] = a[i];
-  };
-  parallel_for(a.size(), r2w);
-  auto a_host = HostWrite<LO>(a_w);
-  for (int i=0; i<a_host.size(); ++i) {
-    printf(" %d,", a_host[i]);
-  };
-  printf("indices \n");
-  for (int i=0; i<a_host.size(); ++i) {
-    printf(" %d,", i);
-  };
-  printf("\n");
-  printf("\n");
-  return;
-}
-
 int classId(pEntity e) {
   pGEntity g = EN_whatIn(e);
   assert(g);
@@ -153,14 +133,8 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     V_coord(vtx,xyz);
     if(max_dim < 3 && xyz[2] != 0)
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
-    #ifdef DEBUG_MODE
-    printf("\nvtx%d has coords\n", EN_id(vtx));
-    #endif
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
-      #ifdef DEBUG_MODE
-      printf(" %f ", xyz[j]);
-      #endif
     }
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
@@ -291,20 +265,12 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pEdge edge;
   count_matched = 0;
   while ((edge = (pEdge) EIter_next(edges))) {
-    #ifdef DEBUG_MODE
-    printf("sim edge %d hasverts\n", EN_id(edge));
-    #endif
     for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge, j);
       double xyz[3];
       V_coord(vtx,xyz);
       ent_nodes[1].push_back(EN_id(vtx));
-      #ifdef DEBUG_MODE
-      printf("%d with id= %d , coordx=%f, coordy=%f, coordz=%f \n",
-               j, EN_id(vtx), xyz[0], xyz[1], xyz[2]);
-      #endif
     }
-    //printf("\n");
     ent_class_ids[1].push_back(classId(edge));
 
     pPList matches = EN_getMatchingEnts(edge, 0, 0);
@@ -313,13 +279,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while ((match = (pEdge)PList_next(matches, &iterM))) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(edge))) {
-        #ifdef DEBUG_MODE
-        printf("original edge %d with verts\n", EN_id(edge));
-        for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(edge, j)));
-        printf("\n  is matched to edge %d with verts ", EN_id(match));
-        for(int j=1; j>=0; --j) printf(" %d ", EN_id(E_vertex(match, j)));
-        printf("\n");
-        #endif
         ent_matches[1].push_back(EN_id(match));
         ent_match_classId[1].push_back(classId(match));
         ++count_matches;
@@ -357,20 +316,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     count_matches = 0;
     while ((match = (pFace)PList_next(matches, &iterM))) {
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
-        #ifdef DEBUG_MODE
-        printf("\noriginal face %d with verts\n", EN_id(face));
-        pPList vertsP1 = F_vertices(face, 1);
-        void *iterP1 = 0; // must initialize to 0
-        while(vtx = (pVertex)PList_next(vertsP1, &iterP1))
-          printf(" %d ", EN_id(vtx));
-        PList_delete(vertsP1);
-        printf("\n    is matched to face %d with verts ", EN_id(match));
-        pPList vertsP2 = F_vertices(match, 1);
-        void *iterP2 = 0; // must initialize to 0
-        while(vtx = (pVertex)PList_next(vertsP2, &iterP2))
-          printf(" %d ", EN_id(vtx));
-        PList_delete(verts);
-        #endif
 
         ent_matches[2].push_back(EN_id(match));
         ent_match_classId[2].push_back(classId(match));
@@ -507,17 +452,6 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     auto owners = Read<LO>(host_owners.write());
     auto ranks = LOs(ndim_ents, 0);//serial mesh
   }
-
-  #ifdef DEBUG_MODE
-  for (Int d = 0; d < max_dim; ++d) {
-    printf("\nfor dim d=%d\n", d+1);
-    printf("owners=\n");
-    print_owners(mesh->ask_owners(d), comm->rank());
-    printf("av2v=\n");
-    auto av2v = mesh->ask_down(d+1, 0).ab2b;
-    call_print(av2v);
-  }
-  #endif
 
   //add model matches info to mesh and if mesh is periodic
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {
