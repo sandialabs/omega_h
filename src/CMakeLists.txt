@@ -62,6 +62,7 @@ set(Omega_h_SOURCES
   Omega_h_math_lang.cpp
   Omega_h_matrix.cpp
   Omega_h_mesh.cpp
+  Omega_h_rcFields.cpp
   Omega_h_metric.cpp
   Omega_h_metric_input.cpp
   Omega_h_migrate.cpp
@@ -351,10 +352,13 @@ if(BUILD_TESTING)
   if(Omega_h_USE_SimModSuite)
     osh_add_exe(mixed_writeMesh)
     set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
-    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh)
+    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh
+              ${CMAKE_SOURCE_DIR}/meshes)
+
     osh_add_exe(mixed_test)
     set(TEST_EXES ${TEST_EXES} mixed_test)
-    test_func(run_mixed_test 1 ./mixed_test)
+    test_func(run_mixed_test 1 ./mixed_test
+      ${CMAKE_SOURCE_DIR}/meshes)
 
     osh_add_exe(periodic_test)
     set(TEST_EXES ${TEST_EXES} periodic_test)
@@ -484,10 +488,31 @@ if(BUILD_TESTING)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
   osh_add_exe(reverse_class_test)
-  test_func(reverse_class_test 1 ./reverse_class_test)
+  test_func(reverse_class_test 1 ./reverse_class_test 
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
+  osh_add_exe(rc_field_test)
+  set(TEST_EXES ${TEST_EXES} rc_field_test)
+  test_func(rc_field_test 1 ./rc_field_test
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.osh
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.vtu
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem_bField.osh)
   if(Omega_h_USE_MPI)
-    osh_add_exe(reverse_class_testPar)
-    test_func(reverse_class_testPar 4 ./reverse_class_testPar)
+    osh_add_exe(reverse_class_testp)
+    set(TEST_EXES ${TEST_EXES} reverse_class_testp)
+    test_func(reverse_class_testp 2 ./reverse_class_testp 
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
+    osh_add_exe(rc_field_testp)
+    set(TEST_EXES ${TEST_EXES} rc_field_testp)
+    test_func(rc_field_testp 2 ./rc_field_testp
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
   endif()
 endif()
 

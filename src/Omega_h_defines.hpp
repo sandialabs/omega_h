@@ -66,7 +66,7 @@ enum Omega_h_Scales {
   OMEGA_H_SCALES,
 };
 
-enum Omega_h_Family { OMEGA_H_SIMPLEX, OMEGA_H_HYPERCUBE };
+enum Omega_h_Family { OMEGA_H_SIMPLEX, OMEGA_H_HYPERCUBE, OMEGA_H_MIXED};
 
 namespace Omega_h {
 
@@ -95,6 +95,8 @@ enum : Int {
   FACE = OMEGA_H_FACE,
   REGION = OMEGA_H_REGION
 };
+
+enum { OMEGA_H_INTERIOR_VAL = 127 };
 
 enum { TOPO_TYPES = 8 };
 

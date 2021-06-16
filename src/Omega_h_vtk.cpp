@@ -270,18 +270,68 @@ static Read<T> read_array(
 }
 
 void write_tag(
-    std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
+    std::ostream& stream, TagBase const* tag, Int space_dim, Int ent_dim, 
+    Mesh *mesh, bool compress) {
   OMEGA_H_TIME_FUNCTION;
+
+  auto ncomps = tag->ncomps();
+  auto name = tag->name();
+  auto class_ids = tag->class_ids();
+  //TODO: write class id info for rc tag to file
+
   if (is<I8>(tag)) {
+
+    size_t found = (tag->name()).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name(),
+                                  tag->class_ids());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<I32>(tag)) {
+
+    size_t found = (tag->name()).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name(),
+                                   tag->class_ids());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<I64>(tag)) {
+
+    size_t found = (tag->name()).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name(),
+                                   tag->class_ids());
+    }
+
     write_array(
         stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (is<Real>(tag)) {
+  
+    size_t found = (tag->name()).find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name(),
+                                    tag->class_ids());
+    }
+
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
       if (tag->ncomps() == space_dim) {
@@ -302,6 +352,11 @@ void write_tag(
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array, compress);
     }
+
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else {
     Omega_h_fail("unknown tag type in write_tag");
   }
@@ -315,6 +370,8 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
+  auto class_ids = LOs() ;
+  //TODO: read class id info for rc tag to file
   /* tags like "global" are set by the construction mechanism,
      and it is somewhat complex to anticipate when they exist
      so we can just remove them if they are going to be reset. */
@@ -323,12 +380,30 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
+    }
+
   } else {
     auto array = read_array<Real>(stream, size, needs_swapping, is_compressed);
     // undo the resizes done in write_tag()
@@ -342,6 +417,12 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
       }
     }
     mesh->add_tag(ent_dim, name, ncomps, array, true);
+
+    size_t found = name.find("_rc");
+    if (found != std::string::npos) {
+      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
+    }
+
   }
   auto et = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
@@ -750,14 +831,15 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   //write_piece_start_tag(stream, mesh, cell_dim);
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), VERT, 
+              mesh, compress);
   }
   write_locals_and_owners(stream, mesh, VERT, tags, compress);
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
         tags[VERT].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), VERT, mesh, compress);
     }
   }
   //write_piece_start_tag(stream, mesh, cell_dim);
@@ -767,7 +849,8 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
     write_tag(
-        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), cell_dim,
+        mesh, compress);
   }
   //write_piece_start_tag(stream, mesh, cell_dim);
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
@@ -778,7 +861,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
     if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
     }
   }
   //write_piece_start_tag(stream, mesh, cell_dim);
@@ -809,13 +892,13 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   stream << "</Points>\n";
   stream << "<PointData>\n";
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), 0, mesh, compress);
   }
   for (Int i = 0; i < mesh->ntags(Topo_type::vertex); ++i) {
     auto tag = mesh->get_tag(Topo_type::vertex, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
         tags[VERT].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+      write_tag(stream, tag, mesh->dim(), 0, mesh, compress);
     }
   }
   stream << "</PointData>\n";
@@ -823,7 +906,7 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
     write_tag(
-        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), cell_dim, mesh, compress);
   }
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
@@ -832,28 +915,28 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(Topo_type::tetrahedron); ++i) {
       auto tag = mesh->get_tag(Topo_type::tetrahedron, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::hexahedron); ++i) {
       auto tag = mesh->get_tag(Topo_type::hexahedron, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::wedge); ++i) {
       auto tag = mesh->get_tag(Topo_type::wedge, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::pyramid); ++i) {
       auto tag = mesh->get_tag(Topo_type::pyramid, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }
@@ -861,14 +944,14 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(Topo_type::triangle); ++i) {
       auto tag = mesh->get_tag(Topo_type::triangle, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
 
     for (Int i = 0; i < mesh->ntags(Topo_type::quadrilateral); ++i) {
       auto tag = mesh->get_tag(Topo_type::quadrilateral, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }
@@ -876,7 +959,7 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
       auto tag = mesh->get_tag(cell_dim, i);
       if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-        write_tag(stream, tag, mesh->dim(), compress);
+        write_tag(stream, tag, mesh->dim(), cell_dim, mesh, compress);
       }
     }
   }

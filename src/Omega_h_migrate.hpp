@@ -44,7 +44,7 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents, Adj& new_ents2new_lows,
     Dist& old_low_owners2new_lows);
 
-void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
+void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents);
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,

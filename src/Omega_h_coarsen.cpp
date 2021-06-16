@@ -160,11 +160,23 @@ static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
   begin_code("coarsen");
   auto ret = coarsen_element_based1(mesh);
   if (ret) {
+
+    mesh->change_all_rcFieldsTorc();
+
     mesh->set_parting(OMEGA_H_GHOSTED);
+
+    mesh->change_all_rcFieldsToMesh();
+
     ret = coarsen_ghosted(mesh, opts, overshoot, improve);
   }
   if (ret) {
+
+    mesh->change_all_rcFieldsTorc();
+
     mesh->set_parting(OMEGA_H_ELEM_BASED, false);
+
+    mesh->change_all_rcFieldsToMesh();
+
     coarsen_element_based2(mesh, opts);
   }
   end_code();
@@ -209,7 +221,13 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
 
 bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_TIME_FUNCTION;
+
+  mesh->change_all_rcFieldsTorc();
+
   mesh->set_parting(OMEGA_H_GHOSTED);
+
+  mesh->change_all_rcFieldsToMesh();
+
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
