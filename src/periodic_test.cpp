@@ -3,13 +3,13 @@
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_for.hpp"
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
+printf("ok0\n");
 
   Omega_h::CmdLine cmdline;
   cmdline.add_arg<std::string>("mesh-in");
@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("mesh-out");
   cmdline.add_arg<int>("nparts_out");
 
+printf("ok1\n");
   auto nparts_total = world->size();
   auto nparts_in = 1;
-  //todo: add edge case checks on nparts out and total
 
   if (!cmdline.parse_final(world, &argc, argv)) return -1;
   auto mesh_in = cmdline.get<std::string>("mesh-in");
@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
   auto mesh_out = cmdline.get<std::string>("mesh-out");
   auto nparts_out = cmdline.get<int>("nparts_out");
   auto mesh = Omega_h::Mesh(&lib);
+printf("ok2\n");
 
   if (nparts_out < 1) {
     if (!world->rank()) {
@@ -49,16 +50,22 @@ int main(int argc, char** argv) {
     return -1;
   }
 
+printf("ok3\n");
   auto is_in = (world->rank() < nparts_in);
   auto comm_in = world->split(int(is_in), 0);
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
 
+printf("ok4\n");
   Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
+  world->barrier();
+printf("ok5\n");
   if (is_in || is_out) mesh.set_comm(comm_out);
+printf("ok5.5\n");
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
 
+printf("ok6 rank= %d\n", world->rank());
     auto rank = world->rank();
     mesh.add_tag<Omega_h::Real>(0, "gravity", 1);
     Omega_h::Write<Omega_h::Real> gravityArray(mesh.nverts(), 0.0, "gravityArray");
@@ -75,6 +82,7 @@ int main(int argc, char** argv) {
     Omega_h::parallel_for(leaf_ids.size(), fill_tag);
     mesh.set_tag<Omega_h::Real>(0, "gravity", Omega_h::Reals(gravityArray));
     mesh.sync_tag_periodic(0, "gravity");
+printf("ok7\n");
 
     auto tag_out = mesh.get_array<Omega_h::Real>(0, "gravity");
     auto check_tag = OMEGA_H_LAMBDA (Omega_h::LO i) {
@@ -82,9 +90,11 @@ int main(int argc, char** argv) {
       OMEGA_H_CHECK((tag_out[leaf] - 9.81) < 0.001);
     };
     Omega_h::parallel_for(leaf_ids.size(), check_tag);
+printf("ok8\n");
 
     Omega_h::binary::write(mesh_out, &mesh);
+printf("ok9\n");
   }
+printf("ok10\n");
 
-  return 0;
 }

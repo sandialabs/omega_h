@@ -83,6 +83,7 @@ int classType(pEntity e) {
 
 void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pMesh m = PM_mesh(sm, 0);
+  auto rank = comm->rank();
   Int max_dim;
   if (M_numRegions(m)) {
     max_dim = 3;
@@ -93,6 +94,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   } else {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
+  printf("read int ok-1 \n");
 
   Omega_h_Family family = OMEGA_H_SIMPLEX;
   RIter regions = M_regionIter(m);
@@ -128,11 +130,18 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   int count_matches = 0;
   int count_matched = 0;
 
+  printf("read int ok0 \n");
+/*
+  leaf_idxs[0].reserve(numVtx);
+  root_idxs[0].reserve(numVtx);
+  root_ranks[0].reserve(numVtx);
+*/
   while ((vtx = (pVertex) VIter_next(vertices))) {
     double xyz[3];
     V_coord(vtx,xyz);
-    if(max_dim < 3 && xyz[2] != 0)
+    if(max_dim < 3 && xyz[2] != 0) {
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
+    }
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
     }
@@ -141,32 +150,35 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     ++i;
 
     pPList matches = EN_getMatchingEnts(vtx, 0, 0);
-    void *iterM = 0;
-    pVertex match;
     count_matches = 0;
-    while ((match = (pVertex)PList_next(matches, &iterM))) {
+  printf("read int ok0.1 vert %d numvtx %d rank %d\n", i, numVtx, rank);
+    pVertex match;
+    void *iterM = 0;
+    while ((match = (pVertex) PList_next(matches, &iterM))) {
+    printf("read int ok0.2 vert %d numvtx %d rank %d\n", i, numVtx, rank);
       if ((PList_size(matches)>1) && (EN_id(match) != EN_id(vtx))) {
+    printf("read int ok0.3 vert %d numvtx %d rank %d\n", i, numVtx, rank);
         ent_matches[0].push_back(EN_id(match));
         ent_match_classId[0].push_back(classId(match));
+    printf("read int ok0.4 vert %d numvtx %d rank %d\n", i, numVtx, rank);
         ++count_matches;
         ++count_matched;
         if (count_matches > 1) Omega_h_fail("Error:matches per entity > 1\n");
 
         leaf_idxs[0].push_back(EN_id(vtx));
         root_idxs[0].push_back(EN_id(match));
-        root_ranks[0].push_back(0);
+        root_ranks[0].push_back(0);//input is a serial mesh
       }
     }
     PList_delete(matches);
+    printf("read int ok0.5 vert %d numvtx %d rank %d\n", i, numVtx, rank);
   }
   VIter_delete(vertices);
-  bool mesh_IsMatched = 0;
-  if (count_matched) mesh_IsMatched = true;
+  printf("read int ok1 \n");
+  I8 mesh_IsMatched = 0;
+  if (count_matched > 0) mesh_IsMatched = 1;
   mesh->set_periodic(mesh_IsMatched);
-  //note this bool is specifically set at lowest dimension ent
-  // as they are present in even 1d mesh
 
-  //to get model matches
   auto g_numVtx = GM_numVertices(g);
   auto g_numEdge = GM_numEdges(g);
   auto g_numFace = GM_numFaces(g);
@@ -370,6 +382,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   mesh->set_dim(max_dim);
   mesh->set_verts(numVtx);
   mesh->add_tag(0, "global", 1, vert_globals);
+  printf("read int ok1 \n");
   //add e2vrts
   for (Int ent_dim = 1; ent_dim <= max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
@@ -392,6 +405,7 @@ void read_internal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
       auto down = reflect_down(ev2v, lv2v, v2l, mesh->family(), ent_dim, ldim);
       mesh->set_ents(ent_dim, down);
     }
+    printf("read int ok2 d=%d\n", ent_dim);
     mesh->add_tag(ent_dim, "global", 1, GOs(ndim_ents, 0, 1));
   }
   //
@@ -480,7 +494,9 @@ void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_f
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
   if (is_in) {
     mesh->set_comm(comm);
+    printf("read ok1\n");
     meshsim::read_internal(sm, mesh, g, comm);
+    printf("read ok2\n");
   }
 
   M_release(sm);

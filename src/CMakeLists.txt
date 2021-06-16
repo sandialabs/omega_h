@@ -364,10 +364,10 @@ if(BUILD_TESTING)
 
     osh_add_exe(periodic_test)
     set(TEST_EXES ${TEST_EXES} periodic_test)
-    test_func(run_periodic_test 2 ./periodic_test 
-      ./../../omega_h/meshes/wedge_matchZ_12elem.sms
-      ./../../omega_h/meshes/wedge_geomsim_match.smd
-      ./../../omega_h/meshes/wedge_matchZ_12elem_sync_2.osh 2)
+    test_func(periodic_test 2 ./periodic_test 
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem.sms
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_geomsim_match.smd
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem_sync_2.osh 2)
   endif()
 
   osh_add_exe(unit_array_algs)
