@@ -127,7 +127,7 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
-/* ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
+/** ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
  * 'edim', and an 1d array of model entity IDs to return
  * a CSR structure (Adj) containing IDs of mesh entities classified on the 
  * requested input model entities. Note here that 'edim' is equal to the
@@ -136,13 +136,13 @@ class Mesh {
  */
   Adj ask_revClass (Int edim, LOs class_ids);
 
-/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
+/** ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
  * Here, the output is for all model entities of dimension 'edim' instead
  * of a input list
  */
   Adj ask_revClass (Int edim);
 
-/* ask_revClass_downAdj (Int from, Int to): takes input of a higher
+/** ask_revClass_downAdj (Int from, Int to): takes input of a higher
  * dimension 'from' and a lower dimension 'to'. The value of 'from' is equal
  * to the mesh and model entity dimensions used to get reverse class.
  * (similar to 'edim' for ask_revClass functions above.) This function can be
@@ -155,13 +155,13 @@ class Mesh {
  */
   Adj ask_revClass_downAdj (Int from, Int to);
 
-/* has_revClass (Int edim): Input is a entity dimension 'edim'. This function
+/** has_revClass (Int edim): Input is a entity dimension 'edim'. This function
  * checks if the reverse classification for that dimension is present in
  * memory or not.
  */
   bool has_revClass (Int edim) const;
 
-/* Takes input of model entity IDs, entity dimension, name of field and number
+/** Takes input of model entity IDs, entity dimension, name of field and number
  * of components, to create a the rcField. This function
  * is used when fields are to be stored with mesh entities returned by
  * ask_revClass (Int edim, LOs class_ids)
@@ -170,21 +170,21 @@ class Mesh {
   void add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
                    Int ncomps);
 
-/* Takes input of entity dimension, name of rcField, values of rcField, and
+/** Takes input of entity dimension, name of rcField, values of rcField, and
  * stores the values in memory.
  */
   template <typename T>
   void set_rcField_array(Int ent_dim, std::string const& name,
                          Read<T> array);
 
-/* Takes input of entity dimension, name of field and deletes the field
+/** Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
   void remove_rcField(Int ent_dim, std::string const& name);
 
   Adj get_revClass (Int edim) const;
 
-/* Takes input of entity dimension, name of field and number of components.
+/** Takes input of entity dimension, name of field and number of components.
  * to create a space where the rcField values can be stored. This function
  * is used when fields are to be stored with mesh entities returned by
  * ask_revClass (Int edim)
@@ -260,7 +260,6 @@ class Mesh {
   ParentPtr parents_[DIMS];
   ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
-  //for periodic
   Remotes match_owners_[DIMS];
   LOs model_ents_[DIMS];
   LOs model_matches_[DIMS-1];

@@ -10,8 +10,6 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 
-#include "Omega_h_file.hpp"
-
 namespace Omega_h {
 
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
@@ -248,17 +246,22 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 
 void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     Dist const* old_owners2new_ents) {
+  printf("migrate matches 0\n");
   auto size = mesh->comm()->size();
   auto rank = mesh->comm()->rank();
+  printf("migrate matches 1\n");
   auto r2i = old_owners2new_ents->roots2items();//roots2items
+  printf("migrate matches 2\n");
   auto i2dR = old_owners2new_ents->items2ranks();//items2destRanks
+  printf("migrate matches 3\n");
   auto i2dI = old_owners2new_ents->items2dest_idxs();//items2destIds
+  printf("migrate matches 4\n");
   auto nents = mesh->nents(d);
   std::vector<int> dest_r;//ranks
   std::vector<int> dest_i;//idxs
   HostWrite<LO> new_r2i(nents+1, 0, 0, "froots2fitems");
   HostWrite<LO> old_isMatch(nents, -1, 0, "old_isMatch");
-  //roots2items stores offsets; +1 for offsets. TODO:it can be possible to
+  //roots2items stores offsets; +1 for offsets. TODO:it is possible to
   //make this proportional to O(max [froot IDs of all(i.e.
   //missing+present) rroots])
   if (nents) {//if mesh exists on a process
@@ -273,9 +276,10 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     auto max_leaf = leaf_idxs.last();
     auto max_leaf_rootID = root_idxs.last();
     auto max_leaf_rootRank = root_ranks.last();
-    if (max_leaf_rootRank == rank) 
+    if (max_leaf_rootRank == rank) {
       OMEGA_H_CHECK(max_leaf_rootID != max_leaf);
     //check leaf and root are disinct
+    }
     
     LO ent = 0;
     for (LO i = 0; i < matches.leaf_idxs.size(); ++i) {
@@ -384,7 +388,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   auto rev_max_dest_ids =
     old_rank2new_ranks.exch(Read<LO>(max_dest_i_h.write()), 1);
   //old_rank2new_ranks.exch_reduce(Read<LO>(max_dest_i_h.write()), 1,
-  //OMEGA_H_MAX);//for parallel input we want to get max
+  //OMEGA_H_MAX);//TODO: for parallel input we want to get max
   //of dest ids recved from all old ranks
   LO rev_nroots;
   rev_nroots = rev_max_dest_ids.last()+1;
@@ -394,8 +398,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
   owners2new_leaves.set_dest_ranks(host_dest_r.write());
   int wait=0; while(wait);
   owners2new_leaves.set_dest_idxs(host_dest_i.write(), rev_nroots);
-  //set dest globals will not work. it assumes that dest roots and
-  //items are same
   owners2new_leaves.set_roots2items(new_r2i.write());
   Read<I32> own_ranks;
   auto new_matchOwners = update_ownership(owners2new_leaves.invert(), own_ranks);
@@ -433,6 +435,7 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
 void migrate_mesh(
     Mesh* mesh, Dist new_elems2old_owners, Omega_h_Parting mode, bool verbose) {
   OMEGA_H_TIME_FUNCTION;
+  printf(" migrate mesh 0 \n");
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
@@ -443,20 +446,27 @@ void migrate_mesh(
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {
+  printf(" migrate mesh 1  d=%d\n", d);
     Adj high2low;
     Dist old_low_owners2new_lows;
+  printf(" migrate mesh 2  d=%d\n", d);
     push_down(
         mesh, d, d - 1, old_owners2new_ents, high2low, old_low_owners2new_lows);
+  printf(" migrate mesh 3  d=%d\n", d);
     new_mesh.set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();
+  printf(" migrate mesh 4  d=%d\n", d);
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
+  printf(" migrate mesh 5  d=%d\n", d);
 
-    if ((mesh->is_periodic() > 0) && (d < dim)) {
+    if ((mesh->is_periodic() > 0) && (d < dim) && (mesh->nents(d) > 0)) {
       migrate_matches(mesh, &new_mesh, d, &old_owners2new_ents);
     }
+  printf(" migrate mesh 6  d=%d\n", d);
 
     old_owners2new_ents = old_low_owners2new_lows;
+  printf(" migrate mesh 7  d=%d\n", d);
   }
 
   auto new_verts2old_owners = old_owners2new_ents.invert();

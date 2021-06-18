@@ -20,8 +20,6 @@
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_atomics.hpp"
 
-#include "Omega_h_file.hpp"
-
 namespace Omega_h {
 
 Mesh::Mesh() {
@@ -45,13 +43,17 @@ void Mesh::set_library(Library* library_in) {
 Library* Mesh::library() const { return library_; }
 
 void Mesh::set_comm(CommPtr const& new_comm) {
+  printf("set comm 0\n");
   auto rank_had_comm = bool(comm_);
+  printf("set comm 0.5\n");
   auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OMEGA_H_SUM);
+  printf("set comm 1\n");
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
     // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
       // temporarily set the uninit ranks to Comm::self()
       comm_ = library_->self();
+  printf("set comm 2\n");
     } else {
       /* forget RIB hints. this prevents some ranks from
          having hints while the new ranks do not, which would
@@ -60,8 +62,10 @@ void Mesh::set_comm(CommPtr const& new_comm) {
          is partition and order independent, it will recover
          the same axes of separation as before */
       rib_hints_ = RibPtr();
+  printf("set comm 3\n");
     }
     bcast_mesh(this, new_comm, rank_had_comm);
+  printf("set comm 4\n");
   }
   /* if some ranks already have mesh data, their
      parallel info needs updating, we'll do this
@@ -71,9 +75,12 @@ void Mesh::set_comm(CommPtr const& new_comm) {
       auto dist = ask_dist(d);
       dist.change_comm(new_comm);
       owners_[d].ranks = dist.items2ranks();
+  printf("set comm 5\n");
     }
   }
+  printf("set comm 6\n");
   comm_ = new_comm;
+  printf("set comm 7\n");
 }
 
 void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
@@ -817,7 +824,6 @@ void Mesh::set_match_owners(Int ent_dim, Remotes match_owners) {
   OMEGA_H_CHECK(nents(ent_dim) == match_owners.ranks.size());
   OMEGA_H_CHECK(nents(ent_dim) == match_owners.idxs.size());
   match_owners_[ent_dim] = match_owners;
-  //dists_[ent_dim] = DistPtr();
 }
 
 Remotes Mesh::ask_owners(Int ent_dim) {
@@ -833,8 +839,6 @@ Remotes Mesh::ask_match_owners(Int ent_dim) {
   if (!match_owners_[ent_dim].ranks.exists() || !match_owners_[ent_dim].idxs.exists()) {
     OMEGA_H_CHECK(comm_->size() == 1);
     Omega_h_fail(" Match owners for dim %d don't exist\n", ent_dim);
-    //match_owners_[ent_dim] = Remotes(
-        //Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
   }
   return match_owners_[ent_dim];
 }
@@ -842,9 +846,7 @@ Remotes Mesh::ask_match_owners(Int ent_dim) {
 void Mesh::set_matches(Int ent_dim, c_Remotes matches) {
   check_dim2(ent_dim);
   check_dim2(ent_dim + 1);//matches will be always 1d less than ents
-  //OMEGA_H_CHECK(nents(ent_dim) == match_owners.idxs.size());
   matches_[ent_dim] = matches;
-  //dists_[ent_dim] = DistPtr();
 }
 
 c_Remotes Mesh::get_matches(Int ent_dim) {
