@@ -125,14 +125,14 @@ void test_3d(Library *lib, const std::string &mesh_file,
   auto reg_rc_ids = (mesh.ask_revClass(3)).ab2b;
   auto nbreg = reg_rc_ids.size();
 
-  Write<LO> vals_v(nbvert, 100);
-  Write<LO> vals_e(nbedge, 100);
-  Write<LO> vals_f(nbface, 100);
-  Write<LO> vals_r(nbreg, 100);
-  mesh.add_rcField<LO>(0, "field", 1, LOs(vals_v));
-  mesh.add_rcField<LO>(1, "field", 1, LOs(vals_e));
-  mesh.add_rcField<LO>(2, "field", 1, LOs(vals_f));
-  mesh.add_rcField<LO>(3, "field", 1, LOs(vals_r));
+  Write<Real> vals_v(nbvert, 100);
+  Write<Real> vals_e(nbedge, 100);
+  Write<Real> vals_f(nbface, 100);
+  Write<Real> vals_r(nbreg, 100);
+  mesh.add_rcField<Real>(0, "field", 1, Reals(vals_v));
+  mesh.add_rcField<Real>(1, "field", 1, Reals(vals_e));
+  mesh.add_rcField<Real>(2, "field", 1, Reals(vals_f));
+  mesh.add_rcField<Real>(3, "field", 1, Reals(vals_r));
 
   run_adapt<3>(&mesh, out_file);
 
