@@ -8,7 +8,7 @@
 
 #include "Omega_h_for.hpp"
 
-#include "SimPartitionedMesh.h"
+#include "MeshSim.h"
 #include "SimModel.h"
 #include "SimUtil.h"
 
@@ -81,8 +81,8 @@ int classType(pEntity e) {
   return GEN_type(g);
 }
 
-void read_matchInternal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
-  pMesh m = PM_mesh(sm, 0);
+void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
+  pMesh m = sm;
   auto rank = comm->rank();
   Int max_dim;
   if (M_numRegions(m)) {
@@ -378,7 +378,7 @@ void read_matchInternal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   mesh->set_dim(max_dim);
   mesh->set_verts(numVtx);
   mesh->add_tag(0, "global", 1, vert_globals);
-  printf("read int ok1 \n");
+  printf("read int ok2 \n");
   //add e2vrts
   for (Int ent_dim = 1; ent_dim <= max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
@@ -488,14 +488,16 @@ void read_matchInternal(pParMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
 
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm, Mesh *mesh, int is_in) {
-  SimPartitionedMesh_start(NULL,NULL);
+  //SimPartitionedMesh_start(NULL,NULL);
+  MS_init();
   SimModel_start();
   Sim_readLicenseFile(NULL);
   pNativeModel nm = NULL;
   pProgress p = NULL;
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
-  pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
+  pMesh sm = M_load(mesh_fname.c_str(), g, p);
 
+/*
   {
     pMesh m = PM_mesh(sm, 0);
     VIter vertices = M_vertexIter(m);
@@ -513,6 +515,7 @@ void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_f
     }
     VIter_delete(vertices);
   }
+*/
   if (is_in) {
     mesh->set_comm(comm);
     printf("read ok1\n");
@@ -523,7 +526,9 @@ void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_f
   M_release(sm);
   GM_release(g);
   SimModel_stop();
-  SimPartitionedMesh_stop();
+  MS_exit();
+  Sim_logOff();
+  //SimPartitionedMesh_stop();
 }
 
 }  // namespace meshsim

@@ -53,7 +53,8 @@ int main(int argc, char** argv) {
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
 
-  Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
+  if (is_in) Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
+  if (is_in) Omega_h::binary::write(mesh_out, &mesh);
   if (is_in || is_out) mesh.set_comm(comm_out);
   printf("after set comm 0 dim=%d\n", mesh.dim());
   if (is_out) {
