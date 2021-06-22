@@ -21,7 +21,7 @@ namespace Omega_h {
 namespace meshsim {
 
 void print_matches(c_Remotes matches_in, int rank, int d) {
-  fprintf(stderr,"\n");
+  fprintf(stderr, "\n");
   auto root_ranks = matches_in.root_ranks;
   auto root_idxs = matches_in.root_idxs;
   auto leaf_idxs = matches_in.leaf_idxs;
@@ -37,18 +37,18 @@ void print_matches(c_Remotes matches_in, int rank, int d) {
   auto root_ranks_host = HostWrite<LO>(root_ranks_w);
   auto root_idxs_host = HostWrite<LO>(root_idxs_w);
   auto leaf_idxs_host = HostWrite<LO>(leaf_idxs_w);
-  fprintf(stderr,"On rank %d, for dim = %d\n", rank, d);
+  fprintf(stderr, "On rank %d, for dim = %d\n", rank, d);
   for (int i=0; i<leaf_idxs_host.size(); ++i) {
-    fprintf(stderr,"leaf id %d, root id %d, root rank %d\n", leaf_idxs_host[i],
+    fprintf(stderr, "leaf id %d, root id %d, root rank %d\n", leaf_idxs_host[i],
             root_idxs_host[i], root_ranks_host[i]);
   };  
-  fprintf(stderr,"\n");
-  fprintf(stderr,"\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "\n");
   return;
 }
 
 void print_owners(Remotes owners, int rank) {
-  fprintf(stderr,"\n");
+  fprintf(stderr, "\n");
   auto ranks = owners.ranks;
   auto idxs = owners.idxs;
   auto ranks_w = Write<LO> (ranks.size());
@@ -60,12 +60,12 @@ void print_owners(Remotes owners, int rank) {
   parallel_for(idxs.size(), r2w);
   auto ranks_host = HostWrite<LO>(ranks_w);
   auto idxs_host = HostWrite<LO>(idxs_w);
-  fprintf(stderr,"On rank %d\n", rank);
+  fprintf(stderr, "On rank %d\n", rank);
   for (int i=0; i<idxs_host.size(); ++i) {
-    fprintf(stderr,"owner of %d, is on rank %d, with LId %d\n", i, ranks_host[i], idxs_host[i]);
+    fprintf(stderr, "owner of %d, is on rank %d, with LId %d\n", i, ranks_host[i], idxs_host[i]);
   };  
-  fprintf(stderr,"\n");
-  fprintf(stderr,"\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "\n");
   return;
 }
 
@@ -83,7 +83,6 @@ int classType(pEntity e) {
 
 void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pMesh m = sm;
-  auto rank = comm->rank();
   Int max_dim;
   if (M_numRegions(m)) {
     max_dim = 3;
@@ -94,7 +93,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   } else {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
-  fprintf(stderr,"read int ok -1 \n");
 
   Omega_h_Family family = OMEGA_H_SIMPLEX;
   RIter regions = M_regionIter(m);
@@ -124,7 +122,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   int count_matches = 0;
   int count_matched = 0;
 
-  fprintf(stderr,"read int ok0 \n");
   while ((vtx = (pVertex) VIter_next(vertices))) {
 
     double xyz[3];
@@ -140,19 +137,14 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
 
     pPList matches = EN_getMatchingEnts(vtx, NULL, 0);
     count_matches = 0;
-    fprintf(stderr,"read int ok0.0 vert %d numvtx %d rank %d\n", i, numVtx, rank);
     pVertex match;
     void *iterM = 0;
-    fprintf(stderr,"read int ok0.1 vert %d numvtx %d rank %d\n", i, numVtx, rank);
     if (matches) { // this check fixes the segfault as
                        // EN_getMatchingEnts returns null not empty list when
                        // there are no matches
       assert(PList_size(matches) > 1);
       while ((match = (pVertex) PList_next(matches, &iterM))) {
-        fprintf(stderr,"read int ok0.2 vert %d numvtx %d rank %d\n", i, numVtx, rank);
         if (EN_id(match) != EN_id(vtx)) {
-          fprintf(stderr,"read int ok0.3 vert %d numvtx %d rank %d\n", i, numVtx, rank);
-          fprintf(stderr,"read int ok0.4 vert %d numvtx %d rank %d\n", i, numVtx, rank);
           ++count_matches;
           ++count_matched;
           if (count_matches > 1) {
@@ -166,14 +158,12 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
       }
     }
     PList_delete(matches);
-    fprintf(stderr,"read int ok0.5 vert %d numvtx %d rank %d\n", i, numVtx, rank);
     ++i;
   }
   VIter_delete(vertices);
-  fprintf(stderr,"read int ok1 \n");
-  I8 mesh_IsMatched = 0;
-  if (count_matched > 0) mesh_IsMatched = 1;
-  mesh->set_periodic(mesh_IsMatched);
+  if (count_matched == 0) {
+    Omega_h_fail("Error: Input mesh is not matched\n");
+  }
 
   auto g_numVtx = GM_numVertices(g);
   auto g_numEdge = GM_numEdges(g);
@@ -387,7 +377,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   mesh->set_dim(max_dim);
   mesh->set_verts(numVtx);
   mesh->add_tag(0, "global", 1, vert_globals);
-  fprintf(stderr,"read int ok2 \n");
   //add e2vrts
   for (Int ent_dim = 1; ent_dim <= max_dim; ++ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
@@ -410,19 +399,15 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
       auto down = reflect_down(ev2v, lv2v, v2l, mesh->family(), ent_dim, ldim);
       mesh->set_ents(ent_dim, down);
     }
-    fprintf(stderr,"read int ok2 d=%d\n", ent_dim);
     mesh->add_tag(ent_dim, "global", 1, GOs(ndim_ents, 0, 1));
   }
   //
-  fprintf(stderr,"before reorder\n");
   if (!comm->reduce_and(is_sorted(vert_globals))) {
     reorder_by_globals(mesh);
   }
-  fprintf(stderr,"after reorder\n");
   mesh->add_coords(host_coords.write());
   //
 
-  fprintf(stderr,"read internal ok 3\n");
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
@@ -438,7 +423,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     classify_equal_order(mesh, ent_dim, host_ev2v.write(), host_class_id.write());
   }
   finalize_classification(mesh);
-  fprintf(stderr,"read internal ok 4\n");
 
   //add c_r input info to mesh
   for (Int ent_dim = 0; ent_dim < max_dim; ++ent_dim) {
@@ -458,7 +442,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     mesh->set_matches(ent_dim, cr);
     auto o_cr = mesh->get_matches(ent_dim);
   }
-  fprintf(stderr,"read internal ok 5\n");
 
   for (Int ent_dim=0; ent_dim<max_dim; ++ent_dim) {
     HostWrite<LO> host_model_ids(g_numEnt[ent_dim]);
@@ -472,28 +455,30 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
     mesh->set_model_ents(ent_dim, model_ids);
     mesh->set_model_matches(ent_dim, model_match);
   }
-  fprintf(stderr,"read internal ok 6\n");
+  return;
 }
 
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
-    CommPtr comm, Mesh *mesh, int is_in) {
-  MS_init();
-  SimModel_start();
-  pNativeModel nm = NULL;
-  pProgress p = NULL;
-  pGModel g = GM_load(mdl_fname.c_str(), nm, p);
-  pMesh sm = M_load(mesh_fname.c_str(), g, p);
+    CommPtr comm, Mesh *mesh, I8 is_in) {
+  mesh->set_periodic(1);
+  if (is_in) {
+    MS_init();
+    SimModel_start();
+    pNativeModel nm = NULL;
+    pProgress p = NULL;
+    pGModel g = GM_load(mdl_fname.c_str(), nm, p);
+    pMesh sm = M_load(mesh_fname.c_str(), g, p);
 
-  mesh->set_comm(comm);
-  fprintf(stderr,"read ok1 %d \n", is_in);
-  meshsim::read_matchInternal(sm, mesh, g, comm);
-  fprintf(stderr,"read ok2\n");
+    mesh->set_comm(comm);
+    meshsim::read_matchInternal(sm, mesh, g, comm);
 
-  M_release(sm);
-  GM_release(g);
-  SimModel_stop();
-  MS_exit();
-  Sim_logOff();
+    M_release(sm);
+    GM_release(g);
+    SimModel_stop();
+    MS_exit();
+    Sim_logOff();
+  }
+  return;
 }
 
 }  // namespace meshsim

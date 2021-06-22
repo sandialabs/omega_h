@@ -53,13 +53,12 @@ int main(int argc, char** argv) {
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
 
-  if (is_in) Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
-  if (is_in) Omega_h::binary::write(mesh_out, &mesh);
-  if (is_in || is_out) mesh.set_comm(comm_out);
-  printf("after set comm 0 dim=%d\n", mesh.dim());
+  Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
+  if (is_in || is_out) {
+    mesh.set_comm(comm_out);
+  }
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
-  printf("after set comm 1\n");
 
     auto rank = world->rank();
     mesh.add_tag<Omega_h::Real>(0, "gravity", 1);
@@ -67,7 +66,6 @@ int main(int argc, char** argv) {
     auto leaf_ids = mesh.get_matches(0).leaf_idxs;
     auto root_ids = mesh.get_matches(0).root_idxs;
     auto root_rks = mesh.get_matches(0).root_ranks;
-  printf("after set comm 2\n");
     auto fill_tag = OMEGA_H_LAMBDA (Omega_h::LO i) {
       auto leaf = leaf_ids[i];
       auto root = root_ids[i];
@@ -76,11 +74,9 @@ int main(int argc, char** argv) {
         gravityArray[leaf] = 9.81;
     };
     Omega_h::parallel_for(leaf_ids.size(), fill_tag);
-  printf("after set comm 3\n");
     mesh.set_tag<Omega_h::Real>(0, "gravity", Omega_h::Reals(gravityArray));
     mesh.sync_tag_periodic(0, "gravity");
 
-  printf("after set comm 4\n");
     auto tag_out = mesh.get_array<Omega_h::Real>(0, "gravity");
     auto check_tag = OMEGA_H_LAMBDA (Omega_h::LO i) {
       auto leaf = leaf_ids[i];
@@ -88,9 +84,7 @@ int main(int argc, char** argv) {
     };
     Omega_h::parallel_for(leaf_ids.size(), check_tag);
 
-  printf("after set comm 5\n");
     Omega_h::binary::write(mesh_out, &mesh);
-  printf("after set comm 6\n");
   }
 
   return 0;

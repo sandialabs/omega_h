@@ -43,17 +43,13 @@ void Mesh::set_library(Library* library_in) {
 Library* Mesh::library() const { return library_; }
 
 void Mesh::set_comm(CommPtr const& new_comm) {
-  printf("set comm 0\n");
   auto rank_had_comm = bool(comm_);
-  printf("set comm 0.5\n");
   auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OMEGA_H_SUM);
-  printf("set comm 1\n");
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
     // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
       // temporarily set the uninit ranks to Comm::self()
       comm_ = library_->self();
-  printf("set comm 2\n");
     } else {
       /* forget RIB hints. this prevents some ranks from
          having hints while the new ranks do not, which would
@@ -62,10 +58,8 @@ void Mesh::set_comm(CommPtr const& new_comm) {
          is partition and order independent, it will recover
          the same axes of separation as before */
       rib_hints_ = RibPtr();
-  printf("set comm 3\n");
     }
     bcast_mesh(this, new_comm, rank_had_comm);
-  printf("set comm 4\n");
   }
   /* if some ranks already have mesh data, their
      parallel info needs updating, we'll do this
@@ -75,12 +69,9 @@ void Mesh::set_comm(CommPtr const& new_comm) {
       auto dist = ask_dist(d);
       dist.change_comm(new_comm);
       owners_[d].ranks = dist.items2ranks();
-  printf("set comm 5\n");
     }
   }
-  printf("set comm 6\n");
   comm_ = new_comm;
-  printf("set comm 7\n");
 }
 
 void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }

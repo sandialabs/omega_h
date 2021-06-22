@@ -53,8 +53,10 @@ int main(int argc, char** argv) {
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
 
-  if (is_in) Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
-  if (is_in || is_out) mesh.set_comm(comm_out);
+  Omega_h::meshsim::matchRead(mesh_in, model_in, comm_in, &mesh, is_in);
+  if (is_in || is_out) {
+    mesh.set_comm(comm_out);
+  }
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();
 

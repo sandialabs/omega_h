@@ -246,16 +246,11 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 
 void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
     Dist const* old_owners2new_ents) {
-  printf("migrate matches 0\n");
   auto size = mesh->comm()->size();
   auto rank = mesh->comm()->rank();
-  printf("migrate matches 1\n");
   auto r2i = old_owners2new_ents->roots2items();//roots2items
-  printf("migrate matches 2\n");
   auto i2dR = old_owners2new_ents->items2ranks();//items2destRanks
-  printf("migrate matches 3\n");
   auto i2dI = old_owners2new_ents->items2dest_idxs();//items2destIds
-  printf("migrate matches 4\n");
   auto nents = mesh->nents(d);
   std::vector<int> dest_r;//ranks
   std::vector<int> dest_i;//idxs
@@ -435,7 +430,6 @@ void migrate_matches(Mesh* mesh, Mesh* new_mesh, Int const d,
 void migrate_mesh(
     Mesh* mesh, Dist new_elems2old_owners, Omega_h_Parting mode, bool verbose) {
   OMEGA_H_TIME_FUNCTION;
-  printf(" migrate mesh 0 \n");
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
@@ -446,27 +440,20 @@ void migrate_mesh(
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {
-  printf(" migrate mesh 1  d=%d\n", d);
     Adj high2low;
     Dist old_low_owners2new_lows;
-  printf(" migrate mesh 2  d=%d\n", d);
     push_down(
         mesh, d, d - 1, old_owners2new_ents, high2low, old_low_owners2new_lows);
-  printf(" migrate mesh 3  d=%d\n", d);
     new_mesh.set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();
-  printf(" migrate mesh 4  d=%d\n", d);
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
-  printf(" migrate mesh 5  d=%d\n", d);
 
-    if ((mesh->is_periodic() > 0) && (d < dim) && (mesh->nents(d) > 0)) {
+    if ((mesh->is_periodic() > 0) && (d < dim)) {
       migrate_matches(mesh, &new_mesh, d, &old_owners2new_ents);
     }
-  printf(" migrate mesh 6  d=%d\n", d);
 
     old_owners2new_ents = old_low_owners2new_lows;
-  printf(" migrate mesh 7  d=%d\n", d);
   }
 
   auto new_verts2old_owners = old_owners2new_ents.invert();
