@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
           "partitioning to a smaller part count not yet implemented\n");
     }
   }
-
   if (is_in || is_out) mesh.set_comm(comm_out);
   if (is_out) {
     if (nparts_out != nparts_in) mesh.balance();

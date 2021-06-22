@@ -60,13 +60,6 @@ TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim) {
   }
   tags[int(Topo_type::vertex)].insert("local");
   tags[size_t(cell_dim)].insert("local");
-  if (mesh->comm()->size() > 1) {
-    tags[int(Topo_type::vertex)].insert("owner");
-    tags[size_t(cell_dim)].insert("owner");
-    if (mesh->parting() == OMEGA_H_GHOSTED) {
-      tags[size_t(cell_dim)].insert("vtkGhostType");
-    }
-  }
   return tags;
 }
 
