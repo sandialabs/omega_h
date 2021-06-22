@@ -123,30 +123,34 @@ void test_adjs(Mesh* mesh) {
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == num_pyramid*5);
 
   //check values for example meshes
+  //TODO: define a new OMEGA_H_VERIFY in Omega_h_fail.hpp which calls 
+  //      meshsim::call_print before failing. These asserts may fail
+  //      if the sim version changes and thus order of IDs becomes
+  //      different than those defined here.
   if (num_vertex == 12) {
     //4 elem mesh
     OMEGA_H_CHECK(tet2vtx.ab2b == LOs({0, 1, 8, 2}));
     OMEGA_H_CHECK(hex2vtx.ab2b == LOs({4, 5, 9, 11, 7, 6, 1, 0}));
     OMEGA_H_CHECK(wedge2vtx.ab2b == LOs({11, 9, 10, 0, 1, 8}));
-    OMEGA_H_CHECK(pyram2vtx.ab2b == LOs({9, 10, 8, 1, 3}));
+    OMEGA_H_CHECK(pyram2vtx.ab2b == LOs({8, 1, 9, 10, 3}));
     OMEGA_H_CHECK(tet2edge.ab2b == LOs({0, 22, 20, 1, 3, 6}));
-    OMEGA_H_CHECK(hex2edge.ab2b == LOs({13, 9, 17, 12, 14, 15, 23, 21, 16, 5, 0, 2}));
-    OMEGA_H_CHECK(wedge2edge.ab2b == LOs({17, 18, 11, 21, 23, 19, 0, 22, 20}));
-    OMEGA_H_CHECK(pyram2edge.ab2b == LOs({18, 19, 22, 23, 8, 10, 7, 4}));
+    OMEGA_H_CHECK(hex2edge.ab2b == LOs({13, 9, 18, 12, 14, 15, 23, 19, 16, 5, 0, 2}));
+    OMEGA_H_CHECK(wedge2edge.ab2b == LOs({18, 17, 11, 19, 23, 21, 0, 22, 20}));
+    OMEGA_H_CHECK(pyram2edge.ab2b == LOs({22, 23, 17, 21, 7, 4, 8, 10}));
   }
   else if (num_vertex == 9) {
     //pyram on hex
-    OMEGA_H_CHECK(hex2edge.ab2b == LOs({0, 4, 7, 1, 2, 5, 8, 10, 12, 13, 14, 15}));
-    OMEGA_H_CHECK(hex2vtx.ab2b == LOs({0, 1, 2, 3, 5, 6, 7, 8}));
-    OMEGA_H_CHECK(pyram2edge.ab2b == LOs({12, 13, 14, 15, 3, 6, 9, 11}));
-    OMEGA_H_CHECK(pyram2vtx.ab2b == LOs({5, 6, 7, 8, 4}));
+    OMEGA_H_CHECK(hex2edge.ab2b == LOs({1, 7, 4, 0, 2, 10, 8, 5, 12, 13, 14, 15}));
+    OMEGA_H_CHECK(hex2vtx.ab2b == LOs({0, 3, 2, 1, 5, 8, 7, 6}));
+    OMEGA_H_CHECK(pyram2edge.ab2b == LOs({12, 13, 14, 15, 3, 11, 9, 6}));
+    OMEGA_H_CHECK(pyram2vtx.ab2b == LOs({5, 8, 7, 6, 4}));
   }
   else if (num_vertex == 7) {
     //tet on wedge
-    OMEGA_H_CHECK(tet2edge.ab2b == LOs({9, 10, 11, 3, 6, 8})); 
-    OMEGA_H_CHECK(tet2vtx.ab2b == LOs({4, 5, 6, 3})); 
-    OMEGA_H_CHECK(wedge2edge.ab2b == LOs({0, 4, 1, 2, 5, 7, 9, 10, 11}));
-    OMEGA_H_CHECK(wedge2vtx.ab2b == LOs({0, 1, 2, 4, 5, 6})); 
+    OMEGA_H_CHECK(tet2edge.ab2b == LOs({9, 10, 11, 3, 8, 6})); 
+    OMEGA_H_CHECK(tet2vtx.ab2b == LOs({4, 6, 5, 3})); 
+    OMEGA_H_CHECK(wedge2edge.ab2b == LOs({1, 4, 0, 2, 7, 5, 9, 10, 11}));
+    OMEGA_H_CHECK(wedge2vtx.ab2b == LOs({0, 2, 1, 4, 6, 5})); 
   }
 }
 
