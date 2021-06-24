@@ -980,6 +980,31 @@ void Mesh::swap_root_owner(Int dim) {
   this->set_owners(dim, Remotes(LOs(owner_ranks_w), LOs(owner_idxs_w)));
   this->set_matches(dim, 
     c_Remotes(leaf_idxs_r, LOs(root_idxs_w), LOs(root_ranks_w)));
+  return;
+}
+
+void Mesh::balance(Reals weights) {
+  OMEGA_H_TIME_FUNCTION;
+  if (comm_->size() == 1) return;
+  set_parting(OMEGA_H_ELEM_BASED);
+  inertia::Rib hints;
+  if (rib_hints_) hints = *rib_hints_;
+  auto ecoords =
+      average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
+  if (dim() < 3) ecoords = resize_vectors(ecoords, dim(), 3);
+  Real abs_tol;
+  abs_tol = max2(0.0, get_max(comm_, weights));
+  abs_tol *= 2.0;
+  auto owners = ask_owners(dim());
+  recursively_bisect(comm(), abs_tol, &ecoords, &weights, &owners, &hints);
+  rib_hints_ = std::make_shared<inertia::Rib>(hints);
+  auto unsorted_new2owners = Dist(comm_, owners, nelems());
+  auto owners2new = unsorted_new2owners.invert();
+  auto owner_globals = this->globals(dim());
+  owners2new.set_dest_globals(owner_globals);
+  auto sorted_new2owners = owners2new.invert();
+  migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
+  return;
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {

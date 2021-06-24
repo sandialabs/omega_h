@@ -289,6 +289,7 @@ class Mesh {
   void set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting_in, bool verbose = false);
   void balance(bool predictive = false);
+  void balance(Reals weights);
   Graph ask_graph(Int from, Int to);
   template <typename T>
   Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
