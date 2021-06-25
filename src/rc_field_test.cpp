@@ -57,6 +57,11 @@ void run_adapt (Mesh* mesh, char const* vtk_path) {
   Now t0 = now();
   while (approach_metric (mesh, opts)) {
     adapt (mesh, opts);
+/*
+    auto field_rc_read = mesh->get_rcField_array<Real>(3, "field");
+    OMEGA_H_CHECK(field_rc_read == Reals(mesh->nents(3), 100));
+    std::cout << "pass_check\n";
+*/
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
     if (vtk_path) writer.write();
   }
@@ -104,7 +109,7 @@ void test_3d(Library *lib, const std::string &mesh_file,
              const char* out_file) {
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
-
+/*
   auto face_22_rc = mesh.ask_revClass (2, LOs({22}));
   auto face_22_rc_ids = face_22_rc.ab2b; 
   Write<Real> vals_f_22 (face_22_rc_ids.size(), 50);
@@ -115,7 +120,7 @@ void test_3d(Library *lib, const std::string &mesh_file,
   binary::read ("box3d_withFace22Field.osh", lib->world(), &new_mesh);
   auto vals_f_22_read = new_mesh.get_rcField_array<Real>(2, "face_22");
   OMEGA_H_CHECK(vals_f_22_read == Reals(vals_f_22));
-
+*/
   auto vert_rc_ids = (mesh.ask_revClass(0)).ab2b;
   auto nbvert = vert_rc_ids.size();
   auto edge_rc_ids = (mesh.ask_revClass(1)).ab2b;
