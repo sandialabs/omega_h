@@ -35,9 +35,6 @@ Mesh read(filesystem::path const& mesh, filesystem::path const& model,
           CommPtr comm);
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& model,
                CommPtr comm, Mesh *mesh, I8 is_in);
-void call_print(LOs a);
-void print_owners(Remotes owners, int rank);
-void print_matches(c_Remotes matches, int rank, int d);
 }  // namespace meshsim
 #endif
 

@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
   auto nparts_in = 1;//input distributed mesh not implemented
 
   if (!cmdline.parse_final(world, &argc, argv)) return -1;
-  auto mesh_in = cmdline.get<std::string>("mesh-in");
-  auto model_in = cmdline.get<std::string>("model-in");
+  auto mesh_in = cmdline.get<std::string>("matched-simmodsuite-mesh-in");
+  auto model_in = cmdline.get<std::string>("simmodsuite-geomsim-model-in");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
   auto nparts_out = cmdline.get<int>("nparts_out");
   auto mesh = Omega_h::Mesh(&lib);

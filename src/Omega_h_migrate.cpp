@@ -449,7 +449,7 @@ void migrate_mesh(
     push_ents(
         mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
 
-    if ((mesh->is_periodic() > 0) && (d < dim)) {
+    if ((mesh->is_matched() > 0) && (d < dim)) {
       migrate_matches(mesh, &new_mesh, d, &old_owners2new_ents);
     }
 
@@ -462,7 +462,7 @@ void migrate_mesh(
   push_ents(
       mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
 
-  if (mesh->is_periodic() > 0) {
+  if (mesh->is_matched() > 0) {
     migrate_matches(mesh, &new_mesh, VERT, &old_owners2new_ents);
   }
 

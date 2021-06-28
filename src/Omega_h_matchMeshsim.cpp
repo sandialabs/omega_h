@@ -1,20 +1,16 @@
 #include "Omega_h_file.hpp"
-
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
-
-#include "Omega_h_for.hpp"
+#include "Omega_h_array_ops.hpp"
 
 #include "MeshSim.h"
 #include "SimModel.h"
 #include "SimUtil.h"
 
 #include <fstream>
-
-#include "Omega_h_array_ops.hpp"
 
 namespace {
   int classId(pEntity e) {
@@ -26,6 +22,7 @@ namespace {
   int classType(pEntity e) {
     pGEntity g = EN_whatIn(e);
     assert(g);
+    assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
     return GEN_type(g);
   }
 }
@@ -33,57 +30,6 @@ namespace {
 namespace Omega_h {
 
 namespace meshsim {
-
-void print_matches(c_Remotes matches_in, int rank, int d) {
-  fprintf(stderr, "\n");
-  auto root_ranks = matches_in.root_ranks;
-  auto root_idxs = matches_in.root_idxs;
-  auto leaf_idxs = matches_in.leaf_idxs;
-  auto root_ranks_w = Write<LO> (root_ranks.size());
-  auto root_idxs_w = Write<LO> (root_idxs.size());
-  auto leaf_idxs_w = Write<LO> (leaf_idxs.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    root_ranks_w[i] = root_ranks[i];
-    root_idxs_w[i] = root_idxs[i];
-    leaf_idxs_w[i] = leaf_idxs[i];
-  };  
-  parallel_for(leaf_idxs.size(), r2w);
-  auto root_ranks_host = HostWrite<LO>(root_ranks_w);
-  auto root_idxs_host = HostWrite<LO>(root_idxs_w);
-  auto leaf_idxs_host = HostWrite<LO>(leaf_idxs_w);
-  fprintf(stderr, "On rank %d, for dim = %d\n", rank, d);
-  for (int i=0; i<leaf_idxs_host.size(); ++i) {
-    fprintf(stderr, "leaf id %d, root id %d, root rank %d\n", leaf_idxs_host[i],
-            root_idxs_host[i], root_ranks_host[i]);
-  };  
-  fprintf(stderr, "\n");
-  fprintf(stderr, "\n");
-  return;
-}
-
-void print_owners(Remotes owners, int rank) {
-  fprintf(stderr, "\n");
-  auto ranks = owners.ranks;
-  auto idxs = owners.idxs;
-  auto ranks_w = Write<LO> (ranks.size());
-  auto idxs_w = Write<LO> (idxs.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    ranks_w[i] = ranks[i];
-    idxs_w[i] = idxs[i];
-  };  
-  parallel_for(idxs.size(), r2w);
-  auto ranks_host = HostWrite<LO>(ranks_w);
-  auto idxs_host = HostWrite<LO>(idxs_w);
-  fprintf(stderr, "On rank %d\n", rank);
-  for (int i=0; i<idxs_host.size(); ++i) {
-    fprintf(stderr, "owner of %d, is on rank %d, with LId %d\n", i, ranks_host[i], idxs_host[i]);
-  };  
-  fprintf(stderr, "\n");
-  fprintf(stderr, "\n");
-  return;
-}
-
-
 
 void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pMesh m = sm;
@@ -279,7 +225,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   ent_class_ids[1].reserve(numEdges);
   EIter edges = M_edgeIter(m);
   pEdge edge;
-  count_matched = 0;
   while ((edge = (pEdge) EIter_next(edges))) {
     for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge, j);
@@ -298,7 +243,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
       while ((match = (pEdge)PList_next(matches, &iterM))) {
         if (EN_id(match) != EN_id(edge)) {
           ++count_matches;
-          ++count_matched;
           if (count_matches > 1) {
             Omega_h_fail("Error:matches per entity > 1\n");
           }
@@ -317,7 +261,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   ent_class_ids[2].reserve(numFaces);
   FIter faces = M_faceIter(m);
   pFace face;
-  count_matched = 0;
   while ((face = (pFace) FIter_next(faces))) {
     pPList verts = F_vertices(face,1);
     assert(PList_size(verts) == 3);
@@ -338,7 +281,6 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
         if ((PList_size(matches)>1) && (EN_id(match) != EN_id(face))) {
 
           ++count_matches;
-          ++count_matched;
           if (count_matches > 1) {
             Omega_h_fail("Error:matches per entity > 1\n");
           }
@@ -464,7 +406,7 @@ void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
 
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm, Mesh *mesh, I8 is_in) {
-  mesh->set_periodic(1);
+  mesh->set_matched(1);
   if (is_in) {
     MS_init();
     SimModel_start();

@@ -4,48 +4,31 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
-
-#include "Omega_h_for.hpp"
 #include "Omega_h_adj.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
 #include "SimUtil.h"
-
 #include "SimDiscrete.h"
+
+namespace {
+  int classId(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    return GEN_tag(g);
+  }
+
+  int classType(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
+    return GEN_type(g);
+  }
+}
 
 namespace Omega_h {
 
 namespace meshsim {
-
-int classId(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  return GEN_tag(g);
-}
-
-int classType(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
-  return GEN_type(g);
-}
-
-void call_print(LOs a) {
-  fprintf(stderr, "\n");
-  auto a_w = Write<LO> (a.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    a_w[i] = a[i];
-  };
-  parallel_for(a.size(), r2w);
-  auto a_host = HostWrite<LO>(a_w);
-  for (int i=0; i<a_host.size(); ++i) {
-    fprintf(stderr, " %d,", a_host[i]);
-  };
-  fprintf(stderr, "\n");
-  fprintf(stderr, "\n");
-  return;
-}
 
 void read_internal(pMesh m, Mesh* mesh) {
 

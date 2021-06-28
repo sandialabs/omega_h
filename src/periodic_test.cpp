@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
     };
     Omega_h::parallel_for(leaf_ids.size(), fill_tag);
     mesh.set_tag<Omega_h::Real>(0, "gravity", Omega_h::Reals(gravityArray));
-    mesh.sync_tag_periodic(0, "gravity");
+    mesh.sync_tag_matched(0, "gravity");
 
     auto tag_out = mesh.get_array<Omega_h::Real>(0, "gravity");
     auto check_tag = OMEGA_H_LAMBDA (Omega_h::LO i) {

@@ -30,7 +30,7 @@ Mesh::Mesh() {
   parting_ = -1;
   nghost_layers_ = -1;
   library_ = nullptr;
-  periodic_ = -1;
+  matched_ = -1;
 }
 
 Mesh::Mesh(Library* library_in) : Mesh() { set_library(library_in); }
@@ -76,7 +76,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
 
 void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
 
-void Mesh::set_periodic(I8 is_periodic) { periodic_ = is_periodic; }
+void Mesh::set_matched(I8 is_matched) { matched_ = is_matched; }
 
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
@@ -952,7 +952,7 @@ void Mesh::balance(bool predictive) {
 }
 
 void Mesh::swap_root_owner(Int dim) {
-  OMEGA_H_CHECK(this->is_periodic());
+  OMEGA_H_CHECK(this->is_matched());
   auto matches = this->get_matches(dim);
   auto leaf_idxs_r = matches.leaf_idxs;
   auto root_idxs_r = matches.root_idxs;
@@ -1027,7 +1027,7 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 }
 
 template <typename T>
-Read<T> Mesh::sync_array_periodic(Int ent_dim, Read<T> a, Int width) {
+Read<T> Mesh::sync_array_matched(Int ent_dim, Read<T> a, Int width) {
   if (!could_be_shared(ent_dim)) return a;
   swap_root_owner(ent_dim);
   return ask_dist(ent_dim).invert().exch(a, width);
@@ -1094,33 +1094,33 @@ void Mesh::sync_tag(Int ent_dim, std::string const& name) {
     }
   }
 }
-void Mesh::sync_tag_periodic(Int ent_dim, std::string const& name) {
+void Mesh::sync_tag_matched(Int ent_dim, std::string const& name) {
   auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
       auto out =
-          sync_array_periodic(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
+          sync_array_matched(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       swap_root_owner(ent_dim);
       break;
     }
     case OMEGA_H_I32: {
       auto out =
-          sync_array_periodic(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
+          sync_array_matched(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       swap_root_owner(ent_dim);
       break;
     }
     case OMEGA_H_I64: {
       auto out =
-          sync_array_periodic(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
+          sync_array_matched(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       swap_root_owner(ent_dim);
       break;
     }
     case OMEGA_H_F64: {
       auto out =
-          sync_array_periodic(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
+          sync_array_matched(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       swap_root_owner(ent_dim);
       break;
@@ -1196,8 +1196,8 @@ Mesh Mesh::copy_meta() const {
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
   m.class_sets = this->class_sets;
-  if (this->periodic_ > 0) {
-    m.periodic_ = this->periodic_;
+  if (this->matched_ > 0) {
+    m.matched_ = this->matched_;
     for (LO d = 0; d<DIMS; ++d) {
       m.model_ents_[d] = this->model_ents_[d];
       m.model_matches_[d] = this->model_matches_[d];
