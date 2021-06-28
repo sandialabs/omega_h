@@ -181,7 +181,7 @@ void Mesh::change_tagTorc(Int ent_dim, Int ncomps, std::string const &name,
   auto n_bEnts = rc_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
   if ((ent_dim == 3) && (n_bEnts != nents(ent_dim))) {
-    Omega_h_fail("Is model multi region?\n");
+    fprintf(stderr, "multiple model regions\n");
   }
 
   auto f = OMEGA_H_LAMBDA(LO i) {
@@ -210,7 +210,7 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name,
   if (class_ids.exists()) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
   if ((ent_dim == 3) && (n_bEnts != n_ents)) {
-    Omega_h_fail("Is model multi region?\n");
+    fprintf(stderr, "multiple model regions\n");
   }
 
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
