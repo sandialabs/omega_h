@@ -16,6 +16,20 @@
 
 #include "Omega_h_array_ops.hpp"
 
+namespace {
+  int classId(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    return GEN_tag(g);
+  }
+
+  int classType(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    return GEN_type(g);
+  }
+}
+
 namespace Omega_h {
 
 namespace meshsim {
@@ -69,17 +83,7 @@ void print_owners(Remotes owners, int rank) {
   return;
 }
 
-int classId(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  return GEN_tag(g);
-}
 
-int classType(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  return GEN_type(g);
-}
 
 void read_matchInternal(pMesh sm, Mesh* mesh, pGModel g, CommPtr comm) {
   pMesh m = sm;
