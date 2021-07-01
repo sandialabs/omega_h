@@ -20,6 +20,16 @@ Remotes identity_remotes(CommPtr comm, LO n);
 Remotes owners_from_globals(
     CommPtr comm, Read<GO> globals, Read<I32> own_ranks);
 
+struct c_Remotes {
+  c_Remotes() {}
+  c_Remotes(LOs leaf_idxs_, LOs root_idxs_, Read<I32> root_ranks_) :
+            leaf_idxs(leaf_idxs_), root_idxs(root_idxs_),
+            root_ranks(root_ranks_) {}
+  LOs leaf_idxs;
+  LOs root_idxs;
+  Read<I32> root_ranks;
+};
+
 }  // end namespace Omega_h
 
 #endif

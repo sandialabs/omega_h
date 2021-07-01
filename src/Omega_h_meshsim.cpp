@@ -4,48 +4,31 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
-
-#include "Omega_h_for.hpp"
 #include "Omega_h_adj.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
 #include "SimUtil.h"
-
 #include "SimDiscrete.h"
+
+namespace {
+  int classId(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    return GEN_tag(g);
+  }
+
+  int classType(pEntity e) {
+    pGEntity g = EN_whatIn(e);
+    assert(g);
+    assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
+    return GEN_type(g);
+  }
+}
 
 namespace Omega_h {
 
 namespace meshsim {
-
-int classId(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  return GEN_tag(g);
-}
-
-int classType(pEntity e) {
-  pGEntity g = EN_whatIn(e);
-  assert(g);
-  assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
-  return GEN_type(g);
-}
-
-void call_print(LOs a) {
-  printf("\n");
-  auto a_w = Write<LO> (a.size());
-  auto r2w = OMEGA_H_LAMBDA(LO i) {
-    a_w[i] = a[i];
-  };
-  parallel_for(a.size(), r2w);
-  auto a_host = HostWrite<LO>(a_w);
-  for (int i=0; i<a_host.size(); ++i) {
-    printf(" %d,", a_host[i]);
-  };
-  printf("\n");
-  printf("\n");
-  return;
-}
 
 void read_internal(pMesh m, Mesh* mesh) {
 
@@ -80,7 +63,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   bool is_hypercube = 0;
   if (count_hex == 0 && count_wedge == 0 && count_pyramid == 0) is_simplex = 1;
   if (count_tet == 0 && count_wedge == 0 && count_pyramid == 0) is_hypercube = 1;
-  printf("tet=%d, hex=%d, wedge=%d, pyramid=%d\n",
+  fprintf(stderr, "tet=%d, hex=%d, wedge=%d, pyramid=%d\n",
          count_tet, count_hex, count_wedge, count_pyramid);
 
   const int numVtx = M_numVertices(m);
