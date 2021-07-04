@@ -32,6 +32,9 @@ OMEGA_H_INLINE std::string size() { std::ostringstream _oss_; _oss_ << (DBG_COMM
 
 #  define TASK_0_cout if(DBG_COMM && (0 == DBG_COMM->rank())) std::cout
 
+#  define XTRACK() do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << ": P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": :dbg: "; std::cout << _oss_.str() << std::endl; } while(0)
+#  define XTRACK0(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << ": P" << (DBG_COMM ? DBG_COMM->rank() : 0) << ": :dbg: " << #a << ": " << a; std::cout << _oss_.str() << std::endl; } while(0)
+
 #  define TRACK0(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; TASK_0_cout << _oss_.str() << std::endl; } while(0)
 #  define TRACK1(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << a; TASK_0_cout << _oss_.str() << std::endl; } while(0)
 #  define TRACK2(a) do { std::ostringstream _oss_; _oss_ << __FILE__ << ":" << __LINE__ << " :dbg: " << #a << ": " << a; \
