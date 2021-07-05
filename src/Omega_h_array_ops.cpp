@@ -507,7 +507,11 @@ int max_exponent(Reals a) {
     std::frexp(a[i], &expo);
     return expo;
   };
-  return transform_reduce(first, last, init, op, std::move(transform));
+  auto expo = transform_reduce(first, last, init, op, std::move(transform));
+  if (expo == init) {
+    return 0;
+  }
+  return expo;
 }
 
 struct Int128Plus {

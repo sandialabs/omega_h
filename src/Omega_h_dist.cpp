@@ -108,9 +108,6 @@ Dist Dist::invert() const {
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
   ScopedTimer exch_timer("Dist::exch");
-  if (comm_[F]->size() == 1) {
-    return data;
-  }
   if (roots2items_[F].exists()) {
     data = expand(data, roots2items_[F], width);
   }
