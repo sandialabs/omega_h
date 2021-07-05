@@ -40,6 +40,7 @@ class Mesh {
   void set_library(Library* library);
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
+  void set_matched(I8 is_matched);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
@@ -54,6 +55,7 @@ class Mesh {
     return dim_;
   }
   inline Omega_h_Family family() const { return family_; }
+  inline I8 is_matched() const { return matched_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
   Int ent_dim(Topo_type ent_type) const;
@@ -125,7 +127,7 @@ class Mesh {
   Graph ask_star(Int dim);
   Graph ask_dual();
 
-/* ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
+/** ask_revClass (Int edim, LOs class_ids): takes input of entity dimension
  * 'edim', and an 1d array of model entity IDs to return
  * a CSR structure (Adj) containing IDs of mesh entities classified on the 
  * requested input model entities. Note here that 'edim' is equal to the
@@ -134,13 +136,13 @@ class Mesh {
  */
   Adj ask_revClass (Int edim, LOs class_ids);
 
-/* ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
+/** ask_revClass (Int edim): see ask_revClass (Int edim, LOs class_ids) above.
  * Here, the output is for all model entities of dimension 'edim' instead
  * of a input list
  */
   Adj ask_revClass (Int edim);
 
-/* ask_revClass_downAdj (Int from, Int to): takes input of a higher
+/** ask_revClass_downAdj (Int from, Int to): takes input of a higher
  * dimension 'from' and a lower dimension 'to'. The value of 'from' is equal
  * to the mesh and model entity dimensions used to get reverse class.
  * (similar to 'edim' for ask_revClass functions above.) This function can be
@@ -153,13 +155,13 @@ class Mesh {
  */
   Adj ask_revClass_downAdj (Int from, Int to);
 
-/* has_revClass (Int edim): Input is a entity dimension 'edim'. This function
+/** has_revClass (Int edim): Input is a entity dimension 'edim'. This function
  * checks if the reverse classification for that dimension is present in
  * memory or not.
  */
   bool has_revClass (Int edim) const;
 
-/* Takes input of model entity IDs, entity dimension, name of field and number
+/** Takes input of model entity IDs, entity dimension, name of field and number
  * of components, to create a the rcField. This function
  * is used when fields are to be stored with mesh entities returned by
  * ask_revClass (Int edim, LOs class_ids)
@@ -168,21 +170,21 @@ class Mesh {
   void add_rcField(LOs class_ids, Int ent_dim, std::string const& name,
                    Int ncomps);
 
-/* Takes input of entity dimension, name of rcField, values of rcField, and
+/** Takes input of entity dimension, name of rcField, values of rcField, and
  * stores the values in memory.
  */
   template <typename T>
   void set_rcField_array(Int ent_dim, std::string const& name,
                          Read<T> array);
 
-/* Takes input of entity dimension, name of field and deletes the field
+/** Takes input of entity dimension, name of field and deletes the field
  * information from memory
  */
   void remove_rcField(Int ent_dim, std::string const& name);
 
   Adj get_revClass (Int edim) const;
 
-/* Takes input of entity dimension, name of field and number of components.
+/** Takes input of entity dimension, name of field and number of components.
  * to create a space where the rcField values can be stored. This function
  * is used when fields are to be stored with mesh entities returned by
  * ask_revClass (Int edim)
@@ -241,6 +243,7 @@ class Mesh {
   void react_to_set_tag(Int dim, std::string const& name);
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
+  I8 matched_ = -1;
   Int dim_;
   CommPtr comm_;
   Int parting_;
@@ -257,6 +260,9 @@ class Mesh {
   ParentPtr parents_[DIMS];
   ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
+  Remotes match_owners_[DIMS];
+  LOs model_ents_[DIMS];
+  LOs model_matches_[DIMS-1];
 
   AdjPtr revClass_[DIMS];
 
@@ -283,6 +289,7 @@ class Mesh {
   void set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting_in, bool verbose = false);
   void balance(bool predictive = false);
+  void balance(Reals weights);
   Graph ask_graph(Int from, Int to);
   template <typename T>
   Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
@@ -308,6 +315,20 @@ class Mesh {
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
   Adj derive_revClass (Int edim);
+
+  void set_model_ents(Int ent_dim, LOs Ids); 
+  void set_model_matches(Int ent_dim, LOs matches); 
+  LOs get_model_ents(Int ent_dim); 
+  LOs get_model_matches(Int ent_dim); 
+  void set_match_owners(Int dim, Remotes owners);
+  Remotes ask_match_owners(Int dim);
+  c_Remotes matches_[DIMS];
+  void set_matches(Int dim, c_Remotes matches);
+  c_Remotes get_matches(Int dim);
+  void swap_root_owner(Int dim);
+  void sync_tag_matched(Int dim, std::string const& name);
+  template <typename T>
+  Read<T> sync_array_matched(Int ent_dim, Read<T> a, Int width);
 
  public:
   ClassSets class_sets;

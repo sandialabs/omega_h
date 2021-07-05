@@ -161,6 +161,7 @@ if(Omega_h_USE_SimModSuite)
   find_package(SimModSuite MODULE REQUIRED)
   set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_matchMeshsim.cpp)
 endif()
 
 if(Omega_h_USE_SEACASExodus)
@@ -313,6 +314,7 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 if(Omega_h_USE_SimModSuite)
   osh_add_util(meshsim2osh)
+  osh_add_util(matchMeshsim2osh)
 endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
@@ -358,7 +360,14 @@ if(BUILD_TESTING)
     osh_add_exe(mixed_test)
     set(TEST_EXES ${TEST_EXES} mixed_test)
     test_func(run_mixed_test 1 ./mixed_test
-              ${CMAKE_SOURCE_DIR}/meshes)
+      ${CMAKE_SOURCE_DIR}/meshes)
+
+    osh_add_exe(periodic_test)
+    set(TEST_EXES ${TEST_EXES} periodic_test)
+    test_func(periodic_test 2 ./periodic_test 
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem.sms
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_match.smd
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem_sync_2.osh 2)
   endif()
 
   osh_add_exe(unit_array_algs)
