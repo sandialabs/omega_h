@@ -38,31 +38,12 @@ void fail(char const* format, ...);
 
 #if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
 #  define OMEGA_H_CHECK(cond) assert(cond)
-#    define OMEGA_H_CHECK1(cond)                                                    \
-      ((cond) ? ((void)0)                                                          \
-              : Omega_h::fail(                                                     \
-            "assertion %s failed at %s +%d\n%s\n", #cond, __FILE__, __LINE__, Omega_h::Stacktrace::demangled_stacktrace().c_str()))
 #elif defined(__CUDA_ARCH__)
 #  define OMEGA_H_CHECK(cond) assert(cond)
-#    define OMEGA_H_CHECK1(cond)                                                    \
-      ((cond) ? ((void)0)                                                          \
-              : Omega_h::fail(                                                     \
-            "assertion %s failed at %s +%d\n%s\n", #cond, __FILE__, __LINE__, Omega_h::Stacktrace::demangled_stacktrace().c_str()))
-
 #else
-#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
 #    define OMEGA_H_CHECK(cond)                                                    \
       ((cond) ? ((void)0)                                                          \
-              : Omega_h::fail(                                                     \
-            "assertion %s failed at %s +%d\n%s\n", #cond, __FILE__, __LINE__, Omega_h::Stacktrace::demangled_stacktrace().c_str()))
-#    define OMEGA_H_CHECK1(cond) OMEGA_H_CHECK(cond)
-#  else
-#    define OMEGA_H_CHECK(cond)                                                    \
-      ((cond) ? ((void)0)                                                          \
-              : Omega_h::fail(                                                     \
-                    "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
-#    define OMEGA_H_CHECK1(cond) OMEGA_H_CHECK(cond)
-#  endif
+       : Omega_h::fail("assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
 #ifndef NDEBUG
@@ -70,11 +51,11 @@ void fail(char const* format, ...);
     if (!(cond)) std::cout << "ERROR: " << a << std::endl;  \
     OMEGA_H_CHECK(cond) ;                                   \
   } while(0)
-#  define OMEGA_H_CHECK_PRINTF(cond, format, ...) do { \
-    if (!(cond)) {                                  \
-      std::printf("ERROR: " format "\n", __VA_ARGS__);   \
-    }                                               \
-    OMEGA_H_CHECK(cond) ;                           \
+#  define OMEGA_H_CHECK_PRINTF(cond, format, ...) do {  \
+    if (!(cond)) {                                      \
+      std::printf("ERROR: " format "\n", __VA_ARGS__);  \
+    }                                                   \
+    OMEGA_H_CHECK(cond) ;                               \
   } while(0)
 #  define OMEGA_H_CHECK_OP(l,op,r) do {                                 \
     if (!((l) op (r))) {                                                \
@@ -83,10 +64,9 @@ void fail(char const* format, ...);
     OMEGA_H_CHECK((l) op (r));                                          \
   } while(0)
 #  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
-#    define OMEGA_H_CHECK_OP_1(l,op,r)                               \
+#    define OMEGA_H_CHECK_OP_1(l,op,r)                                  \
   ((!((l) op (r))) ? ((void)0)                                          \
-              : Omega_h::fail(                                                     \
-     "assertion %s %s %s [%d %s %d] failed at %s +%d\n%s\n", #l, #op, #r, l, #op, r, __FILE__, __LINE__, Omega_h::Stacktrace::demangled_stacktrace().c_str()))
+   : Omega_h::fail("assertion %s %s %s [%d %s %d] failed at %s +%d\n%s\n", #l, #op, #r, l, #op, r, __FILE__, __LINE__))
 #  endif
 
 #else // NDEBUG
