@@ -59,12 +59,56 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   RIter_delete(regions);
 
+  FIter faces = M_faceIter(m);
+  pFace face;
+  int count_tri = 0;
+  int count_quad = 0;
+  while ((face = (pFace) FIter_next(faces))) {
+    if (F_numEdges(face) == 3) {
+      count_tri += 1;
+    }
+    else if (F_numEdges(face) == 4) {
+      count_quad += 1;
+    }
+    else {
+      Omega_h_fail ("Face is neither tri nor quad \n");
+    }
+  }
+  FIter_delete(faces);
+
   bool is_simplex = 0;
   bool is_hypercube = 0;
-  if (count_hex == 0 && count_wedge == 0 && count_pyramid == 0) is_simplex = 1;
-  if (count_tet == 0 && count_wedge == 0 && count_pyramid == 0) is_hypercube = 1;
+  if (count_hex == 0 && count_wedge == 0 && count_pyramid == 0) {
+    if (count_tet == 0) {
+      if (count_tri > 0) {
+        is_simplex = 1;
+      }
+    }
+    else if (count_tet > 0) {
+      is_simplex = 1;
+    }
+    else {
+      Omega_h_fail ("Invaild topology type\n");
+    }
+  }
+
+  if (count_tet == 0 && count_wedge == 0 && count_pyramid == 0) {
+    if (count_hex == 0) {
+      if (count_quad > 0) {
+        is_hypercube = 1;
+      }
+    }
+    else if (count_hex > 0) {
+      is_hypercube = 1;
+    }
+    else {
+      Omega_h_fail ("Invaild topology type\n");
+    }
+  }
+
   fprintf(stderr, "tet=%d, hex=%d, wedge=%d, pyramid=%d\n",
          count_tet, count_hex, count_wedge, count_pyramid);
+  fprintf(stderr, "tri=%d, quad=%d\n", count_tri, count_quad);
 
   const int numVtx = M_numVertices(m);
   const int numEdges = M_numEdges(m);
@@ -193,23 +237,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     mesh->add_tag<I8>(Topo_type::edge, "class_dim", 1,
                       Read<I8>(host_class_dim_edge.write()));
   }
-
-  FIter faces = M_faceIter(m);
-  pFace face;
-  int count_tri = 0;
-  int count_quad = 0;
-  while ((face = (pFace) FIter_next(faces))) {
-    if (F_numEdges(face) == 3) {
-      count_tri += 1;
-    }
-    else if (F_numEdges(face) == 4) {
-      count_quad += 1;
-    }
-    else {
-      Omega_h_fail ("Face is neither tri nor quad \n");
-    }
-  }
-  FIter_delete(faces);
 
   face_vertices[0].reserve(count_tri*3);
   face_vertices[1].reserve(count_quad*4);
@@ -346,236 +373,239 @@ void read_internal(pMesh m, Mesh* mesh) {
                       Read<I8>(host_class_dim_quad.write()));
   }
 
-  rgn_vertices[0].reserve(count_tet*4);
-  rgn_vertices[1].reserve(count_hex*8);
-  rgn_vertices[2].reserve(count_wedge*6);
-  rgn_vertices[3].reserve(count_pyramid*5);
-  std::vector<int> rgn_class_ids[4];
-  std::vector<int> rgn_class_dim[4];
-  rgn_class_ids[0].reserve(count_tet);
-  rgn_class_dim[0].reserve(count_tet);
-  rgn_class_ids[1].reserve(count_hex);
-  rgn_class_dim[1].reserve(count_hex);
-  rgn_class_ids[2].reserve(count_wedge);
-  rgn_class_dim[2].reserve(count_wedge);
-  rgn_class_ids[3].reserve(count_pyramid);
-  rgn_class_dim[3].reserve(count_pyramid);
+  if (!(count_tet == 0 && count_hex == 0 && count_wedge == 0 && 
+        count_pyramid == 0)) {
+    rgn_vertices[0].reserve(count_tet*4);
+    rgn_vertices[1].reserve(count_hex*8);
+    rgn_vertices[2].reserve(count_wedge*6);
+    rgn_vertices[3].reserve(count_pyramid*5);
+    std::vector<int> rgn_class_ids[4];
+    std::vector<int> rgn_class_dim[4];
+    rgn_class_ids[0].reserve(count_tet);
+    rgn_class_dim[0].reserve(count_tet);
+    rgn_class_ids[1].reserve(count_hex);
+    rgn_class_dim[1].reserve(count_hex);
+    rgn_class_ids[2].reserve(count_wedge);
+    rgn_class_dim[2].reserve(count_wedge);
+    rgn_class_ids[3].reserve(count_pyramid);
+    rgn_class_dim[3].reserve(count_pyramid);
 
-  regions = M_regionIter(m);
-  while ((rgn = (pRegion) RIter_next(regions))) {
-    if (R_topoType(rgn) == Rtet) {
-      pVertex vert;
-      pPList verts = R_vertices(rgn,1);
-      assert (PList_size(verts) == 4);
-      void *iter = 0;
-      while ((vert = (pVertex) PList_next(verts, &iter))) {
-        rgn_vertices[0].push_back(EN_id(vert));
+    regions = M_regionIter(m);
+    while ((rgn = (pRegion) RIter_next(regions))) {
+      if (R_topoType(rgn) == Rtet) {
+        pVertex vert;
+        pPList verts = R_vertices(rgn,1);
+        assert (PList_size(verts) == 4);
+        void *iter = 0;
+        while ((vert = (pVertex) PList_next(verts, &iter))) {
+          rgn_vertices[0].push_back(EN_id(vert));
+        }
+        PList_delete(verts);
+        rgn_class_ids[0].push_back(classId(rgn));
+        rgn_class_dim[0].push_back(classType(rgn));
       }
-      PList_delete(verts);
-      rgn_class_ids[0].push_back(classId(rgn));
-      rgn_class_dim[0].push_back(classType(rgn));
+      else if (R_topoType(rgn) == Rhex) {
+        pVertex vert;
+        pPList verts = R_vertices(rgn,1);
+        assert (PList_size(verts) == 8);
+        void *iter = 0;
+        while ((vert = (pVertex) PList_next(verts, &iter))) {
+          rgn_vertices[1].push_back(EN_id(vert));
+        }
+        PList_delete(verts);
+        rgn_class_ids[1].push_back(classId(rgn));
+        rgn_class_dim[1].push_back(classType(rgn));
+      }
+      else if (R_topoType(rgn) == Rwedge) {
+        pVertex vert;
+        pPList verts = R_vertices(rgn,1);
+        assert (PList_size(verts) == 6);
+        void *iter = 0;
+        while ((vert = (pVertex) PList_next(verts, &iter))) {
+          rgn_vertices[2].push_back(EN_id(vert));
+        }
+        PList_delete(verts);
+        rgn_class_ids[2].push_back(classId(rgn));
+        rgn_class_dim[2].push_back(classType(rgn));
+      }
+      else if (R_topoType(rgn) == Rpyramid) {
+        pVertex vert;
+        pPList verts = R_vertices(rgn,1);
+        assert (PList_size(verts) == 5);
+        void *iter = 0;
+        while ((vert = (pVertex) PList_next(verts, &iter))) {
+          rgn_vertices[3].push_back(EN_id(vert));
+        }
+        PList_delete(verts);
+        rgn_class_ids[3].push_back(classId(rgn));
+        rgn_class_dim[3].push_back(classType(rgn));
+      }
+      else {
+        Omega_h_fail ("Region is not tet, hex, wedge, or pyramid \n");
+      }
+      ent_class_ids[3].push_back(classId(rgn));
+      ent_class_dim[3].push_back(classType(rgn));
     }
-    else if (R_topoType(rgn) == Rhex) {
-      pVertex vert;
-      pPList verts = R_vertices(rgn,1);
-      assert (PList_size(verts) == 8);
-      void *iter = 0;
-      while ((vert = (pVertex) PList_next(verts, &iter))) {
-        rgn_vertices[1].push_back(EN_id(vert));
-      }
-      PList_delete(verts);
-      rgn_class_ids[1].push_back(classId(rgn));
-      rgn_class_dim[1].push_back(classType(rgn));
+    RIter_delete(regions);
+
+    HostWrite<LO> host_class_ids_rgn(numRegions);
+    HostWrite<I8> host_class_dim_rgn(numRegions);
+    for (int i = 0; i < numRegions; ++i) {
+      host_class_ids_rgn[i] = ent_class_ids[3][static_cast<std::size_t>(i)];
+      host_class_dim_rgn[i] = ent_class_dim[3][static_cast<std::size_t>(i)];
     }
-    else if (R_topoType(rgn) == Rwedge) {
-      pVertex vert;
-      pPList verts = R_vertices(rgn,1);
-      assert (PList_size(verts) == 6);
-      void *iter = 0;
-      while ((vert = (pVertex) PList_next(verts, &iter))) {
-        rgn_vertices[2].push_back(EN_id(vert));
-      }
-      PList_delete(verts);
-      rgn_class_ids[2].push_back(classId(rgn));
-      rgn_class_dim[2].push_back(classType(rgn));
+    HostWrite<LO> host_class_ids_tet(count_tet);
+    HostWrite<I8> host_class_dim_tet(count_tet);
+    for (int i = 0; i < count_tet; ++i) {
+      host_class_ids_tet[i] = rgn_class_ids[0][static_cast<std::size_t>(i)];
+      host_class_dim_tet[i] = rgn_class_dim[0][static_cast<std::size_t>(i)];
     }
-    else if (R_topoType(rgn) == Rpyramid) {
-      pVertex vert;
-      pPList verts = R_vertices(rgn,1);
-      assert (PList_size(verts) == 5);
-      void *iter = 0;
-      while ((vert = (pVertex) PList_next(verts, &iter))) {
-        rgn_vertices[3].push_back(EN_id(vert));
-      }
-      PList_delete(verts);
-      rgn_class_ids[3].push_back(classId(rgn));
-      rgn_class_dim[3].push_back(classType(rgn));
+    HostWrite<LO> host_class_ids_hex(count_hex);
+    HostWrite<I8> host_class_dim_hex(count_hex);
+    for (int i = 0; i < count_hex; ++i) {
+      host_class_ids_hex[i] = rgn_class_ids[1][static_cast<std::size_t>(i)];
+      host_class_dim_hex[i] = rgn_class_dim[1][static_cast<std::size_t>(i)];
+    }
+    HostWrite<LO> host_class_ids_wedge(count_wedge);
+    HostWrite<I8> host_class_dim_wedge(count_wedge);
+    for (int i = 0; i < count_wedge; ++i) {
+      host_class_ids_wedge[i] = rgn_class_ids[2][static_cast<std::size_t>(i)];
+      host_class_dim_wedge[i] = rgn_class_dim[2][static_cast<std::size_t>(i)];
+    }
+    HostWrite<LO> host_class_ids_pyramid(count_pyramid);
+    HostWrite<I8> host_class_dim_pyramid(count_pyramid);
+    for (int i = 0; i < count_pyramid; ++i) {
+      host_class_ids_pyramid[i] = rgn_class_ids[3][static_cast<std::size_t>(i)];
+      host_class_dim_pyramid[i] = rgn_class_dim[3][static_cast<std::size_t>(i)];
+    }
+
+    Adj tri2vert;
+    Adj vert2tri;
+    Adj quad2vert;
+    Adj vert2quad;
+    if (is_simplex) {
+      tri2vert = mesh->ask_down(2, 0);
+      vert2tri = mesh->ask_up(0, 2);
+    }
+    else if (is_hypercube) {
+      quad2vert = mesh->ask_down(2, 0);
+      vert2quad = mesh->ask_up(0, 2);
     }
     else {
-      Omega_h_fail ("Region is not tet, hex, wedge, or pyramid \n");
+      tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+      vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
+      quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
+      vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
     }
-    ent_class_ids[3].push_back(classId(rgn));
-    ent_class_dim[3].push_back(classType(rgn));
-  }
-  RIter_delete(regions);
-  
-  HostWrite<LO> host_class_ids_rgn(numRegions);
-  HostWrite<I8> host_class_dim_rgn(numRegions);
-  for (int i = 0; i < numRegions; ++i) {
-    host_class_ids_rgn[i] = ent_class_ids[3][static_cast<std::size_t>(i)];
-    host_class_dim_rgn[i] = ent_class_dim[3][static_cast<std::size_t>(i)];
-  }
-  HostWrite<LO> host_class_ids_tet(count_tet);
-  HostWrite<I8> host_class_dim_tet(count_tet);
-  for (int i = 0; i < count_tet; ++i) {
-    host_class_ids_tet[i] = rgn_class_ids[0][static_cast<std::size_t>(i)];
-    host_class_dim_tet[i] = rgn_class_dim[0][static_cast<std::size_t>(i)];
-  }
-  HostWrite<LO> host_class_ids_hex(count_hex);
-  HostWrite<I8> host_class_dim_hex(count_hex);
-  for (int i = 0; i < count_hex; ++i) {
-    host_class_ids_hex[i] = rgn_class_ids[1][static_cast<std::size_t>(i)];
-    host_class_dim_hex[i] = rgn_class_dim[1][static_cast<std::size_t>(i)];
-  }
-  HostWrite<LO> host_class_ids_wedge(count_wedge);
-  HostWrite<I8> host_class_dim_wedge(count_wedge);
-  for (int i = 0; i < count_wedge; ++i) {
-    host_class_ids_wedge[i] = rgn_class_ids[2][static_cast<std::size_t>(i)];
-    host_class_dim_wedge[i] = rgn_class_dim[2][static_cast<std::size_t>(i)];
-  }
-  HostWrite<LO> host_class_ids_pyramid(count_pyramid);
-  HostWrite<I8> host_class_dim_pyramid(count_pyramid);
-  for (int i = 0; i < count_pyramid; ++i) {
-    host_class_ids_pyramid[i] = rgn_class_ids[3][static_cast<std::size_t>(i)];
-    host_class_dim_pyramid[i] = rgn_class_dim[3][static_cast<std::size_t>(i)];
-  }
 
-  Adj tri2vert;
-  Adj vert2tri;
-  Adj quad2vert;
-  Adj vert2quad;
-  if (is_simplex) {
-    tri2vert = mesh->ask_down(2, 0);
-    vert2tri = mesh->ask_up(0, 2);
-  }
-  else if (is_hypercube) {
-    quad2vert = mesh->ask_down(2, 0);
-    vert2quad = mesh->ask_up(0, 2);
-  }
-  else {
-    tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
-    vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
-    quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
-    vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
-  }
-
-  HostWrite<LO> host_tet2verts(count_tet*4);
-  for (Int i = 0; i < count_tet; ++i) {
-    for (Int j = 0; j < 4; ++j) {
-      host_tet2verts[i*4 + j] =
+    HostWrite<LO> host_tet2verts(count_tet*4);
+    for (Int i = 0; i < count_tet; ++i) {
+      for (Int j = 0; j < 4; ++j) {
+        host_tet2verts[i*4 + j] =
           rgn_vertices[0][static_cast<std::size_t>(i*4 + j)];
+      }
     }
-  }
-  auto tet2verts = Read<LO>(host_tet2verts.write());
-  if (is_simplex) {
-    down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
-                        OMEGA_H_SIMPLEX, 3, 2);
-    mesh->set_ents(3, down);
-    mesh->add_tag<ClassId>(3, "class_id", 1,
-                           Read<ClassId>(host_class_ids_rgn.write()));
-    mesh->add_tag<I8>(3, "class_dim", 1,
-                      Read<I8>(host_class_dim_rgn.write()));
-  }
-  else if (is_hypercube) {
-    //empty to avoid dropping into the 'else'
-  }
-  else {
-    down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
-                        Topo_type::tetrahedron, Topo_type::triangle);
-    mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, down);
-    mesh->add_tag<ClassId>(Topo_type::tetrahedron, "class_id", 1,
-                           Read<ClassId>(host_class_ids_tet.write()));
-    mesh->add_tag<I8>(Topo_type::tetrahedron, "class_dim", 1,
-                      Read<I8>(host_class_dim_tet.write()));
-  }
+    auto tet2verts = Read<LO>(host_tet2verts.write());
+    if (is_simplex) {
+      down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
+          OMEGA_H_SIMPLEX, 3, 2);
+      mesh->set_ents(3, down);
+      mesh->add_tag<ClassId>(3, "class_id", 1,
+          Read<ClassId>(host_class_ids_rgn.write()));
+      mesh->add_tag<I8>(3, "class_dim", 1,
+          Read<I8>(host_class_dim_rgn.write()));
+    }
+    else if (is_hypercube) {
+      //empty to avoid dropping into the 'else'
+    }
+    else {
+      down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri,
+          Topo_type::tetrahedron, Topo_type::triangle);
+      mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, down);
+      mesh->add_tag<ClassId>(Topo_type::tetrahedron, "class_id", 1,
+          Read<ClassId>(host_class_ids_tet.write()));
+      mesh->add_tag<I8>(Topo_type::tetrahedron, "class_dim", 1,
+          Read<I8>(host_class_dim_tet.write()));
+    }
 
-  HostWrite<LO> host_hex2verts(count_hex*8);
-  for (Int i = 0; i < count_hex; ++i) {
-    for (Int j = 0; j < 8; ++j) {
-      host_hex2verts[i*8 + j] =
+    HostWrite<LO> host_hex2verts(count_hex*8);
+    for (Int i = 0; i < count_hex; ++i) {
+      for (Int j = 0; j < 8; ++j) {
+        host_hex2verts[i*8 + j] =
           rgn_vertices[1][static_cast<std::size_t>(i*8 + j)];
+      }
     }
-  }
-  auto hex2verts = Read<LO>(host_hex2verts.write());
-  
-  if (is_hypercube) {
-    down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
-                        OMEGA_H_HYPERCUBE, 3, 2);
-    mesh->set_ents(3, down);
-    mesh->add_tag<ClassId>(3, "class_id", 1,
-                           Read<ClassId>(host_class_ids_rgn.write()));
-    mesh->add_tag<I8>(3, "class_dim", 1,
-                      Read<I8>(host_class_dim_rgn.write()));
-  }
-  else if (is_simplex) {
-    //empty to avoid dropping into the 'else'
-  }
-  else {
-    down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
-                        Topo_type::hexahedron, Topo_type::quadrilateral);
-    mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, down);
-    mesh->add_tag<ClassId>(Topo_type::hexahedron, "class_id", 1,
-                           Read<ClassId>(host_class_ids_hex.write()));
-    mesh->add_tag<I8>(Topo_type::hexahedron, "class_dim", 1,
-                      Read<I8>(host_class_dim_hex.write()));
-  }
+    auto hex2verts = Read<LO>(host_hex2verts.write());
 
-  HostWrite<LO> host_wedge2verts(count_wedge*6);
-  for (Int i = 0; i < count_wedge; ++i) {
-    for (Int j = 0; j < 6; ++j) {
-      host_wedge2verts[i*6 + j] =
+    if (is_hypercube) {
+      down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
+          OMEGA_H_HYPERCUBE, 3, 2);
+      mesh->set_ents(3, down);
+      mesh->add_tag<ClassId>(3, "class_id", 1,
+          Read<ClassId>(host_class_ids_rgn.write()));
+      mesh->add_tag<I8>(3, "class_dim", 1,
+          Read<I8>(host_class_dim_rgn.write()));
+    }
+    else if (is_simplex) {
+      //empty to avoid dropping into the 'else'
+    }
+    else {
+      down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad,
+          Topo_type::hexahedron, Topo_type::quadrilateral);
+      mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, down);
+      mesh->add_tag<ClassId>(Topo_type::hexahedron, "class_id", 1,
+          Read<ClassId>(host_class_ids_hex.write()));
+      mesh->add_tag<I8>(Topo_type::hexahedron, "class_dim", 1,
+          Read<I8>(host_class_dim_hex.write()));
+    }
+
+    HostWrite<LO> host_wedge2verts(count_wedge*6);
+    for (Int i = 0; i < count_wedge; ++i) {
+      for (Int j = 0; j < 6; ++j) {
+        host_wedge2verts[i*6 + j] =
           rgn_vertices[2][static_cast<std::size_t>(i*6 + j)];
+      }
     }
-  }
-  auto wedge2verts = Read<LO>(host_wedge2verts.write());
-  down = reflect_down(wedge2verts, quad2vert.ab2b, vert2quad,
-                      Topo_type::wedge, Topo_type::quadrilateral);
-  if ((!is_simplex) && (!is_hypercube)) {
-    mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, down);
-  }
+    auto wedge2verts = Read<LO>(host_wedge2verts.write());
+    down = reflect_down(wedge2verts, quad2vert.ab2b, vert2quad,
+        Topo_type::wedge, Topo_type::quadrilateral);
+    if ((!is_simplex) && (!is_hypercube)) {
+      mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, down);
+    }
 
-  down = reflect_down(wedge2verts, tri2vert.ab2b, vert2tri,
-                      Topo_type::wedge, Topo_type::triangle);
-  if ((!is_simplex) && (!is_hypercube)) {
-    mesh->set_ents(Topo_type::wedge, Topo_type::triangle, down);
-    mesh->add_tag<ClassId>(Topo_type::wedge, "class_id", 1,
-                           Read<ClassId>(host_class_ids_wedge.write()));
-    mesh->add_tag<I8>(Topo_type::wedge, "class_dim", 1,
-                      Read<I8>(host_class_dim_wedge.write()));
-  }
+    down = reflect_down(wedge2verts, tri2vert.ab2b, vert2tri,
+        Topo_type::wedge, Topo_type::triangle);
+    if ((!is_simplex) && (!is_hypercube)) {
+      mesh->set_ents(Topo_type::wedge, Topo_type::triangle, down);
+      mesh->add_tag<ClassId>(Topo_type::wedge, "class_id", 1,
+          Read<ClassId>(host_class_ids_wedge.write()));
+      mesh->add_tag<I8>(Topo_type::wedge, "class_dim", 1,
+          Read<I8>(host_class_dim_wedge.write()));
+    }
 
-  HostWrite<LO> host_pyramid2verts(count_pyramid*5);
-  for (Int i = 0; i < count_pyramid; ++i) {
-    for (Int j = 0; j < 5; ++j) {
-      host_pyramid2verts[i*5 + j] =
+    HostWrite<LO> host_pyramid2verts(count_pyramid*5);
+    for (Int i = 0; i < count_pyramid; ++i) {
+      for (Int j = 0; j < 5; ++j) {
+        host_pyramid2verts[i*5 + j] =
           rgn_vertices[3][static_cast<std::size_t>(i*5 + j)];
+      }
     }
-  }
-  auto pyramid2verts = Read<LO>(host_pyramid2verts.write());
-  down = reflect_down(pyramid2verts, tri2vert.ab2b, vert2tri,
-                      Topo_type::pyramid, Topo_type::triangle);
-  if ((!is_simplex) && (!is_hypercube)) {
-   mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, down);
-  }
+    auto pyramid2verts = Read<LO>(host_pyramid2verts.write());
+    down = reflect_down(pyramid2verts, tri2vert.ab2b, vert2tri,
+        Topo_type::pyramid, Topo_type::triangle);
+    if ((!is_simplex) && (!is_hypercube)) {
+      mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, down);
+    }
 
-  down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad,
-                      Topo_type::pyramid, Topo_type::quadrilateral);
-  if ((!is_simplex) && (!is_hypercube)) {
-    mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
-    mesh->add_tag<ClassId>(Topo_type::pyramid, "class_id", 1,
-                           Read<ClassId>(host_class_ids_pyramid.write()));
-    mesh->add_tag<I8>(Topo_type::pyramid, "class_dim", 1,
-                      Read<I8>(host_class_dim_pyramid.write()));
+    down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad,
+        Topo_type::pyramid, Topo_type::quadrilateral);
+    if ((!is_simplex) && (!is_hypercube)) {
+      mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
+      mesh->add_tag<ClassId>(Topo_type::pyramid, "class_id", 1,
+          Read<ClassId>(host_class_ids_pyramid.write()));
+      mesh->add_tag<I8>(Topo_type::pyramid, "class_dim", 1,
+          Read<I8>(host_class_dim_pyramid.write()));
+    }
   }
 
   return;
