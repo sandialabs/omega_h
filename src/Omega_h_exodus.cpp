@@ -572,7 +572,8 @@ void write(
   auto h_side_class_dims = HostRead<I8>(side_class_dims);
   std::set<LO> surface_set;
   for (LO i = 0; i < h_side_class_ids.size(); ++i) {
-    if (h_side_class_dims[i] == I8(dim - 1)) {
+    if (h_side_class_dims[i] == I8(dim - 1) &&
+        h_side_class_ids[i] > 0) {
       surface_set.insert(h_side_class_ids[i]);
     }
   }
@@ -624,6 +625,8 @@ void write(
     auto deg = element_degree(mesh->family(), dim, VERT);
     CALL(ex_put_block(
         file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems, deg, 0, 0, 0));
+    std::string block_name = "block_" + std::to_string(block_id);
+    CALL(ex_put_name(file, EX_ELEM_BLOCK, block_id, block_name.c_str()));
     auto block_conn = read(unmap(block_elems2elem, all_conn, deg));
     auto block_conn_ex = add_to_each(block_conn, 1);
     auto h_block_conn = HostRead<LO>(block_conn_ex);
