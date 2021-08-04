@@ -42,7 +42,10 @@ void for_each(
     UnaryFunction f)
 {
   auto const n = last - first;
-  if (n == 0) return;
+  if (n <= 0) return;
+  Omega_h::entering_parallel = true;
+  auto const f2 = std::move(f);
+  Omega_h::entering_parallel = false;
   dim3 const cuda_block(32, 1, 1);
   dim3 const cuda_grid(details::ceildiv(unsigned(n), cuda_block.x), 1, 1);
   std::size_t const shared_memory_bytes = 0;
@@ -51,7 +54,7 @@ void for_each(
     cuda_grid,
     cuda_block,
     shared_memory_bytes,
-    cuda_stream>>>(f, first, last);
+    cuda_stream>>>(f2, first, last);
 }
 
 #else
