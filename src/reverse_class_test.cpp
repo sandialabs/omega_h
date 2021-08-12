@@ -6,6 +6,8 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_timer.hpp"
+
 using namespace Omega_h;
 
 void test_2d(Library *lib, const std::string &mesh_file) {
@@ -58,6 +60,12 @@ void test_3d(Library *lib, const std::string &mesh_file) {
   auto mesh = Mesh(lib);
   binary::read (mesh_file, lib->world(), &mesh);
 
+  Now t0 = now();
+  auto face_rc = mesh.ask_revClass(2);
+  Now t1 = now();
+  std::cout << "faces ask_rc time: " << (t1-t0) << " seconds\n";
+
+  /*
   // test reverse class APIs
   OMEGA_H_CHECK (!mesh.has_revClass(3));
   auto reg_rc = mesh.ask_revClass(3);
@@ -90,6 +98,7 @@ void test_3d(Library *lib, const std::string &mesh_file) {
   auto rc_face2vert = mesh.ask_revClass_downAdj (2, 0);
   auto rc_face2edge = mesh.ask_revClass_downAdj (2, 1);
   auto rc_edge2vert = mesh.ask_revClass_downAdj (1, 0);
+  */
 
   return;
 }
