@@ -125,7 +125,7 @@ Read<I8> find_canonical_jumps(
     auto const e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
   };
-  parallel_for(ne - 1, std::move(f));
+  parallel_for(max2(0, ne - 1), std::move(f));
   if (jumps.size()) jumps.set(jumps.size() - 1, 1);
   return jumps;
 }

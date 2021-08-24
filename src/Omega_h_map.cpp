@@ -215,7 +215,7 @@ LOs invert_funnel(LOs ab2a, LO na) {
       a2ab[a_end + 1] = ab + 1;
     }
   };
-  parallel_for(nab - 1, f, "invert_funnel");
+  parallel_for(max2(0, nab - 1), f, "invert_funnel");
   if (nab) {
     LO a_end = ab2a.get(nab - 1);
     a2ab.set(a_end + 1, nab);
