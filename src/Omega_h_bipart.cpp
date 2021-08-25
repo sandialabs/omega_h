@@ -7,6 +7,7 @@
 namespace Omega_h {
 
 Dist bi_partition(CommPtr comm, Read<I8> marks) {
+  OMEGA_H_CHECK_MSG(comm->size() % 2 == 0, "To use bi_partiion, please run with an even number of MPI ranks.");
   auto halfsize = divide_no_remainder(comm->size(), 2);
   Write<I32> dest_ranks(marks.size());
   Write<LO> dest_idxs(marks.size());
