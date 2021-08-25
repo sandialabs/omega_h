@@ -4,6 +4,7 @@
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_iterator.hpp"
 #include "Omega_h_reduce.hpp"
+#include "Omega_h_dbg.hpp"
 
 namespace Omega_h {
 
@@ -493,16 +494,24 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 */
 
 int max_exponent(Reals a) {
+  auto const init = ArithTraits<int>::min();
+  if (a.size() == 0) {
+    return init;
+  }
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
-  auto const init = ArithTraits<int>::min();
   auto const op = maximum<int>();
   auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
+    if (a[i] == 0.0) return init;
     std::frexp(a[i], &expo);
     return expo;
   };
-  return transform_reduce(first, last, init, op, std::move(transform));
+  auto expo = transform_reduce(first, last, init, op, std::move(transform));
+  if (expo == init) {
+    return 0;
+  }
+  return expo;
 }
 
 struct Int128Plus {
@@ -510,6 +519,9 @@ struct Int128Plus {
 };
 
 Int128 int128_sum(Reals const a, double const unit) {
+  if (a.size() == 0) {
+    return Int128(0);
+  }
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = Int128(0);
@@ -521,6 +533,9 @@ Int128 int128_sum(Reals const a, double const unit) {
 }
 
 Real repro_sum(Reals a) {
+  if (a.size() == 0) {
+    return 0.0;
+  }
   begin_code("repro_sum");
   int expo = max_exponent(a);
   double unit = exp2(double(expo - MANTISSA_BITS));
