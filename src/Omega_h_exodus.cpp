@@ -71,14 +71,34 @@ static void get_elem_type_info(
 // subtracts one and maps from Exodus
 // side ordering to Omega_h
 static OMEGA_H_INLINE int side_exo2osh(
-    Omega_h_Family family, int dim, int side) {
+    Omega_h_Family family,
+    int file_dimension,
+    int element_dimension,
+    int side) {
   switch (family) {
     case OMEGA_H_SIMPLEX:
-      switch (dim) {
+      switch (element_dimension) {
         case 2:
-          // seeing files from CUBIT with triangle sides in {3,4,5}...
-          // no clue what thats about, just modulo and move on
-          return (side) % 3;
+          switch (file_dimension) {
+            case 2:
+              switch (side) {
+                case 1:
+                  return 0;
+                case 2:
+                  return 1;
+                case 3:
+                  return 2;
+              }
+            case 3:
+              switch (side) {
+                case 3:
+                  return 0;
+                case 4:
+                  return 1;
+                case 5:
+                  return 2;
+              }
+          }
         case 3:
           switch (side) {
             case 1:
@@ -191,6 +211,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
   begin_code("exodus::read_mesh");
   ex_init_params init_params;
   CALL(ex_get_init_ext(file, &init_params));
+  int const file_dimension = ex_inquire_int(file, EX_INQ_DIM);
   if (verbose) {
     std::ostringstream oss;
     oss << "init params:\n";
@@ -352,7 +373,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
         auto side_of_element =
-            side_exo2osh(family, dim, set_sides2local[set_side]);
+            side_exo2osh(family, file_dimension, dim, set_sides2local[set_side]);
         OMEGA_H_CHECK(side_of_element != -1);
         auto side = elems2sides[elem * nsides_per_elem + side_of_element];
         set_sides2side_w[set_side] = side;
