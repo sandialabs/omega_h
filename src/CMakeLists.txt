@@ -492,7 +492,7 @@ if(BUILD_TESTING)
   osh_add_exe(reverse_class_test)
   test_func(reverse_class_test 1 ./reverse_class_test 
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
-    /lore/nathd/INSTALLATION/omega_h-install/bin/Tomms_15ge_16me/mesh_15_16.osh)
+    ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
   osh_add_exe(rc_field_test)
   set(TEST_EXES ${TEST_EXES} rc_field_test)
   test_func(rc_field_test 1 ./rc_field_test
