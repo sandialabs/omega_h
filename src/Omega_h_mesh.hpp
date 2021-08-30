@@ -314,7 +314,7 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
-  Adj derive_revClass (Int edim);
+  Adj derive_revClass (Int edim, I8 should_sort = -1);
 
   void set_model_ents(Int ent_dim, LOs Ids); 
   void set_model_matches(Int ent_dim, LOs matches); 

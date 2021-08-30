@@ -6,6 +6,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_array_ops.hpp"
+
 using namespace Omega_h;
 
 void test_2d(Library *lib, const std::string &mesh_file) {

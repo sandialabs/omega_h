@@ -66,7 +66,7 @@ void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h) {
   parallel_for(nl, std::move(f));
 }
 
-Adj Mesh::derive_revClass (Int edim) {
+Adj Mesh::derive_revClass (Int edim, I8 should_sort) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK (has_ents(edim));
 
@@ -107,7 +107,9 @@ Adj Mesh::derive_revClass (Int edim) {
   };
   parallel_for(nents(edim), std::move(get_values));
 
-  sort_by_high_index(a2ab_r, ab2b);
+  if (should_sort > 0) {
+    sort_by_high_index(a2ab_r, ab2b);
+  }
 
   return Adj(a2ab_r, LOs(ab2b));
 
