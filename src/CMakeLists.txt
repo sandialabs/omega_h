@@ -155,6 +155,11 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
+if(Omega_h_USE_STK)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_stk.cpp)
+endif()
+
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
@@ -204,7 +209,6 @@ else()
         -W
         -Wall
         -Wextra
-        -Werror
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(omega_h PUBLIC

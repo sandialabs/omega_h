@@ -165,6 +165,13 @@ static void classify_elements(Mesh * mesh, const stk::mesh::BulkData & stk_mesh,
   classify_elements(mesh);
   LOs elem_class_ids = get_elem_block_ids(stk_mesh, stk_elems);
   mesh->add_tag(dim, "class_id", 1, elem_class_ids);
+  std::vector<stk::mesh::Part*> const& myparts = stk_mesh.mesh_meta_data().get_parts();
+  for (size_t k=0; k<myparts.size(); ++k) {
+    if (myparts[k]->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
+        myparts[k]->id() > 0) {
+      mesh->class_sets[myparts[k]->name()].push_back({dim-1, int(myparts[k]->id())});
+    }
+  }
 }
 
 static void classify_sides(Mesh * mesh, const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & sorted_nodes)
