@@ -156,7 +156,6 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 
 if(Omega_h_USE_STK)
-  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_stk.cpp)
 endif()
 
@@ -512,6 +511,10 @@ endif()
 
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_dolfin.hpp)
+endif()
+
+if(Omega_h_USE_STK)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
