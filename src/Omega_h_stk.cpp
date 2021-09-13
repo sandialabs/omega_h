@@ -169,7 +169,7 @@ static void classify_elements(Mesh * mesh, const stk::mesh::BulkData & stk_mesh,
   for (size_t k=0; k<myparts.size(); ++k) {
     if (myparts[k]->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
         myparts[k]->id() > 0) {
-      mesh->class_sets[myparts[k]->name()].push_back({dim-1, int(myparts[k]->id())});
+      mesh->class_sets[myparts[k]->name()].push_back({dim, int(myparts[k]->id())});
     }
   }
 }
