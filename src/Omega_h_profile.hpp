@@ -229,6 +229,6 @@ struct ScopedTimer {
 }  // namespace Omega_h
 
 #define OMEGA_H_TIME_FUNCTION                                                  \
-  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__, __FILE__)
+  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__, (std::string(__FILE__)+":"+std::to_string(__LINE__)).c_str())
 
 #endif
