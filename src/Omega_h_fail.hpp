@@ -36,6 +36,10 @@ void fail(char const* format, ...);
 
 #define Omega_h_fail Omega_h::fail
 
+#define OMEGA_H_CHECK_HOST(cond)                                                    \
+      ((cond) ? ((void)0)                                                          \
+       : Omega_h::fail("assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
+
 #if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
 #  define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
@@ -46,6 +50,7 @@ void fail(char const* format, ...);
        : Omega_h::fail("assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
+#undef NDEBUG
 #ifndef NDEBUG
 #  define OMEGA_H_CHECK_MSG(cond, a) do {                   \
     if (!(cond)) std::cout << "ERROR: " << a << std::endl;  \

@@ -12,6 +12,8 @@
 #include <sstream>
 #include <string>
 
+bool debug_srk = false;
+
 #ifdef OMEGA_H_DBG
 Omega_h::Comm *DBG_COMM = 0;
 bool dbg_print_global = false;

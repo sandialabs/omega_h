@@ -496,6 +496,7 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 int max_exponent(Reals a) {
   auto const init = ArithTraits<int>::min();
   if (a.size() == 0) {
+    //std::cout << "srk a.size=0" << std::endl;
     return init;
   }
   auto const first = IntIterator(0);
@@ -508,9 +509,9 @@ int max_exponent(Reals a) {
     return expo;
   };
   auto expo = transform_reduce(first, last, init, op, std::move(transform));
-  if (expo == init) {
-    return 0;
-  }
+  // if (expo == init) {
+  //   return 0;
+  // }
   return expo;
 }
 
@@ -538,20 +539,37 @@ Real repro_sum(Reals a) {
   }
   begin_code("repro_sum");
   int expo = max_exponent(a);
+  auto const init = ArithTraits<int>::min();
+  if (expo == init) return 0.0;
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
+  double ret = fixpt_sum.to_double(unit);
+  if (debug_srk) std::cout << "srk expo= " << expo << " fixpt_sum= " << fixpt_sum.to_string() << " double= " << ret << std::endl;
   end_code();
-  return fixpt_sum.to_double(unit);
+  return ret;
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
   begin_code("repro_sum(comm)");
-  int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
+  auto const init = ArithTraits<int>::min();
+  auto expo0 = max_exponent(a);
+  //std::cout << "srk expo0= " << expo0 << std::endl;
+  int expo = comm->allreduce(expo0, OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
+  std::ostringstream oss;
+  if (debug_srk) {
+    oss << "P" << comm->rank() << ": srk expo0= " << expo0 << " expo global= " << expo << " fixpt_sum= " << fixpt_sum.to_string();
+  }
   fixpt_sum = comm->add_int128(fixpt_sum);
+  double ret = fixpt_sum.to_double(unit);
+  if (debug_srk) {
+    oss << " fixpt_sum global= " << fixpt_sum.to_string() << " double= " << ret << std::endl;
+    std::cout << oss.str() << std::endl;
+  }
   end_code();
-  return fixpt_sum.to_double(unit);
+  if (expo == init) return 0.0;
+  return ret;
 }
 
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {

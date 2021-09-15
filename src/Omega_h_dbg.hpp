@@ -18,6 +18,8 @@ extern bool dbg_print_global;
 
 #ifdef OMEGA_H_DBG
 
+extern bool debug_srk;
+
 namespace Omega_h {
 #ifdef OMEGA_H_USE_CUDA
 OMEGA_H_INLINE std::string proc() { return ""; }
