@@ -183,6 +183,10 @@ if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
 endif()
 
+if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
+  target_compile_options(omega_h PUBLIC --expt-extended-lambda)
+endif()
+
 bob_link_dependency(omega_h PUBLIC Kokkos)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
