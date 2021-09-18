@@ -213,6 +213,10 @@ if(Omega_h_USE_DOLFIN)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
+if(Omega_h_USE_CUDA)
+  target_compile_options(omega_h PUBLIC "--expt-extended-lambda")
+endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set_target_properties(omega_h PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
