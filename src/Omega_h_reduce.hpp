@@ -61,8 +61,8 @@ thrust::minimum<T> native_op(Omega_h::minimum<T> const&) {
   return thrust::minimum<T>();
 }
 template <class T>
-thrust::identity<T> native_op(Omega_h::identity<T> const&) {
-  return thrust::identity<T>();
+thrust::identity<> native_op(Omega_h::identity<T> const&) {
+  return thrust::identity<>();
 }
 
 template <class Iterator, class Tranform, class Result, class Op>
