@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     out[i] = i;
   };
-  parallel_for(size, f);
+  parallel_for(size, f, "foo");
   HostRead<Real> hr(out);
   for(int i=0; i<size; i++)
     assert(hr[i]==i);
