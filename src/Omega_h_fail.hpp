@@ -43,8 +43,8 @@ static inline void fail(char const* format, ...) {
   va_end(vlist);
   throw Omega_h::exception(buffer);
 #else
-  std::vfprintf(stderr, format, vlist);
-  va_end(vlist);
+  //std::vfprintf(stderr, format, vlist);
+  //va_end(vlist);
   std::abort();
 #endif
 }
@@ -63,6 +63,10 @@ static inline void fail(char const* format, ...) {
 #define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(OMPTARGET)
 #define OMEGA_H_CHECK(cond) assert(cond)
+#elif defined(OMEGA_H_USE_KOKKOS) && \
+      defined(SYCL_LANGUAGE_VERSION) && \
+      defined (__INTEL_LLVM_COMPILER)
+#define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0)                                                          \
@@ -72,6 +76,10 @@ static inline void fail(char const* format, ...) {
 
 #if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
 #define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
+#elif defined(OMEGA_H_USE_KOKKOS) && \
+      defined(SYCL_LANGUAGE_VERSION) && \
+      defined (__INTEL_LLVM_COMPILER)
+#define OMEGA_H_NORETURN(x) assert(false)
 #else
 #define OMEGA_H_NORETURN(x)                                                    \
   do {                                                                         \
