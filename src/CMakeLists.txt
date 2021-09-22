@@ -156,6 +156,10 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
+if(Omega_h_USE_STK)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_stk.cpp)
+endif()
+
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
@@ -177,42 +181,6 @@ target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
 if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
-endif()
-
-if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PUBLIC
-        "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
-        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
-        --expt-extended-lambda)
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    target_compile_options(omega_h PUBLIC
-        "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
-        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
-        --expt-extended-lambda)
-  endif()
-else()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(omega_h PRIVATE
-        -W
-        -Wall
-        -Wextra
-        -Werror
-        -Wimplicit-fallthrough
-        )
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PRIVATE
-        -W
-        -Wall
-        -Wextra
-        -Werror
-        )
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    target_compile_options(omega_h PUBLIC
-        "/wd26451" #arithmetic overflow, long(int * int), shows up in much vector access
-		    "/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
-        )
-  endif()
 endif()
 
 bob_link_dependency(omega_h PUBLIC Kokkos)
@@ -243,6 +211,10 @@ if(Omega_h_USE_DOLFIN)
   target_link_libraries(omega_h PUBLIC Boost::timer dolfin)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_INCLUDE_DIRS})
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
+endif()
+
+if(Omega_h_USE_CUDA)
+  target_compile_options(omega_h PUBLIC "--expt-extended-lambda")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -441,8 +413,6 @@ if(BUILD_TESTING)
     test_func(run_random_test 1 ./random_test)
   endif()
   osh_add_exe(hypercube_test)
-  osh_add_exe(amr_test)
-  test_func(amr_test 1 ./amr_test)
   osh_add_exe(amr_test2)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
@@ -546,6 +516,10 @@ endif()
 
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_dolfin.hpp)
+endif()
+
+if(Omega_h_USE_STK)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
