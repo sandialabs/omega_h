@@ -203,7 +203,12 @@ bob_link_dependency(omega_h PUBLIC SEACASExodus)
 bob_link_dependency(omega_h PUBLIC ZLIB)
 
 if (Omega_h_USE_MPI)
-  target_link_libraries(omega_h PUBLIC MPI::MPI_CXX)
+  # FIXME for Windows
+  target_link_libraries(omega_h 
+    PUBLIC 
+      MPI::MPI_CXX 
+      $<$<NOT:$<PLATFORM_ID:Windows>>:${CMAKE_DL_LIBS}>
+   )
 endif()
 
 if (Omega_h_USE_dwarf)

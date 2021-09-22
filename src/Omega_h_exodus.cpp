@@ -76,44 +76,58 @@ static OMEGA_H_INLINE int side_exo2osh(
     int element_dimension,
     int side) {
   switch (family) {
-    case OMEGA_H_SIMPLEX:
-      switch (element_dimension) {
+  case OMEGA_H_SIMPLEX:
+    switch (element_dimension) {
+    case 2:
+      switch (file_dimension) {
+      case 2:
+        switch (side) {
+        case 1:
+          return 0;
         case 2:
-          switch (file_dimension) {
-            case 2:
-              switch (side) {
-                case 1:
-                  return 0;
-                case 2:
-                  return 1;
-                case 3:
-                  return 2;
-              }
-            case 3:
-              switch (side) {
-                case 3:
-                  return 0;
-                case 4:
-                  return 1;
-                case 5:
-                  return 2;
-              }
-          }
+          return 1;
         case 3:
-          switch (side) {
-            case 1:
-              return 1;
-            case 2:
-              return 2;
-            case 3:
-              return 3;
-            case 4:
-              return 0;
-          }
+          return 2;
+        default:
+          return -1;
+        }
+        break;
+      case 3:
+        switch (side) {
+        case 3:
+          return 0;
+        case 4:
+          return 1;
+        case 5:
+          return 2;
+        default:
+          return -1;
+        }
+      default:
+        return -1;
       }
+      break;
+    case 3:
+      switch (side) {
+      case 1:
+        return 1;
+      case 2:
+        return 2;
+      case 3:
+        return 3;
+      case 4:
+        return 0;
+      default:
+        return -1;
+      }
+    default:
       return -1;
-    case OMEGA_H_HYPERCUBE:
-      return -1;  // needs to be filled in!
+    }
+    return -1;
+  case OMEGA_H_HYPERCUBE:
+    return -1;  // needs to be filled in!
+  default:
+    return -1;
   }
   return -1;
 }
