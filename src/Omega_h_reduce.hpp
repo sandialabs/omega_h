@@ -37,7 +37,49 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   return result;
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA)
+
+template <class Op>
+Op native_op(Op const& op) {
+  return op;
+}
+template <class T>
+Kokkos::LAnd<T> native_op(Omega_h::logical_and<T> const&) {
+  return Kokkos::LAnd<T>();
+}
+template <class T>
+Kokkos::Sum<T> native_op(Omega_h::plus<T> const&) {
+  return Kokkos::Sum<T>();
+}
+template <class T>
+Kokkos::Max<T> native_op(Omega_h::maximum<T> const&) {
+  return Kokkos::Max<T>();
+}
+template <class T>
+Kokkos::Min<T> native_op(Omega_h::minimum<T> const&) {
+  return Kokkos::Min<T>();
+}
+
+template <class Iterator, class Tranform, class Result, class Op>
+Result transform_reduce(
+    Iterator first, Iterator last, Result init, Op op, Tranform transform) {
+  Result result = init;
+  Omega_h::entering_parallel = true;
+  auto const transform_parallel = std::move(transform);
+  Omega_h::entering_parallel = false;
+  auto nativeOp = native_op(op);
+  LO const n = last - first;
+  if (n > 0) {
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<>(0, n),
+      KOKKOS_LAMBDA(LO i, Result& update) {
+        update = transform_parallel(i);
+      }, nativeOp(result) );
+  }
+  return result;
+}
+
+#elif defined(OMEGA_H_USE_CUDA)
 
 template <class Op>
 Op native_op(Op const& op) {
@@ -149,7 +191,7 @@ Result transform_reduce(Iterator first, Iterator last, Result init,
   return init;
 }
 
-#else
+#else //end openmp
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
@@ -163,7 +205,7 @@ Result transform_reduce(
   return init;
 }
 
-#endif
+#endif //end serial
 
 }  // namespace Omega_h
 
