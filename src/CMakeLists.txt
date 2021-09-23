@@ -327,6 +327,7 @@ if(BUILD_TESTING)
   endfunction(test_func)
 
   osh_add_exe(for_test)
+  osh_add_exe(reduce_test)
   osh_add_exe(unit_math)
   osh_add_exe(initKokkos)
   osh_add_exe(initKokkosAndLib)
