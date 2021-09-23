@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.34.2 LANGUAGES CXX)
+project(Omega_h VERSION 9.34.3 LANGUAGES CXX)
 
-set(Omega_h_USE_STK_DEFAULT ON)
+set(Omega_h_USE_STK_DEFAULT OFF)
 option(Omega_h_USE_STK "Whether to build the STK interface" ${Omega_h_USE_STK_DEFAULT})
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
