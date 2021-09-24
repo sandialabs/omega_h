@@ -87,12 +87,12 @@ BBox<dim> find_bounding_box(Reals coords) {
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
   BBox<dim> res;
   const auto transform = GetBBoxOp<dim>(coords);
-  if (n > 0) {
+  if (npts > 0) {
     Kokkos::parallel_reduce(
       Kokkos::RangePolicy<>(0, npts),
-      KOKKOS_LAMBDA(int i, int& update) {
+      KOKKOS_LAMBDA(int i, BBox<dim>& update) {
         update = transform(i);
-      }, BBoxUnion(res));
+      }, BBoxUnion<dim>(res));
     return res == 0;
   }
 #else
