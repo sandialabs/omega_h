@@ -63,7 +63,7 @@ thrust::minimum<T> native_op(Omega_h::minimum<T> const&) {
 }
 #ifndef CUDART_VERSION
 #error CUDART_VERSION Undefined!
-#elif (CUDART_VERSION < 11200)
+#elif (CUDART_VERSION < 11020)
 template <class T>
 thrust::identity<T> native_op(Omega_h::identity<T> const&) {
   return thrust::identity<T>();
