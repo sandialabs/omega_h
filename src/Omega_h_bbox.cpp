@@ -52,10 +52,11 @@ public:
     dest = unite(src,dest);
   }
 
+  //this seems like overkill
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val.min = 0;
-    val.max = 0;
+    val.min = Vector<N>();
+    val.max = Vector<N>();
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -87,14 +88,15 @@ BBox<dim> find_bounding_box(Reals coords) {
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
   BBox<dim> res;
   const auto transform = GetBBoxOp<dim>(coords);
+  using space = typename Kokkos::View<int*>::memory_space; //HACK
   if (npts > 0) {
     Kokkos::parallel_reduce(
       Kokkos::RangePolicy<>(0, npts),
       KOKKOS_LAMBDA(int i, BBox<dim>& update) {
         update = transform(i);
-      }, BBoxUnion<dim>(res));
-    return res == 0;
+      }, BBoxUnion<space,dim>(res));
   }
+  return res;
 #else
   return transform_reduce(IntIterator(0), IntIterator(npts), init,
       UniteOp<dim>(), GetBBoxOp<dim>(coords));
