@@ -39,25 +39,25 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
 
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA)
 
-template <class Op>
-Op native_op(Op const& op) {
+template <class Op, class Arg>
+Op native_op(Op const& op, Arg) {
   return op;
 }
-template <class T>
-Kokkos::LAnd<T> native_op(Omega_h::logical_and<T> const&) {
-  return Kokkos::LAnd<T>();
+template <class T, class Arg>
+Kokkos::LAnd<T> native_op(Omega_h::logical_and<T> const&, Arg arg) {
+  return Kokkos::LAnd<T>(arg);
 }
-template <class T>
-Kokkos::Sum<T> native_op(Omega_h::plus<T> const&) {
-  return Kokkos::Sum<T>();
+template <class T, class Arg>
+Kokkos::Sum<T> native_op(Omega_h::plus<T> const&, Arg arg) {
+  return Kokkos::Sum<T>(arg);
 }
-template <class T>
-Kokkos::Max<T> native_op(Omega_h::maximum<T> const&) {
-  return Kokkos::Max<T>();
+template <class T, class Arg>
+Kokkos::Max<T> native_op(Omega_h::maximum<T> const&, Arg arg) {
+  return Kokkos::Max<T>(arg);
 }
-template <class T>
-Kokkos::Min<T> native_op(Omega_h::minimum<T> const&) {
-  return Kokkos::Min<T>();
+template <class T, class Arg>
+Kokkos::Min<T> native_op(Omega_h::minimum<T> const&, Arg arg) {
+  return Kokkos::Min<T>(arg);
 }
 
 template <class Iterator, class Tranform, class Result, class Op>
@@ -67,14 +67,13 @@ Result transform_reduce(
   Omega_h::entering_parallel = true;
   auto const transform_parallel = std::move(transform);
   Omega_h::entering_parallel = false;
-  auto nativeOp = native_op(op);
   LO const n = last - first;
   if (n > 0) {
     Kokkos::parallel_reduce(
       Kokkos::RangePolicy<>(0, n),
       KOKKOS_LAMBDA(LO i, Result& update) {
         update = transform_parallel(i);
-      }, nativeOp(result) );
+      }, native_op(op,result) );
   }
   return result;
 }
