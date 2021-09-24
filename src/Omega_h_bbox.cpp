@@ -22,6 +22,60 @@ struct GetBBoxOp {
   }
 };
 
+
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+//Reducer
+template<class Space, int N>
+struct BBoxUnion {
+public:
+  //Required
+  typedef BBoxUnion reducer;
+  typedef BBox<N> value_type;
+  typedef Kokkos::View<value_type*, Space, Kokkos::MemoryUnmanaged> result_view_type;
+
+private:
+  value_type & value;
+
+public:
+
+  KOKKOS_INLINE_FUNCTION
+  BBoxUnion(value_type& value_): value(value_) {}
+
+  //Required
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type& dest, const value_type& src)  const {
+    dest = unite(src,dest);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile value_type& dest, const volatile value_type& src) const {
+    dest = unite(src,dest);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init( value_type& val)  const {
+    val.min = 0;
+    val.max = 0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(&value);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  bool references_scalar() const {
+    return true;
+  }
+};
+#endif
+
+//find the bbox enclosing all listed points
 template <Int dim>
 BBox<dim> find_bounding_box(Reals coords) {
   auto npts = divide_no_remainder(coords.size(), dim);
@@ -30,8 +84,21 @@ BBox<dim> find_bounding_box(Reals coords) {
     init.min[i] = ArithTraits<Real>::max();
     init.max[i] = ArithTraits<Real>::min();
   }
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  BBox<dim> res;
+  const auto transform = GetBBoxOp<dim>(coords);
+  if (n > 0) {
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<>(0, npts),
+      KOKKOS_LAMBDA(int i, int& update) {
+        update = transform(i);
+      }, BBoxUnion(res));
+    return res == 0;
+  }
+#else
   return transform_reduce(IntIterator(0), IntIterator(npts), init,
       UniteOp<dim>(), GetBBoxOp<dim>(coords));
+#endif
 }
 
 template BBox<1> find_bounding_box<1>(Reals coords);
