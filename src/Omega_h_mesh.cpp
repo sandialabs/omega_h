@@ -600,6 +600,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
 
 template <typename T>
 Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).invert().exch(a, width);
 }
