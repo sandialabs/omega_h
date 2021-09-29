@@ -105,6 +105,8 @@ template <typename T>
 void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size() - 1;
+  if(a_data.size() != na * width) printf("This error can happen when an array has been subsetted - check sync_array usage vs sync_subset_array:\n"
+                                         " a_data.size= %d na= %d width= %d", a_data.size(), na, width);
   OMEGA_H_CHECK_PRINTF(a_data.size() == na * width, "a_data.size= %d na= %d width= %d", a_data.size(), na, width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {

@@ -75,7 +75,7 @@ static LOs get_elem_node_indices(const stk::mesh::BulkData & stk_mesh, const std
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   const int nodes_per_elem = (dim == 3) ? 4 : 3;
 
-  Write<LO> elem_node_indices(LO(stk_elems.size() * nodes_per_elem));
+  HostWrite<LO> elem_node_indices(LO(stk_elems.size() * nodes_per_elem));
 
   LO index = 0;
   for (auto && elem : stk_elems)
@@ -88,12 +88,12 @@ static LOs get_elem_node_indices(const stk::mesh::BulkData & stk_mesh, const std
     }
   }
 
-  return elem_node_indices;
+  return elem_node_indices.write();
 }
 
 static LOs get_elem_block_ids(const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems)
 {
-  Write<LO> elem_block_ids(LO(stk_elems.size()));
+  HostWrite<LO> elem_block_ids(LO(stk_elems.size()));
 
   LO index = 0;
   for (auto && elem : stk_elems)
@@ -101,7 +101,7 @@ static LOs get_elem_block_ids(const stk::mesh::BulkData & stk_mesh, const std::v
     elem_block_ids[index++] = get_element_part_id(stk_mesh, elem);
   }
 
-  return elem_block_ids;
+  return elem_block_ids.write();
 }
 
 static Reals get_node_coords(const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & nodes)
@@ -109,7 +109,7 @@ static Reals get_node_coords(const stk::mesh::BulkData & stk_mesh, const std::ve
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   const stk::mesh::FieldBase * coords_field(stk_mesh.mesh_meta_data().coordinate_field());
 
-  Write<Real> node_coords(nodes.size()*dim);
+  HostWrite<Real> node_coords(nodes.size()*dim);
   int index = 0;
   for (auto && node : nodes)
   {
@@ -119,7 +119,7 @@ static Reals get_node_coords(const stk::mesh::BulkData & stk_mesh, const std::ve
     }
   }
 
-  return node_coords;
+  return node_coords.write();
 }
 
 static int get_side_id(const stk::mesh::BulkData & stk_mesh, stk::mesh::Entity side)
@@ -140,6 +140,7 @@ static std::vector<stk::mesh::Entity> get_side_entities(Mesh* mesh, const stk::m
 {
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   auto side_verts = mesh->ask_verts_of(dim - 1);
+  HostRead<LO> host_side_verts = HostRead<LO>(side_verts);
   auto num_side_verts = element_degree(mesh->family(), dim - 1, VERT);
 
   std::vector<stk::mesh::Entity> side_vec;
@@ -150,7 +151,7 @@ static std::vector<stk::mesh::Entity> get_side_entities(Mesh* mesh, const stk::m
   {
     for (int v=0; v<num_side_verts; ++v)
     {
-      side_nodes[v] = sorted_nodes[side_verts[i*num_side_verts+v]];
+      side_nodes[v] = sorted_nodes[host_side_verts[i*num_side_verts+v]];
     }
     stk::mesh::get_entities_through_relations(stk_mesh, side_nodes, stk_mesh.mesh_meta_data().side_rank(), side_vec);
     OMEGA_H_CHECK(side_vec.size() <= 1);
@@ -186,6 +187,8 @@ static void classify_sides(Mesh * mesh, const stk::mesh::BulkData & stk_mesh, co
   auto exposed_sides2side = collect_marked(sides_are_exposed);
   map_into(LOs(exposed_sides2side.size(), 0), exposed_sides2side,
       side_class_ids_w, 1);
+  auto host_side_class_dims_w = HostWrite<I8>(side_class_dims_w);
+  auto host_side_class_ids_w = HostWrite<LO>(side_class_ids_w);
 
   const std::vector<stk::mesh::Entity> side_entities = get_side_entities(mesh, stk_mesh, sorted_nodes);
 
@@ -194,13 +197,13 @@ static void classify_sides(Mesh * mesh, const stk::mesh::BulkData & stk_mesh, co
     int side_id = get_side_id(stk_mesh, side_entities[i]);
     if (side_id >= 0)
     {
-      side_class_ids_w[i] = side_id;
-      side_class_dims_w[i] = I8(dim - 1);
+      host_side_class_ids_w[i] = side_id;
+      host_side_class_dims_w[i] = I8(dim - 1);
     }
   }
 
-  auto side_class_ids = LOs(side_class_ids_w);
-  auto side_class_dims = Read<I8>(side_class_dims_w);
+  auto side_class_ids = LOs(host_side_class_ids_w);
+  auto side_class_dims = Read<I8>(host_side_class_dims_w);
   mesh->add_tag(dim - 1, "class_id", 1, side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
 

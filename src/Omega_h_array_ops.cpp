@@ -508,9 +508,6 @@ int max_exponent(Reals a) {
     return expo;
   };
   auto expo = transform_reduce(first, last, init, op, std::move(transform));
-  if (expo == init) {
-    return 0;
-  }
   return expo;
 }
 
@@ -538,20 +535,27 @@ Real repro_sum(Reals a) {
   }
   begin_code("repro_sum");
   int expo = max_exponent(a);
+  auto const init = ArithTraits<int>::min();
+  if (expo == init) return 0.0;
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
+  double ret = fixpt_sum.to_double(unit);
   end_code();
-  return fixpt_sum.to_double(unit);
+  return ret;
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
   begin_code("repro_sum(comm)");
-  int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
+  auto const init = ArithTraits<int>::min();
+  auto expo0 = max_exponent(a);
+  int expo = comm->allreduce(expo0, OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
   fixpt_sum = comm->add_int128(fixpt_sum);
+  double ret = fixpt_sum.to_double(unit);
   end_code();
-  return fixpt_sum.to_double(unit);
+  if (expo == init) return 0.0;
+  return ret;
 }
 
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
