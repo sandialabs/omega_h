@@ -53,7 +53,7 @@ namespace Kokkos { //reduction identity must be defined in Kokkos namespace
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  const int size = 6;
+  const int npts = 2;
   Reals init = {0,0,0,1,2,3};
   Vector<3> min = {0,0,0};
   Vector<3> max = {1,2,3};
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 
   sample::BB3 tr;
   Kokkos::parallel_reduce(
-    Kokkos::RangePolicy<>(0, 1), 
+    Kokkos::RangePolicy<>(0, npts),
     KOKKOS_LAMBDA(const int& i, sample::BB3& update) {
       auto box = transform(i);
       update.box = unite(update.box,box);
