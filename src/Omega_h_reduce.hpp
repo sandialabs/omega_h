@@ -68,13 +68,13 @@ Result transform_reduce(
   auto const transform_parallel = std::move(transform);
   Omega_h::entering_parallel = false;
   LO const n = last - first;
-  //if (n > 0) {
-  //  Kokkos::parallel_reduce(
-  //    Kokkos::RangePolicy<>(0, n),
-  //    KOKKOS_LAMBDA(LO i, Result& update) {
-  //      update = transform_parallel(i);
-  //    }, native_op(op,result) );
-  //}
+  if (n > 0) {
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<>(0, n),
+      KOKKOS_LAMBDA(LO i, Result& update) {
+        update = transform_parallel(i);
+      }, native_op(op,result) );
+  }
   return result;
 }
 
