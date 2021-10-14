@@ -53,9 +53,9 @@ namespace Kokkos { //reduction identity must be defined in Kokkos namespace
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  const int npts = 2;
-  Reals init = {0,0,0,1,2,3};
-  Vector<3> min = {0,0,0};
+  const int npts = 3;
+  Reals init = {0,0,0,1,2,3,-1,-2,-3};
+  Vector<3> min = {-1,-2,-3};
   Vector<3> max = {1,2,3};
   BBox<3> gold(min,max);
 
