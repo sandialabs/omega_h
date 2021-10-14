@@ -34,8 +34,8 @@ BBox<dim> find_bounding_box(Reals coords) {
     init.min[i] = ArithTraits<Real>::max();
     init.max[i] = ArithTraits<Real>::min();
   }
-//#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
-//  BBox<dim> res;
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  BBox<dim> res;
 //  const auto transform = GetBBoxOp<dim>(coords);
 //  using space = typename Kokkos::View<int*>::memory_space; //HACK
 //  if (npts > 0) {
@@ -46,10 +46,10 @@ BBox<dim> find_bounding_box(Reals coords) {
 //      }, BBoxUnion<space,dim>(res));
 //  }
 //  return res;
-//#else
-//  return transform_reduce(IntIterator(0), IntIterator(npts), init,
-//      UniteOp<dim>(), GetBBoxOp<dim>(coords));
-//#endif
+#else
+  return transform_reduce(IntIterator(0), IntIterator(npts), init,
+      UniteOp<dim>(), GetBBoxOp<dim>(coords));
+#endif
 }
 
 template BBox<1> find_bounding_box<1>(Reals coords);
