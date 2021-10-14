@@ -65,8 +65,7 @@ int main(int argc, char** argv) {
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, npts),
     KOKKOS_LAMBDA(const int& i, sample::BB3& update) {
-      auto box = transform(i);
-      update.box = unite(update.box,box);
+      update.box = transform(i);
   }, Kokkos::Sum<sample::BB3>(tr) );
 
   std::cout << "min ";
