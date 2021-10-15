@@ -32,21 +32,23 @@ struct bboxWrap {
 };
 typedef bboxWrap<3> BB3;
 typedef bboxWrap<2> BB2;
+typedef bboxWrap<1> BB1;
 }
 
 namespace Kokkos { //reduction identity must be defined in Kokkos namespace
-template<>
-struct reduction_identity< Omega_h::BB3 > {
-   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::BB3 sum() {
-      return Omega_h::BB3();
-   }
+
+#define REDUCTION_IDENTITY(T)                                 \
+template<>                                                    \
+struct reduction_identity< T > {                              \
+   KOKKOS_FORCEINLINE_FUNCTION static T sum() {               \
+      return T();                                             \
+   }                                                          \
 };
-template<>
-struct reduction_identity< Omega_h::BB2 > {
-   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::BB2 sum() {
-      return Omega_h::BB2();
-   }
-};
+REDUCTION_IDENTITY(Omega_h::BB3);
+REDUCTION_IDENTITY(Omega_h::BB2);
+REDUCTION_IDENTITY(Omega_h::BB1);
+#undef REDUCTION_IDENTITY
+
 }
 #endif
 
