@@ -43,7 +43,7 @@ endif()
 
 if (Omega_h_USE_MPI)
   enable_language(C)
-  find_package(MPI REQUIRED)
+  find_package(MPI 3 REQUIRED)
 endif()
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
