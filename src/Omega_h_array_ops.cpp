@@ -5,6 +5,43 @@
 #include "Omega_h_int_iterator.hpp"
 #include "Omega_h_reduce.hpp"
 
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+namespace Omega_h {
+struct Int128Wrap {
+  Int128 i128;
+
+  KOKKOS_INLINE_FUNCTION   // Default constructor - Initialize to 0
+  Int128Wrap() {
+    i128 = Int128(0);
+  }
+  KOKKOS_INLINE_FUNCTION   // Copy Constructor
+  Int128Wrap(const Int128Wrap & rhs) {
+    i128 = rhs.i128;
+  }
+  KOKKOS_INLINE_FUNCTION   // add operator
+  Int128Wrap& operator += (const Int128Wrap& src) {
+    i128 = i128 + src.i128;
+    return *this;
+  }
+  KOKKOS_INLINE_FUNCTION   // volatile add operator
+  void operator += (const volatile Int128Wrap& src) volatile {
+    const auto foo = i128 + src.i128; //FIXME does not compile, complains about no matching ctor for 'i128'
+    i128 = foo;
+  }
+};
+}
+
+namespace Kokkos { //reduction identity must be defined in Kokkos namespace
+template<>
+struct reduction_identity< Omega_h::Int128 > {
+   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::Int128 sum() {
+      return Omega_h::Int128();
+   }
+};
+}
+#endif
+
+
 namespace Omega_h {
 
 template <typename T>
@@ -517,7 +554,17 @@ Int128 int128_sum(Reals const a, double const unit) {
   auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  Omega_h::Int128Wrap res;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::Int128Wrap& update) {
+      update.i128 = transform(i);
+    }, Kokkos::Sum< Omega_h::Int128Wrap >(res) );
+  return res.i128;
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 Real repro_sum(Reals a) {
