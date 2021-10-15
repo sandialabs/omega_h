@@ -78,7 +78,7 @@ BBox<dim> find_bounding_box(Reals coords) {
     init.max[i] = ArithTraits<Real>::min();
   }
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
-  BBox<dim> res;
+  bboxWrap<dim> res;
   const auto transform = GetBBoxOp<dim>(coords);
 
   if (npts > 0) {
@@ -86,9 +86,9 @@ BBox<dim> find_bounding_box(Reals coords) {
       Kokkos::RangePolicy<>(0, npts),
       KOKKOS_LAMBDA(int i, Omega_h::bboxWrap<dim>& update) {
         update.box = transform(i);
-      }, Kokkos::Sum< Omega_h::bboxWrap<dim> >(res));
+      }, Kokkos::Sum< Omega_h::bboxWrap<dim> >(res) );
   }
-  return res;
+  return res.box;
 #else
   return transform_reduce(IntIterator(0), IntIterator(npts), init,
       UniteOp<dim>(), GetBBoxOp<dim>(coords));
