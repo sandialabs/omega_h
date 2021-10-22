@@ -561,10 +561,20 @@ if (Omega_h_USE_pybind11)
       LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
-add_custom_target(test_install
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100 ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk
-    COMMENT "Test installed Omega_h utilities")
+#force a specific sequence of test execution; there is no obvious way
+# to specify the order of tests or dependencies between ctest tests defined with
+# add_test
+add_custom_target(test_install DEPENDS check) # maintain test_install target
+add_custom_target(check
+  COMMAND ${CMAKE_CTEST_COMMAND} -R osh_box
+  COMMAND ${CMAKE_CTEST_COMMAND} -R osh_scale
+  COMMAND ${CMAKE_CTEST_COMMAND} -R osh2vtk
+  COMMENT "Test installed Omega_h utilities")
+
+add_test(NAME check_osh_box COMMAND osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh)
+add_test(NAME check_osh_scale COMMAND osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100
+         ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh)
+add_test(NAME check_osh2vtk COMMAND osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
+         ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk)
 
 bob_end_subdir()
