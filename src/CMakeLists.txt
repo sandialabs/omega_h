@@ -563,9 +563,11 @@ endif()
 
 #define 'smoke tests' to test the install
 add_custom_target(test_install DEPENDS check) # maintain test_install target
-add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} -L SMOKE_TEST
-  COMMENT "Test installed Omega_h utilities")
+if(NOT BUILD_TESTING)
+  add_custom_target(check
+    COMMAND ${CMAKE_CTEST_COMMAND} -L SMOKE_TEST
+    COMMENT "Test installed Omega_h utilities")
+endif()
 
 function(smoke_test EXE DEP)
   set(prefix "smoke_test")
