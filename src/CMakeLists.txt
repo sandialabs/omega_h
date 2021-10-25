@@ -561,20 +561,28 @@ if (Omega_h_USE_pybind11)
       LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
-#force a specific sequence of test execution; there is no obvious way
-# to specify the order of tests or dependencies between ctest tests defined with
-# add_test
+#define 'smoke tests' to test the install
 add_custom_target(test_install DEPENDS check) # maintain test_install target
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} -R osh_box
-  COMMAND ${CMAKE_CTEST_COMMAND} -R osh_scale
-  COMMAND ${CMAKE_CTEST_COMMAND} -R osh2vtk
+  COMMAND ${CMAKE_CTEST_COMMAND} -L SMOKE_TEST
   COMMENT "Test installed Omega_h utilities")
 
-add_test(NAME check_osh_box COMMAND osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh)
-add_test(NAME check_osh_scale COMMAND osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100
-         ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh)
-add_test(NAME check_osh2vtk COMMAND osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
-         ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk)
+function(smoke_test EXE DEP)
+  set(prefix "smoke_test")
+  set(tname ${prefix}_${EXE})
+  add_test(
+    NAME ${tname}
+    COMMAND ${EXE} ${ARGN})
+  set_tests_properties(${tname} PROPERTIES LABELS "SMOKE_TEST" )
+  set_tests_properties(${tname} PROPERTIES FIXTURES_SETUP ${tname})
+  if( NOT DEP STREQUAL "NONE" )
+    set(depname ${prefix}_${DEP})
+    set_tests_properties(${tname} PROPERTIES FIXTURES_REQUIRED ${depname})
+  endif()
+endfunction(smoke_test)
+
+smoke_test(osh_box NONE 1 1 1 2 2 2 box.osh)
+smoke_test(osh_scale osh_box box.osh 100 box_100.osh)
+smoke_test(osh2vtk osh_scale box_100.osh box_100_vtk)
 
 bob_end_subdir()
