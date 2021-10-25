@@ -570,15 +570,15 @@ add_custom_target(check
 function(smoke_test EXE DEP)
   set(prefix "smoke_test")
   set(tname ${prefix}_${EXE})
-  add_test(
-    NAME ${tname}
-    COMMAND ${EXE} ${ARGN})
-  set_tests_properties(${tname} PROPERTIES LABELS "SMOKE_TEST" )
-  set_tests_properties(${tname} PROPERTIES FIXTURES_SETUP ${tname})
-  if( NOT DEP STREQUAL "NONE" )
-    set(depname ${prefix}_${DEP})
-    set_tests_properties(${tname} PROPERTIES FIXTURES_REQUIRED ${depname})
+  add_test(NAME ${tname} COMMAND ${EXE} ${ARGN})
+  set(fixDep FIXTURES_REQUIRED ${prefix}_${DEP})
+  if( DEP STREQUAL "NONE" )
+    set(fixDep)
   endif()
+  set_tests_properties(${tname} PROPERTIES
+    LABELS "SMOKE_TEST"
+    FIXTURES_SETUP ${tname}
+    ${fixDep})
 endfunction(smoke_test)
 
 smoke_test(osh_box NONE 1 1 1 2 2 2 box.osh)
