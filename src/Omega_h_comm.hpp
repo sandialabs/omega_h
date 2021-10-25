@@ -109,23 +109,28 @@ struct MpiTraits<char> {
 };
 
 template <>
-struct MpiTraits<I8> {
-  static MPI_Datatype datatype() { return MPI_INT8_T; }
+struct MpiTraits<signed char> {
+  static MPI_Datatype datatype() { return MPI_SIGNED_CHAR; }
 };
 
 template <>
-struct MpiTraits<I32> {
-  static MPI_Datatype datatype() { return MPI_INT32_T; }
+struct MpiTraits<unsigned char> {
+  static MPI_Datatype datatype() { return MPI_UNSIGNED_CHAR; }
 };
 
 template <>
-struct MpiTraits<I64> {
-  static MPI_Datatype datatype() { return MPI_INT64_T; }
+struct MpiTraits<float> {
+  static MPI_Datatype datatype() { return MPI_FLOAT; }
 };
 
 template <>
 struct MpiTraits<double> {
   static MPI_Datatype datatype() { return MPI_DOUBLE; }
+};
+
+template <>
+struct MpiTraits<unsigned short> {
+  static MPI_Datatype datatype() { return MPI_UNSIGNED_SHORT; }
 };
 
 template <>
@@ -136,6 +141,31 @@ struct MpiTraits<unsigned> {
 template <>
 struct MpiTraits<unsigned long> {
   static MPI_Datatype datatype() { return MPI_UNSIGNED_LONG; }
+};
+
+template <>
+struct MpiTraits<unsigned long long> {
+  static MPI_Datatype datatype() { return MPI_UNSIGNED_LONG_LONG; }
+};
+
+template <>
+struct MpiTraits<short int> {
+  static MPI_Datatype datatype() { return MPI_SHORT; }
+};
+
+template <>
+struct MpiTraits<int> {
+  static MPI_Datatype datatype() { return MPI_INT; }
+};
+
+template <>
+struct MpiTraits<long int> {
+  static MPI_Datatype datatype() { return MPI_LONG; }
+};
+
+template <>
+struct MpiTraits<long long int> {
+  static MPI_Datatype datatype() { return MPI_LONG_LONG_INT; }
 };
 
 inline MPI_Op mpi_op(Omega_h_Op op) {
