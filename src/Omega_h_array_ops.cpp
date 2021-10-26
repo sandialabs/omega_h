@@ -1,5 +1,4 @@
 #include "Omega_h_array_ops.hpp"
-
 #include "Omega_h_for.hpp"
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_iterator.hpp"
@@ -459,7 +458,17 @@ bool is_sorted(Read<T> a) {
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  Int res;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
+      update = (int)transform(i);
+    }, Kokkos::Min< Omega_h::Int >(res) );
+  return (res==1);
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 template <typename T>
