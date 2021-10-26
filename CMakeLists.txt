@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.34.5 LANGUAGES CXX)
+project(Omega_h VERSION 9.34.6 LANGUAGES CXX)
 
 set(Omega_h_USE_STK_DEFAULT OFF)
 option(Omega_h_USE_STK "Whether to build the STK interface" ${Omega_h_USE_STK_DEFAULT})
@@ -43,7 +43,7 @@ endif()
 
 if (Omega_h_USE_MPI)
   enable_language(C)
-  find_package(MPI REQUIRED)
+  find_package(MPI 3 REQUIRED)
 endif()
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)

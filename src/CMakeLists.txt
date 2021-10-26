@@ -561,10 +561,30 @@ if (Omega_h_USE_pybind11)
       LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
-add_custom_target(test_install
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100 ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk
+#define 'smoke tests' to test the install
+add_custom_target(test_install DEPENDS check) # maintain test_install target
+if(NOT BUILD_TESTING)
+  add_custom_target(check
+    COMMAND ${CMAKE_CTEST_COMMAND} -L SMOKE_TEST
     COMMENT "Test installed Omega_h utilities")
+endif()
+
+function(smoke_test EXE DEP)
+  set(prefix "smoke_test")
+  set(tname ${prefix}_${EXE})
+  add_test(NAME ${tname} COMMAND ${EXE} ${ARGN})
+  set(fixDep FIXTURES_REQUIRED ${prefix}_${DEP})
+  if( DEP STREQUAL "NONE" )
+    set(fixDep)
+  endif()
+  set_tests_properties(${tname} PROPERTIES
+    LABELS "SMOKE_TEST"
+    FIXTURES_SETUP ${tname}
+    ${fixDep})
+endfunction(smoke_test)
+
+smoke_test(osh_box NONE 1 1 1 2 2 2 box.osh)
+smoke_test(osh_scale osh_box box.osh 100 box_100.osh)
+smoke_test(osh2vtk osh_scale box_100.osh box_100_vtk)
 
 bob_end_subdir()

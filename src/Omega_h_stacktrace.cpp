@@ -1,3 +1,6 @@
+#include "Omega_h_stacktrace.hpp"
+
+#ifdef OMEGA_H_DBG
 #include <stdio.h>
 #include <execinfo.h>
 #include <signal.h>
@@ -9,9 +12,6 @@
 #include <string>
 #include <iostream>
 
-#include "Omega_h_stacktrace.hpp"
-
-#ifdef OMEGA_H_DBG
 namespace Omega_h {
 
 #if DO_STACKTRACE_POS
