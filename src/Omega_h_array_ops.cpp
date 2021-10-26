@@ -25,17 +25,16 @@ struct Int128Wrap {
   }
   KOKKOS_INLINE_FUNCTION   // volatile add operator
   void operator += (const volatile Int128Wrap& src) volatile {
-    const auto foo = i128 + src.i128; //FIXME does not compile, complains about no matching ctor for 'i128'
-    i128 = foo;
+    i128 = i128 + src.i128;
   }
 };
 }
 
 namespace Kokkos { //reduction identity must be defined in Kokkos namespace
 template<>
-struct reduction_identity< Omega_h::Int128 > {
-   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::Int128 sum() {
-      return Omega_h::Int128();
+struct reduction_identity< Omega_h::Int128Wrap > {
+   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::Int128Wrap sum() {
+      return Omega_h::Int128Wrap();
    }
 };
 }
