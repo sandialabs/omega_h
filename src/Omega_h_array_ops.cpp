@@ -538,7 +538,17 @@ int max_exponent(Reals a) {
     std::frexp(a[i], &expo);
     return expo;
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  Int res;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
+      update = transform(i);
+    }, Kokkos::Max< Omega_h::Int >(res) );
+  return res;
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 struct Int128Plus {
