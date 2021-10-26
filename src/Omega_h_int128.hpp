@@ -15,10 +15,13 @@ struct Int128 {
   OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
   OMEGA_H_INLINE Int128(std::int64_t value);
   inline Int128(Int128 const& rhs) = default;
-  inline Int128(const volatile Int128& rhs) volatile
-    : high(rhs.high), low(rhs.low) {}
+  inline Int128(const volatile Int128& rhs) : high(rhs.high), low(rhs.low) {}
   inline Int128& operator=(Int128 const& rhs) = default;
-  inline void operator=(const volatile Int128& rhs) volatile {
+  inline void operator=(const volatile Int128& rhs) {
+    high = rhs.high;
+    low = rhs.low;
+  }
+  inline void operator=(const Int128& rhs) volatile {
     high = rhs.high;
     low = rhs.low;
   }
