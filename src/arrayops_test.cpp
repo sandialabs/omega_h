@@ -29,5 +29,20 @@ int main(int argc, char** argv) {
     printf("are_close: %s\n", res ? "yes" : "no");
     OMEGA_H_CHECK(res == true);
   }
+  {
+    const auto tol = 1e-3;
+    const auto floor = 1e-9;
+    Reals a = {1,0.0,1,2};
+    Reals b = {1,0.1,1,2};
+    bool res = are_close(a,b,tol,floor);
+    printf("are_close: %s\n", res ? "yes" : "no");
+    OMEGA_H_CHECK(res == false);
+    const auto small = 0.000001;
+    Reals c = {1,small,1,2};
+    res = are_close(a,c,tol,floor);
+    const auto expected = are_close(0.1,small,tol,floor);
+    printf("are_close: %s\n", res ? "yes" : "no");
+    OMEGA_H_CHECK(res == expected);
+  }
   return 0;
 }

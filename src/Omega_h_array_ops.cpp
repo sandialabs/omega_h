@@ -115,9 +115,19 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
   auto transform = OMEGA_H_LAMBDA(LO i)->bool {
     return are_close(a[i], b[i], tol, floor);
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  LO sum = 0;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update = (LO)transform(i);
+    }, Kokkos::Sum< Omega_h::LO >(sum) );
+  return (sum==a.size());
+#else
   auto const res =
       transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
+#endif
 }
 
 bool are_close_abs(Reals a, Reals b, Real tol) {
