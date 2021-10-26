@@ -447,7 +447,17 @@ LO find_last(Read<T> array, T value) {
     else
       return -1;
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  LO res = init;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, array.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update = transform(i);
+    }, Kokkos::Max< Omega_h::LO >(res) );
+  return res;
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 template <typename T>
