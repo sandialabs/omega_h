@@ -1,6 +1,7 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_library.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_sort.hpp"
 
 int main(int argc, char** argv) {
   using namespace Omega_h;
@@ -62,6 +63,32 @@ int main(int argc, char** argv) {
     res = (a==c);
     OMEGA_H_CHECK(res == false);
   }
-
+  {
+    Read<I32> a = {1,2,0,3};
+    LOs perm, fan;
+    Read<I32> b;
+    sort_small_range(a,&perm,&fan,&b);
+    //OMEGA_H_CHECK(res == 4.1);
+  }
+  { //the following works, but the call to number_same_values in sort.cpp fails
+    Read<I32> a = {1,1,0,1};
+    Write<LO> perm(a.size()+1,0);
+    LOs expected = {0,1,2,2,3};
+    I32 value = 1;
+    auto transform = OMEGA_H_LAMBDA(LO i)->LO {
+      return a[i] == value ? LO(1) : LO(0);
+    };
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<>(0, a.size() ),
+      KOKKOS_LAMBDA(int i, LO& update, const bool final) {
+        update += transform(i);
+        if(final) perm[i+1] = update;
+      });
+    HostRead<LO> h_perm(perm);
+    for(int i=0; i<h_perm.size(); i++)
+      printf("%d ", h_perm[i]);
+    printf("\n");
+    OMEGA_H_CHECK(read(perm) == expected);
+  }
   return 0;
 }
