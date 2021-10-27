@@ -43,5 +43,10 @@ int main(int argc, char** argv) {
     auto const res = get_max(a);
     OMEGA_H_CHECK(res == 2);
   }
+  {
+    Reals a = {1,0.1,1,2};
+    auto const res = get_min(a);
+    OMEGA_H_CHECK(res == 0.1);
+  }
   return 0;
 }
