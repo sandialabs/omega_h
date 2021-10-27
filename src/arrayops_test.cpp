@@ -38,5 +38,10 @@ int main(int argc, char** argv) {
     const auto expected = are_close(0.1,small,tol,floor);
     OMEGA_H_CHECK(res == expected);
   }
+  {
+    Reals a = {1,0.1,1,2};
+    auto const res = get_max(a);
+    OMEGA_H_CHECK(res == 2);
+  }
   return 0;
 }

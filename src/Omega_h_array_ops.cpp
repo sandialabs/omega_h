@@ -87,7 +87,16 @@ T get_max(Read<T> a) {
   auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  auto r = init;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
+      update = transform(i);
+    }, Kokkos::Max< Omega_h::promoted_t<T> >(r) );
+#else
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
+#endif
   return static_cast<T>(r);  // see StandinTraits
 }
 
