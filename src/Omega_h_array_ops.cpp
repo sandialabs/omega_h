@@ -55,9 +55,23 @@ bool operator==(Read<T> a, Read<T> b) {
 
 template <typename T>
 promoted_t<T> get_sum(Read<T> a) {
-  using PT = promoted_t<T>;
-  return transform_reduce(a.begin(), a.end(), PT(0), plus<PT>(),
-      OMEGA_H_LAMBDA(T val)->PT { return PT(val); });
+  auto const init = promoted_t<T>(0);
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  auto sum = init;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
+      update = transform(i);
+    }, sum);
+  return sum;
+#else
+  return transform_reduce(a.begin(), a.end(), init, plus<PT>(),
+      std::move(transform));
+#endif
+
 }
 
 template <typename T>
