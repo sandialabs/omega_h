@@ -50,7 +50,18 @@ bool operator==(Read<T> a, Read<T> b) {
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] == b[i]; };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  LO sum = 0;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update = transform(i);
+    }, sum);
+  return (sum == a.size());
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
+
 }
 
 template <typename T>

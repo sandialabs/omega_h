@@ -53,5 +53,15 @@ int main(int argc, char** argv) {
     auto const res = get_sum(a);
     OMEGA_H_CHECK(res == 4.1);
   }
+  {
+    LOs a = {1,5,1,2};
+    LOs b = {1,5,1,2};
+    LOs c = {1,5,2,2};
+    auto res = (a==b);
+    OMEGA_H_CHECK(res == true);
+    res = (a==c);
+    OMEGA_H_CHECK(res == false);
+  }
+
   return 0;
 }
