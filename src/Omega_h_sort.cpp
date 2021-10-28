@@ -154,16 +154,6 @@ void combine_perms(Read<T> const a, T const value,
 
 template <typename T>
 void sort_small_range(Read<T> a, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
-  {
-    Read<I32> a = {1,1,0,1};
-    Write<LO> tmp_perm(a.size()+1,0);
-    LOs expected = {0,1,2,2,3};
-    I32 value = 1;
-    auto const ndid = number_same_values(a, value, tmp_perm); //failing here
-    OMEGA_H_CHECK(read(tmp_perm) == expected);
-    printf("ndid %d\n", ndid);
-  }
-  /*
   LO ndone = 0;
   T value = get_min(a);
   Write<LO> tmp_perm(a.size() + 1);
@@ -193,7 +183,6 @@ void sort_small_range(Read<T> a, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
   *p_perm = perm;
   *p_fan = h_fan.write();
   *p_uniq = h_uniq.write();
-  */
 }
 
 template void sort_small_range(
