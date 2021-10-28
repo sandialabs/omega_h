@@ -101,6 +101,9 @@ if (Omega_h_USE_CUDA)
   enable_language(CUDA)
 endif()
 
+bob_begin_cxx_flags()
+bob_cxx11_flags()
+
 include(cmake/osh_use_dolfin.cmake)
 osh_use_dolfin()
 
