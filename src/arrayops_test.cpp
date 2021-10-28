@@ -1,6 +1,7 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_library.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_sort.hpp"
 
 int main(int argc, char** argv) {
   using namespace Omega_h;
@@ -62,6 +63,26 @@ int main(int argc, char** argv) {
     res = (a==c);
     OMEGA_H_CHECK(res == false);
   }
-
+  {
+    Write<LO> a = {1,2,0};
+    LOs b = {1,2,3};
+    a.set(2,3);
+    auto res = (read(a)==b);
+    OMEGA_H_CHECK(res == true);
+    auto val = a.get(1);
+    OMEGA_H_CHECK(val == 2);
+  }
+  {
+    Read<I32> a = {45,2,0,3};
+    LOs expectedPerm = {3,1,0,2};
+    LOs expectedFan = {0,1,2,3,4};
+    LOs expectedUniq = {0,2,3,45};
+    LOs perm, fan;
+    Read<I32> uniq;
+    sort_small_range(a,&perm,&fan,&uniq);
+    OMEGA_H_CHECK(perm == expectedPerm);
+    OMEGA_H_CHECK(fan == expectedFan);
+    OMEGA_H_CHECK(uniq == expectedUniq);
+  }
   return 0;
 }

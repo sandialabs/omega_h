@@ -105,7 +105,17 @@ T next_smallest_value(Read<T> const a, T const value) {
   auto transform = OMEGA_H_LAMBDA(LO i)->T {
     return (a[i] > value) ? a[i] : init;
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  auto res = init;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, T& update) {
+      update = transform(i);
+    }, Kokkos::Min<T>(res) );
+  return res;
+#else
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 template <typename T>
@@ -119,7 +129,16 @@ LO number_same_values(
   auto transform = OMEGA_H_LAMBDA(LO i)->LO {
     return a[i] == value ? LO(1) : LO(0);
   };
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  Kokkos::parallel_scan(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, LO& update, const bool final) {
+      update += transform(i);
+      if(final) tmp_perm[i+1] = update;
+    });
+#else
   transform_inclusive_scan(first, last, result, op, std::move(transform));
+#endif
   return read(tmp_perm).last();
 }
 
