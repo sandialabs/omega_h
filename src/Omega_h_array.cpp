@@ -91,6 +91,7 @@ std::string const& Write<T>::name() const {
 template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
+  fprintf(stderr,"write::set\n");
 #ifdef OMEGA_H_USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else

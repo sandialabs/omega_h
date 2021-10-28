@@ -64,6 +64,13 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == false);
   }
   {
+    Write<LO> a = {1,2,0};
+    LOs b = {1,2,3};
+    a.set(2,3);
+    auto res = (read(a)==b);
+    OMEGA_H_CHECK(res == true);
+  }
+  {
     Read<I32> a = {1,2,0,3};
     LOs perm, fan;
     Read<I32> b;
