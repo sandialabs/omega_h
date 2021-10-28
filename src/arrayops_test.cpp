@@ -73,31 +73,16 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(val == 2);
   }
   {
-    Read<I32> a = {1,2,0,3};
+    Read<I32> a = {45,2,0,3};
+    LOs expectedPerm = {3,1,0,2};
+    LOs expectedFan = {0,1,2,3,4};
+    LOs expectedUniq = {0,2,3,45};
     LOs perm, fan;
-    Read<I32> b;
-    sort_small_range(a,&perm,&fan,&b);
-    //OMEGA_H_CHECK(res == 4.1);
-  }
-  { //the following works, but the call to number_same_values in sort.cpp fails
-    Read<I32> a = {1,1,0,1};
-    Write<LO> perm(a.size()+1,0);
-    LOs expected = {0,1,2,2,3};
-    I32 value = 1;
-    auto transform = OMEGA_H_LAMBDA(LO i)->LO {
-      return a[i] == value ? LO(1) : LO(0);
-    };
-    Kokkos::parallel_scan(
-      Kokkos::RangePolicy<>(0, a.size() ),
-      KOKKOS_LAMBDA(int i, LO& update, const bool final) {
-        update += transform(i);
-        if(final) perm[i+1] = update;
-      });
-    HostRead<LO> h_perm(perm);
-    for(int i=0; i<h_perm.size(); i++)
-      printf("%d ", h_perm[i]);
-    printf("\n");
-    OMEGA_H_CHECK(read(perm) == expected);
+    Read<I32> uniq;
+    sort_small_range(a,&perm,&fan,&uniq);
+    OMEGA_H_CHECK(perm == expectedPerm);
+    OMEGA_H_CHECK(fan == expectedFan);
+    OMEGA_H_CHECK(uniq == expectedUniq);
   }
   return 0;
 }
