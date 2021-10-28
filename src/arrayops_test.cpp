@@ -69,6 +69,8 @@ int main(int argc, char** argv) {
     a.set(2,3);
     auto res = (read(a)==b);
     OMEGA_H_CHECK(res == true);
+    auto val = a.get(1);
+    OMEGA_H_CHECK(val == 2);
   }
   {
     Read<I32> a = {1,2,0,3};
