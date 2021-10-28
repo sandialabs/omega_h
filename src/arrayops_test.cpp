@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     Read<I32> a = {1,2,0,3};
     LOs perm, fan;
     Read<I32> b;
-    sort_small_range(a,&perm,&fan,&b);
+    //sort_small_range(a,&perm,&fan,&b);
     //OMEGA_H_CHECK(res == 4.1);
   }
   { //the following works, but the call to number_same_values in sort.cpp fails

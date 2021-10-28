@@ -92,7 +92,9 @@ template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
   fprintf(stderr,"write::set\n");
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  Kokkos::deep_copy(Kokkos::subview(view_,i),value);
+#elif defined(OMEGA_H_USE_CUDA)
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
   operator[](i) = value;
