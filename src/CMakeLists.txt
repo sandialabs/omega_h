@@ -203,6 +203,8 @@ if (Omega_h_USE_CUDA)
         "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
         "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
         --expt-extended-lambda)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "NVHPC")
+    target_compile_options(omega_h PUBLIC --extended-lambda)
   endif()
 else()
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
