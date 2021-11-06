@@ -549,12 +549,12 @@ Real repro_sum(CommPtr comm, Reals a) {
   auto const init = ArithTraits<int>::min();
   auto expo0 = max_exponent(a);
   int expo = comm->allreduce(expo0, OMEGA_H_MAX);
+  if (expo == init) return 0.0;
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
   fixpt_sum = comm->add_int128(fixpt_sum);
   double ret = fixpt_sum.to_double(unit);
   end_code();
-  if (expo == init) return 0.0;
   return ret;
 }
 

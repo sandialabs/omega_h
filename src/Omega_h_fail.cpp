@@ -37,7 +37,7 @@ void fail(char const* format, ...) {
     auto &h = *Omega_h::profile::global_singleton_history;
     auto s = h.current_frame;
     buf = buf + "\nFrames:\n" + h.get_name(s);
-    while (h.parent(s) != invalid) {
+    while (h.parent(s) != profile::invalid) {
       s = h.parent(s);
       buf = buf + "\n" + h.get_name(s);
     }
