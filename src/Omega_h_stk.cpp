@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <set>
+#include <map>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_build.hpp"
@@ -91,6 +92,29 @@ static LOs get_elem_node_indices(const stk::mesh::BulkData & stk_mesh, const std
   return elem_node_indices.write();
 }
 
+static LOs get_elem_block_ids_compress(const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems, std::map<LO,LO>& unique_ids_map)
+{
+  HostWrite<LO> elem_block_ids(LO(stk_elems.size()));
+  LO unique_count = 0;
+
+  LO index = 0;
+  for (auto && elem : stk_elems)
+  {
+    auto const original_id = get_element_part_id(stk_mesh, elem);
+    bool add_unique = true;
+    for (auto const& a_pair : unique_ids_map) {
+      if (a_pair.first == original_id) {
+        add_unique = false;
+        break;
+      }
+    }
+    if (add_unique) unique_ids_map.insert({original_id,unique_count++});
+    elem_block_ids[index++] = unique_ids_map[original_id];
+  }
+
+  return elem_block_ids.write();
+}
+
 static LOs get_elem_block_ids(const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems)
 {
   HostWrite<LO> elem_block_ids(LO(stk_elems.size()));
@@ -164,13 +188,16 @@ static void classify_elements(Mesh * mesh, const stk::mesh::BulkData & stk_mesh,
 {
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   classify_elements(mesh);
-  LOs elem_class_ids = get_elem_block_ids(stk_mesh, stk_elems);
+  std::map<LO,LO> unique_ids_map;
+  LOs elem_class_ids = get_elem_block_ids_compress(stk_mesh, stk_elems, unique_ids_map);
   mesh->add_tag(dim, "class_id", 1, elem_class_ids);
   std::vector<stk::mesh::Part*> const& myparts = stk_mesh.mesh_meta_data().get_parts();
   for (size_t k=0; k<myparts.size(); ++k) {
     if (myparts[k]->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
         myparts[k]->id() > 0) {
-      mesh->class_sets[myparts[k]->name()].push_back({dim, int(myparts[k]->id())});
+      int the_id = int(myparts[k]->id());
+      int the_new_id = unique_ids_map[the_id];
+      mesh->class_sets[myparts[k]->name()].push_back({dim, the_new_id});
     }
   }
 }
