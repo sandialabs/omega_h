@@ -40,13 +40,13 @@ void fail(char const* format, ...);
 #if defined(NDEBUG)
 #  define OMEGA_H_CHECK(cond) static_cast<void>(cond)
 #else
-#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(cond))
+#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
 #endif
 #elif defined(__CUDA_ARCH__)
 #if defined(NDEBUG)
 #  define OMEGA_H_CHECK(cond) static_cast<void>(cond)
 #else
-#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(cond))
+#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
 #endif
 #else
 #    define OMEGA_H_CHECK(cond)                                                    \
