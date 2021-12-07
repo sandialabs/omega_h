@@ -1,9 +1,15 @@
+//FIXME this needs a preprocessor conditional {
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/execution>
+//}
+
 #include <Omega_h_int_iterator.hpp>
 #include <Omega_h_scan.hpp>
 #include <Omega_h_sort.hpp>
 
 #include <algorithm>
 #include <vector>
+
 
 #if defined(OMEGA_H_USE_CUDA)
 
@@ -43,7 +49,10 @@ template <typename T, typename Comp>
 static void parallel_sort(T* b, T* e, Comp c) {
   begin_code("parallel_sort");
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
-  (void)1;
+  auto space = Kokkos::Experimental::SYCL();
+  const auto q = *space.impl_internal_space_instance()->m_queue;
+  auto policy = ::oneapi::dpl::execution::make_device_policy(q);
+  oneapi::dpl::sort(policy,b,e,c);
 #elif defined(OMEGA_H_USE_CUDA)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
