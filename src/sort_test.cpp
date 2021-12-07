@@ -43,11 +43,11 @@ int main(int argc, char** argv) {
     }
 
     {
-    Write<LO> perm = {0,1};
-    LOs keys = {0,2,0,1};
+    Write<LO> perm = {0,1,2};
+    LOs keys = {1, 2, 3, 1, 2, 2, 3, 0, 0};
     LO const* keyptr = keys.data();
-    auto cmp = CompareKeySets<LO,2>(keyptr);
-    LOs expected = {1, 0};
+    auto cmp = CompareKeySets<LO,3>(keyptr);
+    LOs expected = {1, 0, 2};
     oneapi::dpl::sort(policy,
         perm.data(), perm.data() + perm.size(), cmp);
 
