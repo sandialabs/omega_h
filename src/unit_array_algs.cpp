@@ -317,7 +317,9 @@ int main(int argc, char** argv) {
   test_repro_sum();
   test_sort();
   test_sort_small_range();
-  test_scan();
+  fprintf(stderr, "0.2\n");
+  test_scan(); //fails here
+  fprintf(stderr, "0.3\n");
   test_fan_and_funnel();
   test_permute();
   test_invert_map();
