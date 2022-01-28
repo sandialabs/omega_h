@@ -15,6 +15,7 @@ struct Int128 {
   OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
   OMEGA_H_INLINE Int128(std::int64_t value);
   inline Int128(Int128 const& rhs) = default;
+  inline Int128& operator=(const Int128&) = default;
   double to_double(double unit) const;
   void print(std::ostream& o) const;
   static OMEGA_H_INLINE Int128 from_double(double value, double unit);

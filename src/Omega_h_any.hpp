@@ -51,6 +51,7 @@ DEALINGS IN THE SOFTWARE.
 #include <stdexcept>
 #include <type_traits>
 #include <typeinfo>
+#include <utility>
 
 namespace Omega_h {
 
