@@ -36,7 +36,7 @@ using OpPtr = std::shared_ptr<ExprOp>;
 class ExprOpsReader : public Reader {
  public:
   ExprOpsReader();
-  virtual ~ExprOpsReader() override final = default;
+  virtual ~ExprOpsReader() override = default;
   OpPtr read_ops(std::string const& str);
 
  protected:
@@ -49,7 +49,7 @@ class ExprReader : public Reader {
   using Args = ExprEnv::Args;
   using Function = ExprEnv::Function;
   ExprReader(LO size_in, Int dim_in);
-  virtual ~ExprReader() override final;
+  virtual ~ExprReader() override;
   void register_variable(std::string const& name, any const& value);
   void register_function(std::string const& name, Function const& value);
   void repeat(any& x);
