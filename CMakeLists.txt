@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.33.0 LANGUAGES CXX)
+project(Omega_h VERSION 10.0.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})

@@ -182,6 +182,10 @@ void Mesh::change_tagTorc(Int ent_dim, Int ncomps, std::string const &name,
   if (class_ids.exists()) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
   Write<T> b_field(n_bEnts*ncomps);
+  if ((ent_dim == 3) && (n_bEnts != nents(ent_dim))) {
+    fprintf(stderr, "multiple model regions\n");
+  }
+
   auto f = OMEGA_H_LAMBDA(LO i) {
     auto id = rc_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
@@ -207,13 +211,16 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const &name,
   auto rc_ids = (ask_revClass(ent_dim)).ab2b;
   if (class_ids.exists()) rc_ids = (ask_revClass(ent_dim, class_ids)).ab2b;
   auto n_bEnts = rc_ids.size();
+  if ((ent_dim == 3) && (n_bEnts != n_ents)) {
+    fprintf(stderr, "multiple model regions\n");
+  }
 
   Write<T> mesh_field (n_ents*ncomps, OMEGA_H_INTERIOR_VAL);
 
   auto f = OMEGA_H_LAMBDA (LO i) {
     auto id = rc_ids[i];
     for (LO n = 0; n < ncomps; ++n) {
-      if (mesh_field[id*ncomps + n] == OMEGA_H_INTERIOR_VAL) {
+      if ((mesh_field[id*ncomps + n] - OMEGA_H_INTERIOR_VAL) < EPSILON) {
         mesh_field[id*ncomps + n] = rc_field[i*ncomps + n];
       }
     }
@@ -239,7 +246,6 @@ Read<T> Mesh::get_rcField_array
   new_name.append("_rc");
   OMEGA_H_CHECK(has_tag(ent_dim, new_name));
   return get_tag<T>(ent_dim, new_name)->array();
-
 }
 
 template <typename T>

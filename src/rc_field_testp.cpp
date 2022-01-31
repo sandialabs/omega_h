@@ -20,7 +20,7 @@ void set_target_metric(Mesh* mesh) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
     for (Int i = 0; i < dim - 1; ++i) h[i] = 0.5;
-    h[dim - 1] = 0.001 + 0.198 * std::abs(z - 0.5);
+    h[dim - 1] = 2*(0.001 + 0.198 * std::abs(z - 0.5));
     auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(target_metrics_w, v, m);
   };
@@ -137,6 +137,7 @@ void test_3d(Library *lib, const std::string &mesh_file, const char* vtk_file,
 int main(int argc, char** argv) {
 
   auto lib = Library (&argc, &argv);
+  auto world = lib.world();
 
   if (argc != 6) {
     Omega_h_fail("a.out <in_mesh> <out_vtk> <out_sync_vtk> <out_reduce_vtk> <out_adapt>\n");
@@ -152,7 +153,8 @@ int main(int argc, char** argv) {
   path_reduce = argv[4];
   path_adapt = argv[5];
 
+  world->barrier();
   test_3d(&lib, path_in, path_vtk, path_sync, path_reduce, path_adapt);
+  world->barrier();
 
-  return 0;
 }

@@ -500,7 +500,7 @@ if(BUILD_TESTING)
   test_func(rc_field_test 1 ./rc_field_test
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
     ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh
-    ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.vtk
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.vtu
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem_bField.osh)
   if(Omega_h_USE_MPI)

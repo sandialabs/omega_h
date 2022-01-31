@@ -278,8 +278,17 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
   write_value(stream, ncomps, needs_swapping);
   I8 type = tag->type();
   write_value(stream, type, needs_swapping);
+
   auto class_ids = tag->class_ids();
-  //TODO: write class id info for rc tag to file
+  I32 n_class_ids = 0;
+  if (class_ids.exists()) {
+    n_class_ids = class_ids.size();
+  }
+  write(stream, "n_geom_ents", needs_swapping);
+  write_value(stream, n_class_ids, needs_swapping);
+  if (n_class_ids > 0) {
+    write_array(stream, class_ids, is_compressed, needs_swapping);
+  }
 
   if (is<I8>(tag)) {
 
@@ -354,10 +363,21 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
       read_value(stream, outflags_i8, needs_swapping);
     }
   }
-  auto class_ids = LOs{};
   //TODO: read class id info for rc tag to file
+  Read<I32> class_ids = {};
+  if (version > 9) {
+    std::string class_ids_string;
+    read(stream, class_ids_string, needs_swapping);
+    OMEGA_H_CHECK(class_ids_string == "n_geom_ents");
+    I32 n_class_ids;
+    read_value(stream, n_class_ids, needs_swapping);
+    if (n_class_ids > 0) {
+      read_array(stream, class_ids, is_compressed, needs_swapping);
+    }
+  }
 
   if (type == OMEGA_H_I8) {
+
     Read<I8> array;
     read_array(stream, array, is_compressed, needs_swapping);
     mesh->add_tag(d, name, ncomps, array, true);

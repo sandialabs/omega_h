@@ -39,7 +39,6 @@ macro(simLibCheck libs isRequired)
   endforeach()
 endmacro(simLibCheck)
 
-
 macro(getSimCadLib searchPath libName lib)
   file(GLOB cadLib
     RELATIVE ${searchPath}/
@@ -75,6 +74,7 @@ string(REGEX REPLACE
 
 set(MIN_VALID_SIM_VERSION 16.0.210606)
 set(MAX_VALID_SIM_VERSION 16.0.210623)
+
 if( (SIM_DOT_VERSION VERSION_LESS MIN_VALID_SIM_VERSION) OR
     (SIM_DOT_VERSION VERSION_GREATER MAX_VALID_SIM_VERSION) )
   MESSAGE(FATAL_ERROR
