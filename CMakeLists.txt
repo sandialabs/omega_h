@@ -92,6 +92,9 @@ if(Omega_h_USE_Kokkos)
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
+  message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
+endif()
 if(Omega_h_USE_MPI)
   set(MPI_CXX_SKIP_MPICXX ON) #don't need MPI C++ bindings
   bob_add_dependency(PUBLIC NAME MPI
