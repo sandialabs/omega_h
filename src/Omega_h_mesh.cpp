@@ -951,6 +951,18 @@ void Mesh::balance(bool predictive) {
   migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
 }
 
+void Mesh::migrate(Remotes& owners) {
+  OMEGA_H_TIME_FUNCTION;
+  if (comm_->size() == 1) return;
+  set_parting(OMEGA_H_ELEM_BASED);
+  auto unsorted_new2owners = Dist(comm_, owners, nelems());
+  auto owners2new = unsorted_new2owners.invert();
+  auto owner_globals = this->globals(dim());
+  owners2new.set_dest_globals(owner_globals);
+  auto sorted_new2owners = owners2new.invert();
+  migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
+}
+
 void Mesh::swap_root_owner(Int dim) {
   OMEGA_H_CHECK(this->is_matched());
   auto matches = this->get_matches(dim);
