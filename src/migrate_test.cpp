@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
   //rank 0 has elms 1,2,4,5
   //rank 1 has elms 0,3,6,7
   //move elm with gid 7 from rank 1 to rank 0
-  const int elms = (!rank) ? 5 : 3;
   if(!rank) {
     Write<I32> ranks = {0,0,0,0,1};
     Write<LO> idxs = {0,1,2,3,3};
