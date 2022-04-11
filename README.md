@@ -18,7 +18,7 @@ For a bare minimum setup with no parallelism, you just need [CMake][0],
 a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
-git clone git@github.com:SNLComputation/omega_h.git
+git clone git@github.com:SCOREC/omega_h.git
 cd omega_h
 cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
@@ -68,7 +68,6 @@ The `-fopenmp` flag will automatically be added.
 Default: `OFF`
 
 Whether to enable CUDA GPU parallelism.
-Currently, this requires that [`nvcc_wrapper`][7] be used as the `CMAKE_CXX_COMPILER`.
 
 #### Omega\_h\_USE\_SEACASExodus
 Default: `OFF`
@@ -84,12 +83,7 @@ request features, etc.
 If you'd like to contribute, please fork the repository and use a feature
 branch. Pull requests are welcome.
 
-## Licensing
-
-This library is released under the FreeBSD license.
-
 [0]: https://cmake.org
 [1]: https://raw.githubusercontent.com/SNLComputation/omega_h/master/misc/omega_h.png
 [3]: http://www.mpich.org
 [6]: http://zlib.net
-[7]: http://github.com/kokkos/nvcc_wrapper
