@@ -32,14 +32,14 @@ Omega\_h is developed and distributed via GitHub,
 a popular software hosting platform based on the
 Git distributed version control system.
 
-\url{https://github.com/SNLComputation/omega_h}
+\url{https://github.com/sandialabs/omega_h}
 
 The most common way to obtain Omega\_h is to
 use Git to clone the repository and automatically
 check out the \texttt{master} branch:
 
 \begin{lstlisting}[language=bash]
-git clone git@github.com:SNLComputation/omega_h.git
+git clone git@github.com:sandialabs/omega_h.git
 \end{lstlisting}
 
 \section{Compiling}
@@ -69,7 +69,7 @@ and installs, which is readable by other CMake projects.
 
 \subsection{Compiler}
 
-Omega\_h is written in the C++11 standard of C++,
+Omega\_h is written in the C++14 standard of C++,
 so a compiler with complete support for that standard
 is needed.
 Omega\_h's CMake files will accept the GCC, Clang,
@@ -102,12 +102,10 @@ cleaner memory management.
 In order to use this, we typically just use the MPI compiler wrapper
 \texttt{mpicxx} as the \texttt{CMAKE\_CXX\_COMPILER}.
 
-\item Kokkos: This C++11 library implements shared-memory parallelism
+\item Kokkos: This C++14 library implements shared-memory parallelism
 constructs and allows Omega\_h to (mostly) not worry about the details
 of OpenMP and CUDA.
 It is required if you want to use shared-memory parallelism in Omega\_h.
-Kokkos can be obtained as part of Trilinos, and Trilinos can be configured
-to compile and install only Kokkos.
 Enabling Kokkos provides two more options, \texttt{Omega\_h\_ENABLE\_CUDA}
 and \texttt{Omega\_h\_ENABLE\_OpenMP}, which are the main on-node
 parallelism backends that Kokkos uses for GPUs and multi-core CPUs,
@@ -133,13 +131,12 @@ for example the dependence on Kokkos is controlled by the boolean
 Dependencies which require finding libraries and/or headers have
 an associated prefix path where those libraries and headers are installed,
 for example \texttt{Kokkos\_PREFIX} indicates the location where
-Kokkos was installed (in that particular case it is usually the
-Trilinos installation location).
+Kokkos was installed.
 So to use Kokkos one may give the following two arguments to the
 \texttt{cmake} command-line program:
 \begin{lstlisting}
 -DOmega_h_ENABLE_Kokkos:BOOL=ON \
--DKokkos_PREFIX:PATH=$HOME/install/Trilinos \
+-DKokkos_PREFIX:PATH=$HOME/install/kokkos \
 \end{lstlisting}
 
 \subsection{Other Options}
@@ -238,7 +235,7 @@ mirrors the variation in resolution of the initial starting mesh.
 
 \subsection{Header and Library}
 
-In most cases, users should call the C++11 API of Omega\_h directly
+In most cases, users should call the C++14 API of Omega\_h directly
 from their own C++ code.
 In terms of the build system, users need their code to include
 the \texttt{Omega\_h.hpp} header file and link their own code
