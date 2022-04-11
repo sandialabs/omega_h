@@ -12,10 +12,19 @@ object and evolving geometry simulations.
 Omega\_h will do this for you in a way that is fast, memory-efficient, and
 portable across many different architectures.
 
+## Extensions
+
+This fork of Omega\_h from https://github.com/sandialabs/omega_h v9.33.0 adds support for:
+
+- loading serial and partitioned Simmetrix meshes
+- reverse classification, and defining tags on sets of mesh entities defined by a reverse classification relation
+- representing single-process mixed meshes
+- domains with matched/periodic entities
+
 ## Installing / Getting started
 
 For a bare minimum setup with no parallelism, you just need [CMake][0],
-a C++11 compiler, and preferably [ZLib][6] installed.
+a C++14 compiler, and preferably [ZLib][6] installed.
 
 ```shell
 git clone git@github.com:SCOREC/omega_h.git
