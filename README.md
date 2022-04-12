@@ -3,7 +3,7 @@
 # Omega\_h
 > Reliable mesh adaptation
 
-Omega\_h is a C++11 library that implements tetrahedron and triangle mesh adaptativity,
+Omega\_h is a C++14 library that implements tetrahedron and triangle mesh adaptativity,
 with a focus on scalable HPC performance using (optionally) MPI and OpenMP or CUDA.
 It is intended to provided adaptive functionality to existing simulation codes.
 Mesh adaptivity allows one to minimize both discretization error and number
