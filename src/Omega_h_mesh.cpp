@@ -126,16 +126,12 @@ GO Mesh::nglobal_ents(Int ent_dim) {
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
-  fprintf(stderr, "Mesh::add_tag(2) this %p dim %d name %s ncomps %d\n",
-      this, ent_dim, name.c_str(), ncomps);
   this->add_tag(ent_dim, name, ncomps, Read<T>(), true);
 }
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s ncomps %d\n",
-      this, ent_dim, name.c_str(), ncomps);
   if (has_tag(ent_dim, name)) {
     remove_tag(ent_dim, name);
   } else {
@@ -159,8 +155,6 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
 template <typename T>
 void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
-  fprintf(stderr, "Mesh::set_tag, this %p dim %d name %s\n",
-      this, ent_dim, name.c_str());
   this->add_tag(ent_dim, name, divide_no_remainder(array.size(), nents(ent_dim)), array, internal);
 }
 
@@ -358,9 +352,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  fprintf(stderr, "Mesh::add_coords, this %p\n", this);
   add_tag<Real>(0, "coordinates", dim(), array);
-  fprintf(stderr, "Mesh::add_coords, after calling add_tag\n");
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
