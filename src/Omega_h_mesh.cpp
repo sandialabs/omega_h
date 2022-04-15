@@ -132,9 +132,11 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  if (has_tag(ent_dim, name)) {
-    remove_tag(ent_dim, name);
-  } else {
+  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s ncomps %d\n",
+      this, ent_dim, name.c_str(), ncomps);
+  auto it = this->tag_iter(ent_dim, name);
+  bool const had = (it != tags_[ent_dim].end());
+  if (!had) {
     check_dim2(ent_dim);
     check_tag_name(name);
     OMEGA_H_CHECK(ncomps >= 0);
@@ -144,7 +146,11 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
   OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   auto ptr = std::make_shared<Tag<T>>(name, ncomps);
   ptr->set_array(array);
-  tags_[ent_dim].push_back(std::move(ptr));
+  if (had) {
+    *it = std::move(ptr);
+  } else {
+    tags_[ent_dim].push_back(std::move(ptr));
+  }
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -174,6 +180,11 @@ TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   auto it = tag_iter(ent_dim, name);
   if (it == tags_[ent_dim].end()) {
+    fprintf(stderr, "Mesh::get_tagbase this %p dim %d name %s \"doesn't exist\"\n",
+        this, ent_dim, name.c_str());
+    for (auto& ptr : tags_[ent_dim]) {
+      fprintf(stderr, "tags_[%d] contains %s\n", ent_dim, ptr->name().c_str());
+    }
     Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
         topological_plural_name(family(), ent_dim), name.c_str());
   }
@@ -191,9 +202,10 @@ Read<T> Mesh::get_array(Int ent_dim, std::string const& name) const {
 }
 
 void Mesh::remove_tag(Int ent_dim, std::string const& name) {
+  fprintf(stderr, "Mesh::remove_tag %p dim %d name %s\n",
+      this, ent_dim, name.c_str());
   if (!has_tag(ent_dim, name)) return;
   check_dim2(ent_dim);
-  OMEGA_H_CHECK(has_tag(ent_dim, name));
   tags_[ent_dim].erase(tag_iter(ent_dim, name));
 }
 
