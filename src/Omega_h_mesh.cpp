@@ -126,6 +126,8 @@ GO Mesh::nglobal_ents(Int ent_dim) {
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
+  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s\n",
+      this, ent_dim, name.c_str());
   if (has_tag(ent_dim, name)) remove_tag(ent_dim, name);
   check_dim2(ent_dim);
   check_tag_name(name);
@@ -133,6 +135,8 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
   OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
   TagPtr ptr(new Tag<T>(name, ncomps));
+  fprintf(stderr, "Mesh::add_tag created new Tag<T> object at %p\n",
+      ptr.get());
   tags_[ent_dim].push_back(std::move(ptr));
 }
 
@@ -167,11 +171,14 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
 template <typename T>
 void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
+  fprintf(stderr, "Mesh::set_tag, this %p dim %d name %s\n",
+      this, ent_dim, name.c_str());
   if (!has_tag(ent_dim, name)) {
     Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
         topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
+  fprintf(stderr, "Mesh::set_tag retrieved Tag<T> object at %p\n", tag);
   OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
