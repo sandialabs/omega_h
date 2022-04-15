@@ -132,8 +132,6 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s ncomps %d\n",
-      this, ent_dim, name.c_str(), ncomps);
   auto it = this->tag_iter(ent_dim, name);
   bool const had = (it != tags_[ent_dim].end());
   if (!had) {
@@ -143,9 +141,11 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
     OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
   }
-  OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   auto ptr = std::make_shared<Tag<T>>(name, ncomps);
-  ptr->set_array(array);
+  if (array.exists()) {
+    OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
+    ptr->set_array(array);
+  }
   if (had) {
     *it = std::move(ptr);
   } else {
@@ -180,11 +180,6 @@ TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   auto it = tag_iter(ent_dim, name);
   if (it == tags_[ent_dim].end()) {
-    fprintf(stderr, "Mesh::get_tagbase this %p dim %d name %s \"doesn't exist\"\n",
-        this, ent_dim, name.c_str());
-    for (auto& ptr : tags_[ent_dim]) {
-      fprintf(stderr, "tags_[%d] contains %s\n", ent_dim, ptr->name().c_str());
-    }
     Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
         topological_plural_name(family(), ent_dim), name.c_str());
   }
@@ -202,8 +197,6 @@ Read<T> Mesh::get_array(Int ent_dim, std::string const& name) const {
 }
 
 void Mesh::remove_tag(Int ent_dim, std::string const& name) {
-  fprintf(stderr, "Mesh::remove_tag %p dim %d name %s\n",
-      this, ent_dim, name.c_str());
   if (!has_tag(ent_dim, name)) return;
   check_dim2(ent_dim);
   tags_[ent_dim].erase(tag_iter(ent_dim, name));
