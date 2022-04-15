@@ -99,13 +99,17 @@ void build_from_elems2verts(
 
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords) {
+  fprintf(stderr, "build_from_elems_and_coords, mesh at %p\n", mesh);
   auto nverts = coords.size() / edim;
   build_from_elems2verts(mesh, family, edim, ev2v, nverts);
+  fprintf(stderr, "before add_coords\n");
   mesh->add_coords(coords);
+  fprintf(stderr, "after add_coords\n");
 }
 
 void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
     Real z, LO nx, LO ny, LO nz, bool symmetric) {
+  fprintf(stderr, "build_box_internal, mesh at %p\n", mesh);
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);

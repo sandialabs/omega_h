@@ -126,46 +126,34 @@ GO Mesh::nglobal_ents(Int ent_dim) {
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
-  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s\n",
-      this, ent_dim, name.c_str());
-  if (has_tag(ent_dim, name)) remove_tag(ent_dim, name);
-  check_dim2(ent_dim);
-  check_tag_name(name);
-  OMEGA_H_CHECK(ncomps >= 0);
-  OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
-  OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-  TagPtr ptr(new Tag<T>(name, ncomps));
-  fprintf(stderr, "Mesh::add_tag created new Tag<T> object at %p\n",
-      ptr.get());
-  tags_[ent_dim].push_back(std::move(ptr));
+  fprintf(stderr, "Mesh::add_tag(2) this %p dim %d name %s ncomps %d\n",
+      this, ent_dim, name.c_str(), ncomps);
+  this->add_tag(ent_dim, name, ncomps, Read<T>(), true);
 }
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  check_dim2(ent_dim);
-  auto it = tag_iter(ent_dim, name);
-  auto had_tag = (it != tags_[ent_dim].end());
-  Tag<T>* tag;
-  if (had_tag) {
-    tag = as<T>(it->get());
-    OMEGA_H_CHECK(ncomps == tag->ncomps());
+  fprintf(stderr, "Mesh::add_tag this %p dim %d name %s ncomps %d\n",
+      this, ent_dim, name.c_str(), ncomps);
+  if (has_tag(ent_dim, name)) {
+    remove_tag(ent_dim, name);
   } else {
+    check_dim2(ent_dim);
     check_tag_name(name);
     OMEGA_H_CHECK(ncomps >= 0);
     OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
     OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-    tag = new Tag<T>(name, ncomps);
-    TagPtr ptr(tag);
-    tags_[ent_dim].push_back(std::move(ptr));
   }
   OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
+  auto ptr = std::make_shared<Tag<T>>(name, ncomps);
+  ptr->set_array(array);
+  tags_[ent_dim].push_back(std::move(ptr));
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
      etc. without updating dependent fields */
   if (!internal) react_to_set_tag(ent_dim, name);
-  tag->set_array(array);
 }
 
 template <typename T>
@@ -173,19 +161,7 @@ void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
   fprintf(stderr, "Mesh::set_tag, this %p dim %d name %s\n",
       this, ent_dim, name.c_str());
-  if (!has_tag(ent_dim, name)) {
-    Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
-        topological_plural_name(family(), ent_dim), name.c_str());
-  }
-  Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
-  fprintf(stderr, "Mesh::set_tag retrieved Tag<T> object at %p\n", tag);
-  OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
-  /* internal typically indicates migration/adaptation/file reading,
-     when we do not want any invalidation to take place.
-     the invalidation is there to prevent users changing coordinates
-     etc. without updating dependent fields */
-  if (!internal) react_to_set_tag(ent_dim, name);
-  tag->set_array(array);
+  this->add_tag(ent_dim, name, divide_no_remainder(array.size(), nents(ent_dim)), array, internal);
 }
 
 void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
@@ -382,7 +358,9 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
+  fprintf(stderr, "Mesh::add_coords, this %p\n", this);
   add_tag<Real>(0, "coordinates", dim(), array);
+  fprintf(stderr, "Mesh::add_coords, after calling add_tag\n");
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
