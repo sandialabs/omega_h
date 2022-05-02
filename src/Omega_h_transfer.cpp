@@ -543,10 +543,7 @@ void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
         auto old_elem = kd_elems2elems[kde];
         auto old_v = gather_verts<dim + 1>(old_elem_verts2verts, old_elem);
         auto old_vp = gather_vectors<dim + 1, dim>(old_coords, old_v);
-        auto a = simplex_affine(old_vp);
-        auto ia = invert(a);
-        auto xi = ia * new_ip;
-        auto bc = form_barycentric(xi);
+        auto bc = barycentric_from_global<dim,dim>(new_ip, old_vp);
         auto distance = -reduce(bc, minimum<Real>());
         if (best_old_elem == -1 || distance < best_distance) {
           best_old_elem = old_elem;
