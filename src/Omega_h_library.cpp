@@ -67,10 +67,10 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     std::string msg_str = msg.str();
     Omega_h::fail("%s\n", msg_str.c_str());
   }
-  OMEGA_H_CHECK(argc != nullptr);
-  OMEGA_H_CHECK(argv != nullptr);
-  for (int ic = 0; ic < *argc; ic++) {
-    argv_.push_back((*argv)[ic]);
+  if (argc && argv) {
+    for (int ic = 0; ic < *argc; ic++) {
+      argv_.push_back((*argv)[ic]);
+    }
   }
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
