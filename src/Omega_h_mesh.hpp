@@ -87,12 +87,12 @@ class Mesh {
   Graph ask_dual();
 
  public:
-  typedef std::shared_ptr<TagBase> TagPtr;
-  typedef std::shared_ptr<Adj> AdjPtr;
-  typedef std::shared_ptr<Dist> DistPtr;
-  typedef std::shared_ptr<inertia::Rib> RibPtr;
-  typedef std::shared_ptr<Parents> ParentPtr;
-  typedef std::shared_ptr<Children> ChildrenPtr;
+  typedef std::shared_ptr<const TagBase> TagPtr;
+  typedef std::shared_ptr<const Adj> AdjPtr;
+  typedef std::shared_ptr<const Dist> DistPtr;
+  typedef std::shared_ptr<const inertia::Rib> RibPtr;
+  typedef std::shared_ptr<const Parents> ParentPtr;
+  typedef std::shared_ptr<const Children> ChildrenPtr;
 
  private:
   typedef std::vector<TagPtr> TagVector;
