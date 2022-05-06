@@ -16,7 +16,7 @@ portable across many different architectures.
 
 This fork of Omega\_h from https://github.com/sandialabs/omega_h v9.33.0 adds support for:
 
-- loading serial and partitioned Simmetrix meshes
+- loading serial Simmetrix meshes
 - reverse classification, and defining tags on sets of mesh entities defined by a reverse classification relation
 - representing single-process mixed meshes
 - domains with matched/periodic entities
