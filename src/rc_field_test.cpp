@@ -1,13 +1,13 @@
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_for.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_timer.hpp>
 #include <iostream>
 #include <string>
 
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_array_ops.hpp"
-#include <Omega_h_metric.hpp>
-#include <Omega_h_adapt.hpp>
-#include <Omega_h_timer.hpp>
-#include <Omega_h_for.hpp>
 
 using namespace Omega_h;
 
@@ -39,7 +39,7 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
 
   OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  OMEGA_H_CHECK (mesh->has_tag(0, "metric"));
+  OMEGA_H_CHECK(mesh->has_tag(0, "metric"));
 
   mesh->ask_lengths();
   mesh->ask_qualities();
@@ -55,7 +55,7 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   add_rcField_transferMap(&opts, "field", OMEGA_H_INHERIT);
   Now t0 = now();
-  while(approach_metric(mesh, opts)) {
+  while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
     if (vtk_path) writer.write();
@@ -66,11 +66,10 @@ void run_adapt(Mesh* mesh, char const* vtk_path) {
   return;
 }
 
-void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
-             const char *rcField_file) {
-
+void test_2d(Library* lib, const std::string& mesh_file, const char* vtu_file,
+    const char* rcField_file) {
   auto mesh = Mesh(lib);
-  binary::read (mesh_file, lib->world(), &mesh);
+  binary::read(mesh_file, lib->world(), &mesh);
 
   auto nverts = mesh.nverts();
   auto rc_ids = (mesh.ask_revClass(VERT)).ab2b;
@@ -80,15 +79,15 @@ void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
   mesh.add_rcField<Real>(0, "field1", 1, vals_r);
 
   auto face_1_2_rc = mesh.ask_revClass(2, LOs({1, 2}));
-  auto face_1_2_rc_ids = face_1_2_rc.ab2b; 
+  auto face_1_2_rc_ids = face_1_2_rc.ab2b;
   Write<Real> vals_f_1_2(face_1_2_rc_ids.size(), 50);
   mesh.add_rcField<Real>(LOs({1, 2}), 2, "face_1_2", 1);
   mesh.set_rcField_array(2, "face_1_2", Reals(vals_f_1_2));
 
-  Write<Real> vals2(mesh.nfaces()*2, 50);
+  Write<Real> vals2(mesh.nfaces() * 2, 50);
   Read<Real> vals_r2(vals2);
 
-  Write<Real> vals3(mesh.nverts()*3, 500);
+  Write<Real> vals3(mesh.nverts() * 3, 500);
   Read<Real> vals_r3(vals3);
 
   vtk::write_vtu(vtu_file, &mesh);
@@ -100,17 +99,20 @@ void test_2d(Library *lib, const std::string &mesh_file, const char* vtu_file,
   return;
 }
 
-void test_3d(Library *lib, const std::string &mesh_file,
-             const char* out_file) {
+void test_3d(Library* lib, const std::string& mesh_file, const char* out_file) {
   auto mesh = Mesh(lib);
   binary::read(mesh_file, lib->world(), &mesh);
 
   auto face_22_rc = mesh.ask_revClass(2, LOs({22}));
-  auto face_22_rc_ids = face_22_rc.ab2b; 
+  auto face_22_rc_ids = face_22_rc.ab2b;
   Write<Real> vals_f_22(face_22_rc_ids.size(), 50);
   mesh.add_rcField<Real>(LOs({22}), 2, "face_22", 1);
   mesh.set_rcField_array(2, "face_22", Reals(vals_f_22));
+  auto array0 = mesh.get_rcField_array<Real>(2, "face_22");
+  OMEGA_H_CHECK(array0.exists());
   binary::write("box3d_withFace22Field.osh", &mesh);
+  auto array = mesh.get_rcField_array<Real>(2, "face_22");
+  OMEGA_H_CHECK(array.exists());
   auto new_mesh = Mesh(lib);
   binary::read("box3d_withFace22Field.osh", lib->world(), &new_mesh);
   auto vals_f_22_read = new_mesh.get_rcField_array<Real>(2, "face_22");
@@ -139,15 +141,14 @@ void test_3d(Library *lib, const std::string &mesh_file,
   return;
 }
 
-int main (int argc, char** argv) {
-
-  auto lib = Library (&argc, &argv);
+int main(int argc, char** argv) {
+  auto lib = Library(&argc, &argv);
   auto world = lib.world();
 
   if (argc != 6) {
     Omega_h_fail(
-    "a.out <2d_in_mesh> <3d_in_mesh> <3d_out_mesh> <2d_out_vtu> <2d_out_osh>\n"
-    );
+        "a.out <2d_in_mesh> <3d_in_mesh> <3d_out_mesh> <2d_out_vtu> "
+        "<2d_out_osh>\n");
   };
   char const* path_2d = nullptr;
   char const* path_3d = nullptr;
@@ -164,5 +165,4 @@ int main (int argc, char** argv) {
   world->barrier();
   test_3d(&lib, path_3d, path_3d_out);
   world->barrier();
-
 }

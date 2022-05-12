@@ -182,8 +182,6 @@ static void refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
 void refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_HYPERCUBE);
   amr::mark_refined(mesh, elems_are_marked);
-  if (mesh->has_anyrcField())
-    Omega_h_fail("AMR with rc fields is not yet supported\n");
   mesh->set_parting(OMEGA_H_GHOSTED);
   amr::refine_ghosted(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);

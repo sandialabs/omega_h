@@ -11,6 +11,7 @@ namespace Omega_h {
 
 void unmap_tags(
     Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents) {
+  std::cout<<"CALLING unmap tags"<<std::endl;
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
