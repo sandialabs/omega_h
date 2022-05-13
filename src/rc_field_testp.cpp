@@ -28,33 +28,49 @@ void set_target_metric(Mesh* mesh) {
   mesh->set_tag(VERT, "target_metric", Reals(target_metrics_w));
 }
 
+static bool check_rc_tags(Mesh* mesh) {
+  for(int i=0; i<4;++i) {
+    if(mesh->get_rc_tags(i).size()>0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 template <Int dim>
 void run_adapt(Mesh* mesh, char const* vtk_path) {
-  auto world = mesh->comm();
+  OMEGA_H_CHECK(check_rc_tags(mesh));
   mesh->set_parting(OMEGA_H_GHOSTED);
+  OMEGA_H_CHECK(check_rc_tags(mesh));
   auto implied_metrics = get_implied_metrics(mesh);
   mesh->add_tag(0, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
+  OMEGA_H_CHECK(check_rc_tags(mesh));
   set_target_metric<dim>(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->ask_lengths();
   mesh->ask_qualities();
+  OMEGA_H_CHECK(check_rc_tags(mesh));
   vtk::FullWriter writer;
   if (vtk_path) {
     writer = vtk::FullWriter(vtk_path, mesh);
     writer.write();
   }
+  OMEGA_H_CHECK(check_rc_tags(mesh));
 
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   add_rcField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  check_rc_tags(mesh);
   Now t0 = now();
   while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
+    OMEGA_H_CHECK(check_rc_tags(mesh));
     if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
     if (vtk_path) writer.write();
+    OMEGA_H_CHECK(check_rc_tags(mesh));
   }
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
@@ -128,6 +144,7 @@ void test_3d(Library *lib, const std::string &mesh_file, const char* vtk_file,
   vtk::write_parallel (sync_file, &mesh);
   mesh.reduce_rcField(1, "field", OMEGA_H_SUM);
   vtk::write_parallel (reduce_file, &mesh);
+  check_rc_tags(&mesh);
 
   run_adapt<3>(&mesh, adapt_file);
 

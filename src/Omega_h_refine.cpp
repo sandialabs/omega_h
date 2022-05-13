@@ -84,22 +84,10 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
 
 static bool refine(Mesh* mesh, AdaptOpts const& opts) {
 
-  mesh->change_all_rcFieldsTorc();
-
   mesh->set_parting(OMEGA_H_GHOSTED);
-
-  mesh->change_all_rcFieldsToMesh();
-
   if (!refine_ghosted(mesh, opts)) return false;
-
-  mesh->change_all_rcFieldsTorc();
-
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-
-  mesh->change_all_rcFieldsToMesh();
-
   refine_element_based(mesh, opts);
-
   return true;
 }
 

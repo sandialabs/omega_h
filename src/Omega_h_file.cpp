@@ -336,10 +336,11 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
     using T = decltype(t);
     Read<T> array;
     read_array(stream, array, is_compressed, needs_swapping);
-    mesh->add_tag(d, name, ncomps, array, true);
-    const auto has_rc_suffix = (name.find("_rc") != std::string::npos);
-    if (has_rc_suffix) {
-      mesh->change_tagTorc<T> (d, ncomps, name, class_ids);
+    if(is_rc_tag(name)) {
+      mesh->set_rc_from_mesh_array(d,ncomps,class_ids,name,array);
+    }
+    else {
+      mesh->add_tag(d, name, ncomps, array, true);
     }
   };
   detail::apply_to_omega_h_types(static_cast<Omega_h_Type>(type), f);

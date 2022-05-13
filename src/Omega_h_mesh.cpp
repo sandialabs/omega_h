@@ -509,17 +509,15 @@ Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
       [&](TagPtr const& a) { return a->name() == name; });
 }
 std::pair<bool,Mesh::TagIter> Mesh::rc_tag_iter(Int ent_dim, std::string const& name) {
-  std::cout<<"normal iterator"<<std::endl;
   auto rc_begin = rc_field_tags_[ent_dim].begin();
   auto rc_end = rc_field_tags_[ent_dim].end();
   auto it =  std::find_if(rc_begin, rc_end,
-      [&](TagPtr const& a) { std::cout<<"search: "<<a->name()<<" "<<name<<std::endl; return a->name() == name; });
+      [&](TagPtr const& a) { return (a->name() == name); });
   auto found = (it!=rc_field_tags_[ent_dim].end());
   return {found, it};
 }
 
 std::pair<bool,Mesh::TagCIter> Mesh::rc_tag_iter(Int ent_dim, std::string const& name) const {
-  std::cout<<"constant iterator"<<std::endl;
   auto rc_begin = rc_field_tags_[ent_dim].begin();
   auto rc_end = rc_field_tags_[ent_dim].end();
   auto it = std::find_if(rc_begin, rc_end,

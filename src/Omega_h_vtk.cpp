@@ -262,97 +262,42 @@ static Read<T> read_array(
   return binary::swap_bytes(Read<T>(uncompressed.write()), needs_swapping);
 }
 
-void write_tag(
-    std::ostream& stream, TagBase const* tag, Int space_dim, Int ent_dim, 
-    Mesh *mesh, bool compress) {
+void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
+    Int ent_dim, Mesh* mesh, bool compress) {
   OMEGA_H_TIME_FUNCTION;
-
-  auto ncomps = tag->ncomps();
-  auto name = tag->name();
-  auto class_ids = tag->class_ids();
-  //TODO: write class id info for rc tag to file
-
-  if (is<I8>(tag)) {
-
-    size_t found = (tag->name()).find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagToMesh<I8> (ent_dim, tag->ncomps(), tag->name(),
-                                  tag->class_ids());
-    }
-
-    write_array(
-        stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
-
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else if (is<I32>(tag)) {
-
-    size_t found = (tag->name()).find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagToMesh<I32> (ent_dim, tag->ncomps(), tag->name(),
-                                   tag->class_ids());
-    }
-
-    write_array(
-        stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
-
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else if (is<I64>(tag)) {
-
-    size_t found = (tag->name()).find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagToMesh<I64> (ent_dim, tag->ncomps(), tag->name(),
-                                   tag->class_ids());
-    }
-
-    write_array(
-        stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
-
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else if (is<Real>(tag)) {
-  
-    size_t found = (tag->name()).find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagToMesh<Real> (ent_dim, tag->ncomps(), tag->name(),
-                                    tag->class_ids());
-    }
-
-    Reals array = as<Real>(tag)->array();
-    if (1 < space_dim && space_dim < 3) {
-      if (tag->ncomps() == space_dim) {
-        // VTK / ParaView expect vector fields to have 3 components
-        // regardless of whether this is a 2D mesh or not.
-        // this filter adds a 3rd zero component to any
-        // fields with 2 components for 2D meshes
-        write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3),
-            compress);
-      } else if (tag->ncomps() == symm_ncomps(space_dim)) {
-        // Likewise, ParaView has component names specially set up for
-        // 3D symmetric tensors
-        write_array(stream, tag->name(), symm_ncomps(3),
-            resize_symms(array, space_dim, 3), compress);
+  const auto ncomps = tag->ncomps();
+  const auto name = tag->name();
+  const auto class_ids = tag->class_ids();
+  // TODO: write class id info for rc tag to file
+  detail::apply_to_omega_h_types(tag->type(), [&](auto t) {
+    using T = decltype(t);
+    auto array = as<T>(tag)->array();
+    if constexpr (std::is_same_v<T, Real>) {
+      // don't use array from "tag" b/c change_tagToMesh creates new tag
+      if (1 < space_dim && space_dim < 3) {
+        if (ncomps == space_dim) {
+          // VTK / ParaView expect vector fields to have 3 components
+          // regardless of whether this is a 2D mesh or not.
+          // this filter adds a 3rd zero component to any
+          // fields with 2 components for 2D meshes
+          write_array(
+              stream, name, 3, resize_vectors(array, space_dim, 3), compress);
+        } else if (ncomps == symm_ncomps(space_dim)) {
+          // Likewise, ParaView has component names specially set up for
+          // 3D symmetric tensors
+          write_array(stream, name, symm_ncomps(3),
+              resize_symms(array, space_dim, 3), compress);
+        } else {
+          write_array(stream, name, ncomps, array, compress);
+        }
       } else {
         write_array(stream, tag->name(), tag->ncomps(), array, compress);
       }
     } else {
-      write_array(stream, tag->name(), tag->ncomps(), array, compress);
+      write_array(
+          stream, name, ncomps, array, compress);
     }
-
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else {
-    Omega_h_fail("unknown tag type in write_tag");
-  }
+  });
 }
 
 static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
@@ -370,53 +315,29 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
      so we can just remove them if they are going to be reset. */
   mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
-  if (type == OMEGA_H_I8) {
-    auto array = read_array<I8>(stream, size, needs_swapping, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, array, true);
-
-    size_t found = name.find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I8> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else if (type == OMEGA_H_I32) {
-    auto array = read_array<I32>(stream, size, needs_swapping, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, array, true);
-
-    size_t found = name.find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I32> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else if (type == OMEGA_H_I64) {
-    auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, array, true);
-
-    size_t found = name.find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<I64> (ent_dim, ncomps, name, class_ids);
-    }
-
-  } else {
-    auto array = read_array<Real>(stream, size, needs_swapping, is_compressed);
-    // undo the resizes done in write_tag()
-    if (1 < mesh->dim() && mesh->dim() < 3) {
-      if (ncomps == 3) {
-        array = resize_vectors(array, 3, mesh->dim());
-        ncomps = mesh->dim();
-      } else if (ncomps == symm_ncomps(3)) {
-        array = resize_symms(array, 3, mesh->dim());
-        ncomps = symm_ncomps(mesh->dim());
+  detail::apply_to_omega_h_types(type, [&](auto t) {
+    using T = decltype(t);
+    auto array = read_array<T>(stream, size, needs_swapping, is_compressed);
+    // special case for reading real tags only
+    if constexpr (std::is_same_v<T, Real>) {
+      // undo the resizes done in write_tag()
+      if (1 < mesh->dim() && mesh->dim() < 3) {
+        if (ncomps == 3) {
+          array = resize_vectors(array, 3, mesh->dim());
+          ncomps = mesh->dim();
+        } else if (ncomps == symm_ncomps(3)) {
+          array = resize_symms(array, 3, mesh->dim());
+          ncomps = symm_ncomps(mesh->dim());
+        }
       }
     }
-    mesh->add_tag(ent_dim, name, ncomps, array, true);
-
-    size_t found = name.find("_rc");
-    if (found != std::string::npos) {
-      mesh->change_tagTorc<Real> (ent_dim, ncomps, name, class_ids);
+    if(is_rc_tag(name)) {
+      mesh->set_rc_from_mesh_array(ent_dim,ncomps,class_ids,name,array);
     }
-
-  }
+    else {
+      mesh->add_tag(ent_dim, name, ncomps, array, true);
+    }
+  });
   auto et = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
   OMEGA_H_CHECK(et.type == xml_lite::Tag::END);
@@ -1185,6 +1106,7 @@ void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
 void write_parallel(
     std::string const& path, Mesh* mesh, Int cell_dim, bool compress) {
   default_dim(mesh, &cell_dim);
+  ScopedChangeRCFieldsToMesh rc_to_mesh(*mesh);
   write_parallel(
       path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
 }

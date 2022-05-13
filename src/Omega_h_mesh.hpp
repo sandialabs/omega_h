@@ -201,6 +201,15 @@ class Mesh {
   void sync_rcField(Int ent_dim, std::string const& name);
   [[nodiscard]] bool has_rcField(Int ent_dim, std::string const& name) const;
 
+
+
+  template <typename T>
+  void set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
+      std::string const& name, Read<T> array);
+  friend class ScopedChangeRCFieldsToMesh;
+ private:
+  bool change_all_rcFieldsToMesh();
+  bool change_all_rcFieldsTorc();
   template <typename T>
   void change_tagTorc(Int ent_dim, Int ncomps, std::string const& name,
       LOs class_ids, bool remove = true);
@@ -208,10 +217,6 @@ class Mesh {
   void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
       LOs class_ids, bool remove = true);
 
-  void change_all_rcFieldsToMesh();
-  void change_all_rcFieldsTorc();
-
- private:
   template <typename T>
   [[nodiscard]] Read<T> get_rc_mesh_array(
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);
@@ -220,9 +225,6 @@ class Mesh {
   [[nodiscard]] Read<T> get_rc_array_from_mesh_array(Int ent_dim, Int ncomps,
       std::string const& name, LOs class_ids, Read<T> mesh_array);
 
-  template <typename T>
-  void set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
-      std::string const& name, Read<T> array);
 
   template <typename T>
   [[nodiscard]] std::unique_ptr<Tag<T>> get_rc_mesh_tag_from_rc_tag(
@@ -381,6 +383,26 @@ class Mesh {
       Int dim, TagBase const*);
 };
 
+class ScopedChangeRCFieldsToMesh {
+  public:
+  [[nodiscard]]
+  explicit ScopedChangeRCFieldsToMesh(Mesh& mesh) : mesh_(mesh) {
+    changed_here_ = mesh_.change_all_rcFieldsToMesh();
+  }
+  ~ScopedChangeRCFieldsToMesh() { 
+    if(changed_here_)
+    {
+      mesh_.change_all_rcFieldsTorc();
+    }
+  }
+  [[nodiscard]]
+  bool did_conversion() const noexcept { return changed_here_; }
+
+  private:
+  Mesh& mesh_;
+  bool changed_here_;
+};
+
 bool can_print(Mesh* mesh);
 
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
@@ -403,6 +425,8 @@ LOs ents_on_closure(
 
 LOs nodes_on_closure(
     Mesh* mesh, std::set<std::string> const& class_names, Graph nodes2ents[4]);
+
+bool is_rc_tag(std::string const& name);
 
 // workaround CUDA compiler bug
 #ifdef OMEGA_H_USE_CUDA

@@ -223,8 +223,12 @@ Read<T> Mesh::get_rc_array_from_mesh_array(Int ent_dim, Int ncomps,
 void Mesh::set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
     std::string const& name, Read<T> array) {
   OMEGA_H_TIME_FUNCTION;
+  auto [has_rc_tag, itr] = rc_tag_iter(ent_dim,name);
   auto b_field =
       get_rc_array_from_mesh_array(ent_dim, ncomps, name, class_ids, array);
+  if(!has_rc_tag) {
+    add_rcField<T>(class_ids,ent_dim,name,ncomps);
+  }
   set_rcField_array(ent_dim, name, b_field);
 }
 
@@ -444,14 +448,7 @@ void Mesh::reduce_rcField(Int ent_dim, std::string const& name, Omega_h_Op op) {
 
 void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
   auto new_name = get_rc_name(name);
-  auto [tag_found, itr] = rc_tag_iter(ent_dim, name);
-  std::cout<<rc_field_tags_[ent_dim].size()<<std::endl;
-  for(auto& tag: rc_field_tags_[ent_dim]) {
-    OMEGA_H_CHECK(tag != nullptr);
-    std::cout<<"list_tag: "<<tag->name()<<std::endl;
-  }
-  auto rank = library()->world()->rank();
-  std::cout<<tag_found <<" "<<rank<<std::endl;
+  auto [tag_found, itr] = rc_tag_iter(ent_dim, new_name);
   OMEGA_H_CHECK(tag_found);
 
   const auto ncomps = (*itr)->ncomps();
@@ -466,10 +463,12 @@ void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
   detail::apply_to_omega_h_types((*itr)->type(), f);
 }
 
-void Mesh::change_all_rcFieldsToMesh() {
+bool Mesh::change_all_rcFieldsToMesh() {
   OMEGA_H_TIME_FUNCTION;
+  bool changed = false;
   for (Int ent_dim = 0; ent_dim <= dim(); ++ent_dim) {
     for (const auto& rc_tag : rc_field_tags_[ent_dim]) {
+      changed = true;
       OMEGA_H_CHECK(rc_tag != nullptr);
       auto const& name = rc_tag->name();
       auto ncomps = rc_tag->ncomps();
@@ -486,13 +485,16 @@ void Mesh::change_all_rcFieldsToMesh() {
     rc_field_tags_[ent_dim].clear();
     OMEGA_H_CHECK(rc_field_tags_[ent_dim].size() == 0);
   }
+  return changed;
 }
 
-void Mesh::change_all_rcFieldsTorc() {
+bool Mesh::change_all_rcFieldsTorc() {
   OMEGA_H_TIME_FUNCTION;
+  bool changed = false;
   for (Int ent_dim = 0; ent_dim <= dim(); ++ent_dim) {
     for (const auto& tag : tags_[ent_dim]) {
-      if (tag->name().find("_rc") != std::string::npos) {
+      if (is_rc_tag(tag->name())) {
+        changed = true;
         OMEGA_H_CHECK(tag != nullptr);
         auto const& name = tag->name();
         auto ncomps = tag->ncomps();
@@ -509,10 +511,11 @@ void Mesh::change_all_rcFieldsTorc() {
     tags_[ent_dim].erase(
         std::remove_if(tags_[ent_dim].begin(), tags_[ent_dim].end(),
             [](const auto& tag) {
-              return (tag->name().find("_rc") != std::string::npos);
+              return is_rc_tag(tag->name());
             }),
         tags_[ent_dim].end());
   }
+  return changed;
 }
 
 Adj Mesh::ask_revClass_downAdj(Int from, Int to) {
@@ -538,6 +541,9 @@ Adj Mesh::ask_revClass_downAdj(Int from, Int to) {
   auto f2 = OMEGA_H_LAMBDA(LO g) { g2g_hl[g] = a2ab[g] * h2l_degree; };
   parallel_for(n_gents + 1, f2, "createDownA2ab");
   return {LOs(g2g_hl), LOs(g_hl2l)};
+}
+bool is_rc_tag(std::string const& name) {
+  return (name.find("_rc") != std::string::npos);
 }
 
 }  // end namespace Omega_h

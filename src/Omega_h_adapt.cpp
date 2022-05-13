@@ -153,9 +153,7 @@ static void validate(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
-  std::cout<<"calling validate"<<std::endl;
   validate(mesh, opts);
-  std::cout<<"calling xfer validate"<<std::endl;
   opts.xfer_opts.validate(mesh);
   if (opts.verbosity >= EACH_ADAPT && !mesh->comm()->rank()) {
     std::cout << "before adapting:\n";
@@ -284,9 +282,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
 
-  std::cout<<"ADAPT"<<std::endl;
-  mesh->change_all_rcFieldsToMesh();
-  std::cout<<"Calling Pre_adapt"<<std::endl;
+  ScopedChangeRCFieldsToMesh change_to_mesh(*mesh);
   if (!pre_adapt(mesh, opts)) return false;
   setup_conservation_tags(mesh, opts);
   auto t1 = now();
@@ -297,15 +293,12 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   correct_integral_errors(mesh, opts);
   auto t4 = now();
 
-  //mesh->change_all_rcFieldsTorc();
 
   mesh->set_parting(OMEGA_H_ELEM_BASED);
 
-  //mesh->change_all_rcFieldsToMesh();
 
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
 
-  mesh->change_all_rcFieldsTorc();
 
   return true;
 }
