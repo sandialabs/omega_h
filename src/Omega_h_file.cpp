@@ -293,7 +293,7 @@ static void write_tag(std::ostream& stream, TagBase const* tag,
     using T = decltype(type);
     write_array(stream, as<T>(tag)->array(), is_compressed, needs_swapping);
   };
-  detail::apply_to_omega_h_types(tag->type(), f);
+  apply_to_omega_h_types(tag->type(), f);
 }
 static void write_rc_tag(std::ostream& stream, TagBase const* tag,
     Int ent_dim, Mesh *mesh, bool is_compressed, bool needs_swapping) {
@@ -343,7 +343,7 @@ static void read_tag(std::istream& stream, Mesh* mesh, Int d,
       mesh->add_tag(d, name, ncomps, array, true);
     }
   };
-  detail::apply_to_omega_h_types(static_cast<Omega_h_Type>(type), f);
+  apply_to_omega_h_types(static_cast<Omega_h_Type>(type), f);
 }
 
 static void write_sets(std::ostream& stream, Mesh* mesh, bool needs_swapping) {

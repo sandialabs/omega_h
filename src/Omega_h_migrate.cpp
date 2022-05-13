@@ -132,7 +132,7 @@ void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
     auto const& name = tag->name();
     const auto ncomps = tag->ncomps();
     const auto class_ids = tag->class_ids();
-    detail::apply_to_omega_h_types(tag->type(), [&](auto t){
+    apply_to_omega_h_types(tag->type(), [&](auto t){
       using T = decltype(t);
       auto array = old_mesh->get_array<T>(ent_dim,name);
       array = old_owners2new_ents.exch(array, ncomps);

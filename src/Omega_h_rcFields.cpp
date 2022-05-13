@@ -332,7 +332,7 @@ std::unique_ptr<Tag<T>> Mesh::get_rc_mesh_tag_from_rc_tag(
 
 std::unique_ptr<TagBase> Mesh::get_rc_mesh_tag_from_rc_tag(
     Int ent_dim, TagBase const* tag) {
-  auto new_tag = detail::apply_to_omega_h_types(tag->type(), [&](auto t) {
+  auto new_tag = apply_to_omega_h_types(tag->type(), [&](auto t) {
     using T = decltype(t);
     return std::unique_ptr<TagBase>{
         get_rc_mesh_tag_from_rc_tag(ent_dim, as<T>(tag))};
@@ -443,7 +443,7 @@ void Mesh::reduce_rcField(Int ent_dim, std::string const& name, Omega_h_Op op) {
     auto out = reduce_array(ent_dim, mesh_array, ncomps, op);
     set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
   };
-  detail::apply_to_omega_h_types(tagbase->type(), f);
+  apply_to_omega_h_types(tagbase->type(), f);
 }
 
 void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
@@ -460,7 +460,7 @@ void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
     auto out = sync_array(ent_dim, mesh_array, ncomps);
     set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
   };
-  detail::apply_to_omega_h_types((*itr)->type(), f);
+  apply_to_omega_h_types((*itr)->type(), f);
 }
 
 bool Mesh::change_all_rcFieldsToMesh() {
@@ -479,7 +479,7 @@ bool Mesh::change_all_rcFieldsToMesh() {
         // data from the tag anyways...
         change_tagToMesh<T>(ent_dim, ncomps, name, class_ids, false);
       };
-      detail::apply_to_omega_h_types(rc_tag->type(), f);
+      apply_to_omega_h_types(rc_tag->type(), f);
       OMEGA_H_CHECK(has_tag(ent_dim, name));
     }
     rc_field_tags_[ent_dim].clear();
@@ -505,7 +505,7 @@ bool Mesh::change_all_rcFieldsTorc() {
           // data from the tag anyways...
           change_tagTorc<T>(ent_dim, ncomps, name, class_ids, false);
         };
-        detail::apply_to_omega_h_types(tag->type(), f);
+        apply_to_omega_h_types(tag->type(), f);
       }
     }
     tags_[ent_dim].erase(

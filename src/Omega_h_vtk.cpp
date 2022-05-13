@@ -269,7 +269,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
   const auto name = tag->name();
   const auto class_ids = tag->class_ids();
   // TODO: write class id info for rc tag to file
-  detail::apply_to_omega_h_types(tag->type(), [&](auto t) {
+  apply_to_omega_h_types(tag->type(), [&](auto t) {
     using T = decltype(t);
     auto array = as<T>(tag)->array();
     if constexpr (std::is_same_v<T, Real>) {
@@ -315,7 +315,7 @@ static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
      so we can just remove them if they are going to be reset. */
   mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
-  detail::apply_to_omega_h_types(type, [&](auto t) {
+  apply_to_omega_h_types(type, [&](auto t) {
     using T = decltype(t);
     auto array = read_array<T>(stream, size, needs_swapping, is_compressed);
     // special case for reading real tags only

@@ -18,7 +18,7 @@ void unmap_tags(
     const auto name = tag->name();
     const auto ncomps = tag->ncomps();
     const auto class_ids = tag->class_ids();
-    detail::apply_to_omega_h_types(tag->type(), [&](auto t){ 
+    apply_to_omega_h_types(tag->type(), [&](auto t){ 
         using T = decltype(t);
         Read<T> array = unmap(new_ents2old_ents, as<T>(tag)->array(), ncomps);
         if(is_rc_tag(name) && rc_to_mesh.did_conversion() ) {

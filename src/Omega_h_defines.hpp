@@ -82,8 +82,6 @@ typedef I32 ClassId;
 typedef I64 GO;
 typedef double Real;
 
-// FIXME remove detail namespace
-namespace detail {
 template <typename F>
 auto apply_to_omega_h_types(Omega_h_Type type, const F& f) {
   switch (type) {
@@ -111,7 +109,6 @@ auto apply_to_omega_h_types(Omega_h_Type type, const F& f) {
     return dummy_type{};
   }
 }
-}  // namespace detail
 
 static constexpr Real PI = OMEGA_H_PI;
 static constexpr Real EPSILON = OMEGA_H_EPSILON;
