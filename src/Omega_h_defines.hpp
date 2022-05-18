@@ -105,9 +105,7 @@ auto apply_to_omega_h_types(Omega_h_Type type, const F& f) {
   // if the lambda f returns something return a dummy type to
   // quash the compiler warning
   using dummy_type = typename std::result_of_t<decltype(f)(I8)>;
-  if constexpr(!std::is_same_v<void, dummy_type>)  {
-    return dummy_type{};
-  }
+  return static_cast<dummy_type>(nullptr);
 }
 
 static constexpr Real PI = OMEGA_H_PI;

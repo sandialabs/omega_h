@@ -55,9 +55,9 @@ static std::string get_rc_name(std::string name) {
 }
 template <typename T>
 Read<T> Mesh::get_rc_array(Int dim, std::string const& name) const {
-  auto [has_rc_tag, itr] = rc_tag_iter(dim, name);
-  OMEGA_H_CHECK(has_rc_tag);
-  return as<T>(itr->get())->array();
+  auto tag_itr = rc_tag_iter(dim, name);
+  OMEGA_H_CHECK(tag_itr.had_tag);
+  return as<T>(tag_itr.it->get())->array();
 }
 
 Int Mesh::nrctags(Int dim) const { return rc_field_tags_[dim].size(); }
@@ -223,10 +223,10 @@ Read<T> Mesh::get_rc_array_from_mesh_array(Int ent_dim, Int ncomps,
 void Mesh::set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
     std::string const& name, Read<T> array) {
   OMEGA_H_TIME_FUNCTION;
-  auto [has_rc_tag, itr] = rc_tag_iter(ent_dim,name);
+  auto tag_itr = rc_tag_iter(ent_dim,name);
   auto b_field =
       get_rc_array_from_mesh_array(ent_dim, ncomps, name, class_ids, array);
-  if(!has_rc_tag) {
+  if(!tag_itr.had_tag) {
     add_rcField<T>(class_ids,ent_dim,name,ncomps);
   }
   set_rcField_array(ent_dim, name, b_field);
@@ -307,9 +307,9 @@ void Mesh::change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
 template <typename T>
 Read<T> Mesh::get_rcField_array(Int ent_dim, std::string const& name) const {
   auto new_name = get_rc_name(name);
-  auto [has_rc_tag, it] = rc_tag_iter(ent_dim, new_name);
-  OMEGA_H_CHECK(has_rc_tag == true);
-  return as<T>(it->get())->array();
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
+  OMEGA_H_CHECK(tag_itr.had_tag == true);
+  return as<T>(tag_itr.it->get())->array();
 }
 
 // TODO make const once get_rc_mesh_array_from_rc_arraay made const
@@ -344,12 +344,12 @@ std::unique_ptr<TagBase> Mesh::get_rc_mesh_tag_from_rc_tag(
 void Mesh::add_rcField(Int ent_dim, std::string const& name, TagPtr tag) {
   auto new_name = get_rc_name(name);
   OMEGA_H_CHECK(tag->name() == new_name);
-  auto [had_tag, it] = rc_tag_iter(ent_dim, new_name);
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
   check_dim2(ent_dim);
   check_tag_name(new_name);
   OMEGA_H_CHECK(rc_field_tags_[ent_dim].size() < size_t(INT8_MAX));
-  if (had_tag) {
-    *it = std::move(tag);
+  if (tag_itr.had_tag) {
+    *tag_itr.it = std::move(tag);
   } else {
     rc_field_tags_[ent_dim].push_back(std::move(tag));
   }
@@ -384,15 +384,15 @@ void Mesh::add_rcField(
 
 bool Mesh::has_rcField(Int ent_dim, std::string const& name) const {
   auto new_name = get_rc_name(name);
-  auto [has_rc_tag, it] = rc_tag_iter(ent_dim, new_name);
-  return has_rc_tag;
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
+  return tag_itr.had_tag;
 }
 
 void Mesh::remove_rcField(Int ent_dim, std::string const& name) {
   auto new_name = get_rc_name(name);
-  auto [had_tag, it] = rc_tag_iter(ent_dim, new_name);
-  if (had_tag) {
-    rc_field_tags_[ent_dim].erase(it);
+  auto tag_itr= rc_tag_iter(ent_dim, new_name);
+  if (tag_itr.had_tag) {
+    rc_field_tags_[ent_dim].erase(tag_itr.it);
   }
 }
 
@@ -400,11 +400,11 @@ template <typename T>
 void Mesh::set_rcField_array(
     Int ent_dim, std::string const& name, Read<T> array) {
   auto new_name = get_rc_name(name);
-  auto [has_rc_tag, it] = rc_tag_iter(ent_dim, new_name);
-  OMEGA_H_CHECK(has_rc_tag);
-  auto class_ids = (*it)->class_ids();
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
+  OMEGA_H_CHECK(tag_itr.had_tag);
+  auto class_ids = (*tag_itr.it)->class_ids();
   // all rc_tags should have
-  const auto ncomps = (*it)->ncomps();
+  const auto ncomps = (*tag_itr.it)->ncomps();
   auto tag = std::make_shared<Tag<T>>(new_name, ncomps, class_ids);
   tag->set_array(array);
   add_rcField(ent_dim, new_name, std::move(tag));
@@ -413,26 +413,10 @@ void Mesh::set_rcField_array(
 void Mesh::reduce_rcField(Int ent_dim, std::string const& name, Omega_h_Op op) {
   auto new_name = get_rc_name(name);
 
-  std::string new_name = name;
-  new_name.append("_rc");
-
-  size_t found = name.find("_rc");
-  if (found != std::string::npos) {
-    Omega_h_fail("duplicate suffix '_rc' at end of field name\n");
-  }
-  else {
-    OMEGA_H_CHECK(has_tag(ent_dim, new_name));
-  }
-
-  auto tagbase = get_tagbase(ent_dim, new_name);
-  const auto class_ids = tagbase->class_ids();
-  const auto ncomps = tagbase->ncomps();
-  switch (tagbase->type()) {
-    case OMEGA_H_I8: {
-  auto [has_rc_tag, it] = rc_tag_iter(ent_dim, new_name);
-  OMEGA_H_CHECK(has_rc_tag);
+  auto tag_itr= rc_tag_iter(ent_dim, new_name);
+  OMEGA_H_CHECK(tag_itr.had_tag);
   // auto tagbase
-  auto* tagbase = it->get();
+  auto* tagbase = tag_itr.it->get();
   const auto class_ids = tagbase->class_ids();
   const auto ncomps = tagbase->ncomps();
 
@@ -448,11 +432,11 @@ void Mesh::reduce_rcField(Int ent_dim, std::string const& name, Omega_h_Op op) {
 
 void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
   auto new_name = get_rc_name(name);
-  auto [tag_found, itr] = rc_tag_iter(ent_dim, new_name);
-  OMEGA_H_CHECK(tag_found);
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
+  OMEGA_H_CHECK(tag_itr.had_tag);
 
-  const auto ncomps = (*itr)->ncomps();
-  const auto class_ids = (*itr)->class_ids();
+  const auto ncomps = (*tag_itr.it)->ncomps();
+  const auto class_ids = (*tag_itr.it)->class_ids();
   auto f = [&](auto t) {
     using T = decltype(t);
     auto mesh_array =
@@ -460,7 +444,7 @@ void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
     auto out = sync_array(ent_dim, mesh_array, ncomps);
     set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
   };
-  apply_to_omega_h_types((*itr)->type(), f);
+  apply_to_omega_h_types((*tag_itr.it)->type(), f);
 }
 
 bool Mesh::change_all_rcFieldsToMesh() {

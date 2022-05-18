@@ -201,12 +201,11 @@ class Mesh {
   void sync_rcField(Int ent_dim, std::string const& name);
   [[nodiscard]] bool has_rcField(Int ent_dim, std::string const& name) const;
 
-
-
   template <typename T>
   void set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
       std::string const& name, Read<T> array);
   friend class ScopedChangeRCFieldsToMesh;
+
  private:
   bool change_all_rcFieldsToMesh();
   bool change_all_rcFieldsTorc();
@@ -224,7 +223,6 @@ class Mesh {
   template <typename T>
   [[nodiscard]] Read<T> get_rc_array_from_mesh_array(Int ent_dim, Int ncomps,
       std::string const& name, LOs class_ids, Read<T> mesh_array);
-
 
   template <typename T>
   [[nodiscard]] std::unique_ptr<Tag<T>> get_rc_mesh_tag_from_rc_tag(
@@ -249,12 +247,20 @@ class Mesh {
   typedef std::vector<TagPtr> TagVector;
   typedef TagVector::iterator TagIter;
   typedef TagVector::const_iterator TagCIter;
+  struct TagIterResult {
+    bool had_tag;
+    Mesh::TagIter it;
+  };
+  struct TagCIterResult {
+    bool had_tag;
+    Mesh::TagCIter it;
+  };
   TagIter tag_iter(Int dim, std::string const& name);
   TagCIter tag_iter(Int dim, std::string const& name) const;
   TagIter tag_iter(Topo_type ent_type, std::string const& name);
   TagCIter tag_iter(Topo_type ent_type, std::string const& name) const;
-  std::pair<bool, TagIter> rc_tag_iter(Int dim, std::string const& name);
-  std::pair<bool, TagCIter> rc_tag_iter(Int dim, std::string const& name) const;
+  TagIterResult rc_tag_iter(Int dim, std::string const& name);
+  TagCIterResult rc_tag_iter(Int dim, std::string const& name) const;
   void check_dim(Int dim) const;
   void check_dim2(Int dim) const;
   void check_type(Topo_type ent_type) const;
@@ -384,21 +390,19 @@ class Mesh {
 };
 
 class ScopedChangeRCFieldsToMesh {
-  public:
-  [[nodiscard]]
+ public:
+  // [[nodiscard]] // should be nodiscard when c++17 turned on
   explicit ScopedChangeRCFieldsToMesh(Mesh& mesh) : mesh_(mesh) {
     changed_here_ = mesh_.change_all_rcFieldsToMesh();
   }
-  ~ScopedChangeRCFieldsToMesh() { 
-    if(changed_here_)
-    {
+  ~ScopedChangeRCFieldsToMesh() {
+    if (changed_here_) {
       mesh_.change_all_rcFieldsTorc();
     }
   }
-  [[nodiscard]]
-  bool did_conversion() const noexcept { return changed_here_; }
+  [[nodiscard]] bool did_conversion() const noexcept { return changed_here_; }
 
-  private:
+ private:
   Mesh& mesh_;
   bool changed_here_;
 };
