@@ -741,6 +741,22 @@ static void test_hypercube_split_template() {
   OMEGA_H_CHECK(compare_hst(3, 3, 7, 7, {0, 7}));
 }
 
+static void test_copy_constructor(Library* lib)
+{
+  auto world = lib->world();
+  fprintf(stderr, "before build_box\n");
+  auto mesh_a = build_box(world, OMEGA_H_SIMPLEX, 1.0, 1.0, 1.0, 1, 1, 1,false);
+  fprintf(stderr, "after build_box mesh_a at %p\n", &mesh_a);
+  auto mesh_b = mesh_a;
+  fprintf(stderr, "mesh_b = mesh_a, mesh_b at %p\n", &mesh_b);
+  OMEGA_H_CHECK(mesh_a.coords() == mesh_b.coords());
+  Write<Real> two_coords_w(mesh_a.coords().size());
+  Omega_h::parallel_for(two_coords_w.size(), OMEGA_H_LAMBDA(LO i){ two_coords_w[i]=2.0; });
+  Read<Real> two_coords(two_coords_w);
+  mesh_b.set_coords(two_coords);
+  OMEGA_H_CHECK(!(mesh_a.coords() == mesh_b.coords()));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -768,4 +784,5 @@ int main(int argc, char** argv) {
   test_proximity(&lib);
   test_1d_box(&lib);
   test_hypercube_split_template();
+  test_copy_constructor(&lib);
 }

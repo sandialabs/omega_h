@@ -4,6 +4,8 @@
 #include <sstream>
 
 #include <Omega_h_fail.hpp>
+#include <Omega_h_profile.hpp>
+#include <Omega_h_dbg.hpp>
 
 extern "C" void Omega_h_signal_handler(int s);
 
@@ -27,10 +29,43 @@ void fail(char const* format, ...) {
   char buffer[2048];
   std::vsnprintf(buffer, sizeof(buffer), format, vlist);
   va_end(vlist);
-  throw Omega_h::exception(buffer);
+  std::string buf(buffer);
+#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
+  buf = buf + "\n" + Omega_h::Stacktrace::demangled_stacktrace();
+#  endif
+  if (Omega_h::profile::global_singleton_history) {
+    auto &h = *Omega_h::profile::global_singleton_history;
+    auto s = h.current_frame;
+    buf = buf + "\nFrames:\n" + h.get_name(s);
+    while (h.parent(s) != profile::invalid) {
+      s = h.parent(s);
+      buf = buf + "\n" + h.get_name(s);
+    }
+    buf = buf + "\n";
+  }
+#  ifdef OMEGA_H_DBG
+  buf = proc() + buf;
+#  endif
+  throw Omega_h::exception(buf);
 #else
+#  ifdef OMEGA_H_DBG
+  std::cerr << proc();
+#  endif
   std::vfprintf(stderr, format, vlist);
   va_end(vlist);
+#  ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
+  std::cerr << "\n" << Omega_h::Stacktrace::demangled_stacktrace() << std::endl;
+#  endif
+  if (Omega_h::profile::global_singleton_history) {
+    auto &h = *Omega_h::profile::global_singleton_history;
+    auto s = h.current_frame;
+    std::cerr << "\nFrames:\n" << h.get_name(s);
+    while (h.parent(s) != Omega_h::profile::invalid) {
+      s = h.parent(s);
+      std::cerr << "\n" << h.get_name(s);
+    }
+    std::cerr << "\n" << std::endl;
+  }
   std::abort();
 #endif
 }

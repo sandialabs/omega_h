@@ -7,11 +7,12 @@
 #include <Omega_h_metric.hpp>
 #include <Omega_h_qr.hpp>
 #include <Omega_h_simplex.hpp>
+#include "Omega_h_macros.h"
 
 namespace Omega_h {
 
 template <Int sdim, Int edim>
-OMEGA_H_INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
+OMEGA_H_INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> const & p) {
   Matrix<sdim, edim> b;
   for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
   return b;
@@ -40,15 +41,25 @@ OMEGA_H_INLINE Plane<dim> normalize(Plane<dim> p) {
   return {p.n / l, p.d / l};
 }
 
+/// Constructs full barycentric representation (xi_0,xi_1,...) from  xi_1, xi_2, ...
 template <Int dim>
-OMEGA_H_INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
+OMEGA_H_INLINE Vector<dim + 1> form_barycentric(Vector<dim> const & c) {
   Vector<dim + 1> xi;
-  xi[dim] = 1.0;
-  for (Int i = 0; i < dim; ++i) {
-    xi[i] = c[i];
-    xi[dim] -= c[i];
+  xi[0] = 1.0;
+  for (Int i = 1; i < dim+1; ++i) {
+    xi[i] = c[i-1];
+    xi[0] -= c[i-1];
   }
   return xi;
+}
+
+/// Compute the barycentric coordinates from a position in global coordinates and the element nodal coordinates
+template <Int sdim, Int edim>
+OMEGA_H_INLINE Vector<edim +1 > barycentric_from_global(Vector<sdim> const & global_coordinate, Few<Vector<sdim>, edim + 1> const & node_coordinates) {
+  // does normal inversion when sdim=edim
+  const auto inverse_basis = pseudo_invert(simplex_basis<sdim,edim>(node_coordinates));
+  const auto lambda = inverse_basis*(global_coordinate-node_coordinates[0]);
+  return form_barycentric(lambda);
 }
 
 template <Int n>

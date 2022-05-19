@@ -26,7 +26,7 @@ template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size();
-  OMEGA_H_CHECK(a_data.size() == na * width);
+  OMEGA_H_CHECK_PRINTF(a_data.size() == na * width, "a_data.size= %d na= %d width= %d", a_data.size(), na, width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     for (Int j = 0; j < width; ++j) {
@@ -57,9 +57,16 @@ void map_into_range(
   parallel_for(na, f, "map_into_range");
 }
 
+/* map_onto: small array to large:
+     a= {10,20} map={0,2}, b={0,0,0}, nb=3, map.len()==a.len(), 
+     loop ia=0,1; b[m[ia]] = a[ia];
+   unmap: copies from large to small:
+     loop ia=0,1; a[ia] = b[m[ia]]
+*/
 template <typename T>
 Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
   auto out = Write<T>(nb * width, init_val);
+  OMEGA_H_CHECK_OP(out.size(), >=, a_data.size());
   map_into(a_data, a2b, out, width);
   return out;
 }
@@ -98,7 +105,9 @@ template <typename T>
 void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size() - 1;
-  OMEGA_H_CHECK(a_data.size() == na * width);
+  if(a_data.size() != na * width) printf("This error can happen when an array has been subsetted - check sync_array usage vs sync_subset_array:\n"
+                                         " a_data.size= %d na= %d width= %d", a_data.size(), na, width);
+  OMEGA_H_CHECK_PRINTF(a_data.size() == na * width, "a_data.size= %d na= %d width= %d", a_data.size(), na, width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
       for (Int j = 0; j < width; ++j) {
@@ -208,7 +217,7 @@ LOs invert_funnel(LOs ab2a, LO na) {
       a2ab[a_end + 1] = ab + 1;
     }
   };
-  parallel_for(nab - 1, f, "invert_funnel");
+  parallel_for(max2(0, nab - 1), f, "invert_funnel");
   if (nab) {
     LO a_end = ab2a.get(nab - 1);
     a2ab.set(a_end + 1, nab);

@@ -311,29 +311,29 @@ OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
 
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Real norm(
-    Int const m, Int const n, Matrix<max_m, max_n> const a) {
+    Int const m, Int const n, Matrix<max_m, max_n> const & a) {
   return std::sqrt(inner_product(m, n, a, a));
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE Real norm(Matrix<m, n> const a) {
+OMEGA_H_INLINE Real norm(Matrix<m, n> const & a) {
   return norm(m, n, a);
 }
 
-OMEGA_H_INLINE Tensor<3> cross(Vector<3> const a) {
+OMEGA_H_INLINE Tensor<3> cross(Vector<3> const & a) {
   return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
 }
 
-OMEGA_H_INLINE Vector<3> uncross(Tensor<3> const c) {
+OMEGA_H_INLINE Vector<3> uncross(Tensor<3> const & c) {
   return 0.5 *
          vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
 }
 
-OMEGA_H_INLINE Tensor<1> invert(Tensor<1> const m) {
+OMEGA_H_INLINE Tensor<1> invert(Tensor<1> const & m) {
   return matrix_1x1(1.0 / m[0][0]);
 }
 
-OMEGA_H_INLINE Tensor<2> invert(Tensor<2> const m) {
+OMEGA_H_INLINE Tensor<2> invert(Tensor<2> const & m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[0][1];
@@ -341,7 +341,7 @@ OMEGA_H_INLINE Tensor<2> invert(Tensor<2> const m) {
   return matrix_2x2(d, -b, -c, a) / determinant(m);
 }
 
-OMEGA_H_INLINE Tensor<3> invert(Tensor<3> const a) {
+OMEGA_H_INLINE Tensor<3> invert(Tensor<3> const & a) {
   Tensor<3> b;
   b[0] = cross(a[1], a[2]);
   b[1] = cross(a[2], a[0]);
@@ -350,15 +350,21 @@ OMEGA_H_INLINE Tensor<3> invert(Tensor<3> const a) {
 }
 
 template <Int m, Int n>
+OMEGA_H_INLINE typename std::enable_if<(n == m), Matrix<n, m>>::type
+pseudo_invert(Matrix<m, n> const & a) {
+  return invert(a);
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type
-pseudo_invert(Matrix<m, n> a) {
+pseudo_invert(Matrix<m, n> const &a) {
   auto at = transpose(a);
   return invert(at * a) * at;
 }
 
 template <Int m, Int n>
 OMEGA_H_INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type
-pseudo_invert(Matrix<m, n> a) {
+pseudo_invert(Matrix<m, n> const &a) {
   auto at = transpose(a);
   return at * invert(a * at);
 }

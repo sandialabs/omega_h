@@ -742,7 +742,7 @@ OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
   } else if (extension == ".meshb") {
 #ifdef OMEGA_H_USE_LIBMESHB
     Mesh mesh(comm->library());
-    meshb::read(&mesh, path.string());
+    meshb::read(&mesh, path.c_str());
     mesh.set_comm(comm);
     return mesh;
 #else

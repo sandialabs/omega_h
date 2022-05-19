@@ -5,6 +5,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include <Omega_h_defines.hpp>

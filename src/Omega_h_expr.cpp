@@ -6,6 +6,9 @@
 #include <Omega_h_math_lang.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
+#include <Omega_h_dbg.hpp>
+
+#include <sstream>
 
 namespace Omega_h {
 
@@ -855,7 +858,7 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
 
 ExprOp::~ExprOp() {}
 
-struct ConstOp : public ExprOp {
+struct ConstOp final : public ExprOp {
   double value;
   OpPtr rhs;
   virtual ~ConstOp() override = default;
@@ -864,7 +867,7 @@ struct ConstOp : public ExprOp {
 };
 any ConstOp::eval(ExprEnv&) { return value; }
 
-struct SemicolonOp : public ExprOp {
+struct SemicolonOp final : public ExprOp {
   OpPtr lhs;
   OpPtr rhs;
   virtual ~SemicolonOp() override = default;
@@ -876,7 +879,7 @@ any SemicolonOp::eval(ExprEnv& env) {
   return rhs->eval(env);
 }
 
-struct AssignOp : public ExprOp {
+struct AssignOp final : public ExprOp {
   std::string name;
   OpPtr rhs;
   virtual ~AssignOp() override = default;
@@ -889,7 +892,7 @@ any AssignOp::eval(ExprEnv& env) {
   return any();
 }
 
-struct VarOp : public ExprOp {
+struct VarOp final : public ExprOp {
   std::string name;
   virtual ~VarOp() override = default;
   VarOp(std::string const& name_in) : name(name_in) {}
@@ -905,7 +908,7 @@ any VarOp::eval(ExprEnv& env) {
   return it->second;
 }
 
-struct NegOp : public ExprOp {
+struct NegOp final : public ExprOp {
   OpPtr rhs;
   virtual ~NegOp() override = default;
   NegOp(OpPtr rhs_in) : rhs(rhs_in) {}
@@ -913,7 +916,7 @@ struct NegOp : public ExprOp {
 };
 any NegOp::eval(ExprEnv& env) { return neg(env.dim, rhs->eval(env)); }
 
-struct TernaryOp : public ExprOp {
+struct TernaryOp final : public ExprOp {
   OpPtr cond;
   OpPtr lhs;
   OpPtr rhs;
@@ -929,7 +932,7 @@ any TernaryOp::eval(ExprEnv& env) {
   return ternary(env.size, env.dim, cond->eval(env), lhs_val, rhs_val);
 }
 
-struct CallOp : public ExprOp {
+struct CallOp final : public ExprOp {
   std::string name;
   std::vector<OpPtr> rhs;
   ExprEnv::Args args;
@@ -971,7 +974,7 @@ any CallOp::eval(ExprEnv& env) {
 }
 
 #define OMEGA_H_BINARY_OP(ClassName, func_call)                                \
-  struct ClassName : public ExprOp {                                           \
+  struct ClassName final : public ExprOp {                                     \
     OpPtr lhs;                                                                 \
     OpPtr rhs;                                                                 \
     virtual ~ClassName() override = default;                             \
@@ -1129,6 +1132,27 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     }
   }
   return any();
+}
+
+std::string ExprEnv::string(int verbose) {
+  //std::map<std::string, any> variables;
+  //std::map<std::string, Function> functions;
+  //LO size;
+  //Int dim;
+  std::ostringstream oss, vs;
+  std::string sep = "";
+  for(auto i : variables) {
+    auto v = i.second;
+    std::string str = any_cast<std::string>(v);
+    vs << sep << "{" << i.first << " : " << str << "}";
+    sep = " ";
+  }
+  oss << "ExprEnv:"
+      << "\n  size      = " << size
+      << "\n  dim       = " << dim
+      << "\n  variables = " << vs.str();
+  (void)verbose;
+  return oss.str();
 }
 
 #undef OMEGA_H_BINARY_REDUCE
