@@ -220,6 +220,7 @@ Read<T> Mesh::get_rc_array_from_mesh_array(Int ent_dim, Int ncomps,
   return b_field;
 }
 
+template <typename T>
 void Mesh::set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
     std::string const& name, Read<T> array) {
   OMEGA_H_TIME_FUNCTION;

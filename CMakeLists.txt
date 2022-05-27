@@ -112,19 +112,6 @@ bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
   message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
 endif()
-if(Omega_h_USE_MPI)
-  set(MPI_CXX_SKIP_MPICXX ON) #don't need MPI C++ bindings
-  bob_add_dependency(PUBLIC NAME MPI
-    INCLUDE_DIR_VARS MPI_CXX_INCLUDE_DIRS
-    LIBRARY_VARS MPI_CXX_LIBRARIES)
-  get_target_property(mpiLibs ${PROJECT_NAME}-MPI INTERFACE_LINK_LIBRARIES)
-  if(NOT mpiLibs)
-    message(WARNING "MPI Libraries not found, there may be linking errors!  "
-      "Try enabling shared libraries \'-DBUILD_SHARED_LIBS=ON\'.")
-  else()
-    message(STATUS "Found MPI libraries: ${mpiLibs}")
-  endif()
-endif()
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 

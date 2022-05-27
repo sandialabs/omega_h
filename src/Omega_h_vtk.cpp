@@ -307,6 +307,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
   // TODO: write class id info for rc tag to file
   apply_to_omega_h_types(tag->type(), [&](auto t) {
     detail::write_tag_impl<decltype(t)>(tag, space_dim, stream, compress);
+});
 }
 
 namespace detail {
