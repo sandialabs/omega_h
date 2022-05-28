@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <sstream>
 
 #include <Omega_h_macros.h>
 
@@ -19,6 +20,11 @@ struct Int128 {
   double to_double(double unit) const;
   void print(std::ostream& o) const;
   static OMEGA_H_INLINE Int128 from_double(double value, double unit);
+  std::string to_string() {
+    std::ostringstream oss;
+    oss << "h: " << high << " l: " << low;
+    return oss.str();
+  }
 };
 
 /*

@@ -208,7 +208,7 @@ bool CmdLine::parsed(std::string const& flag_name) const {
 template <typename T>
 static T get(CmdLineItem const* p) {
   auto p2 = dynamic_cast<CmdLineArg<T> const*>(p);
-  OMEGA_H_CHECK(p2);
+  OMEGA_H_CHECK(p2 != nullptr);
   return p2->get();
 }
 

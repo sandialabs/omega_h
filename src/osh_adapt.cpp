@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
   } else
 #ifdef OMEGA_H_USE_LIBMESHB
       if (metric_in_ext == ".sol" || metric_in_ext == ".solb") {
-    Omega_h::meshb::read_sol(&mesh, metric_in.string(), "target_metric");
+    Omega_h::meshb::read_sol(&mesh, metric_in.c_str(), "target_metric");
     target_metric = mesh.get_array<Omega_h::Real>(0, "target_metric");
   } else
 #endif
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
     } else
 #ifdef OMEGA_H_USE_LIBMESHB
         if (metric_out_ext == ".sol" || metric_out_ext == ".solb") {
-      Omega_h::meshb::write_sol(&mesh, metric_out.string(), "metric");
+      Omega_h::meshb::write_sol(&mesh, metric_out.c_str(), "metric");
     } else
 #endif
     {

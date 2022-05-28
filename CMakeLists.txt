@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.18.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 10.2.0 LANGUAGES CXX)
+project(Omega_h VERSION 10.3.0 LANGUAGES CXX)
+set(Omega_h_USE_STK_DEFAULT OFF)
+option(Omega_h_USE_STK "Whether to build the STK interface" ${Omega_h_USE_STK_DEFAULT})
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -29,6 +31,25 @@ bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of tha
 bob_option(Omega_h_USE_SimModSuite "Enable reading Simmetrix MeshSim meshes" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
+
+bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+bob_option(Omega_h_ENABLE_DEMANGLED_STACKTRACE "Add linker options to enable human-readable stacktraces on gnu-c platforms." OFF)
+bob_option(Omega_h_DBG "Enable debug prints, stacktraces, etc." OFF)
+
+if (Omega_h_ENABLE_DEMANGLED_STACKTRACE)
+  message(STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}")
+  if ((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic -ldl")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
+    message(STATUS "Omega_h adding -rdynamic to CMAKE_EXE_LINKER_FLAGS= ${CMAKE_EXE_LINKER_FLAGS}")
+  endif()
+endif()
+
+if (Omega_h_USE_MPI)
+  enable_language(C)
+  set(MPI_REQUIRED_VERSION 3)
+  bob_add_dependency(PUBLIC NAME MPI TARGETS MPI::MPI_CXX)
+endif()
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
@@ -67,12 +88,8 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 if (Omega_h_USE_SEACASExodus)
-  # On Windows, we must find hdf5 targets since 
-  # it is linked PUBLIC
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(Omega_h_USE_HDF5_DEFAULT ON)
-    bob_add_dependency(PUBLIC NAME HDF5)
-  endif()
+  set(Omega_h_USE_HDF5_DEFAULT ON)
+  bob_add_dependency(PUBLIC NAME HDF5 CONFIG)
 endif()
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
@@ -95,19 +112,6 @@ bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
   message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
 endif()
-if(Omega_h_USE_MPI)
-  set(MPI_CXX_SKIP_MPICXX ON) #don't need MPI C++ bindings
-  bob_add_dependency(PUBLIC NAME MPI
-    INCLUDE_DIR_VARS MPI_CXX_INCLUDE_DIRS
-    LIBRARY_VARS MPI_CXX_LIBRARIES)
-  get_target_property(mpiLibs ${PROJECT_NAME}-MPI INTERFACE_LINK_LIBRARIES)
-  if(NOT mpiLibs)
-    message(WARNING "MPI Libraries not found, there may be linking errors!  "
-      "Try enabling shared libraries \'-DBUILD_SHARED_LIBS=ON\'.")
-  else()
-    message(STATUS "Found MPI libraries: ${mpiLibs}")
-  endif()
-endif()
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
@@ -124,8 +128,12 @@ endif()
 include(cmake/osh_use_dolfin.cmake)
 osh_use_dolfin()
 
+set(Omega_h_IS_SHARED ${BUILD_SHARED_LIBS})
+
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
+    Omega_h_ENABLE_DEMANGLED_STACKTRACE
+    Omega_h_DBG
     Omega_h_USE_Kokkos
     Omega_h_USE_OpenMP
     Omega_h_USE_CUDA
@@ -140,6 +148,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
     Omega_h_USE_Gmsh
+    Omega_h_IS_SHARED
    )
 
 set(Omega_h_KEY_INTS
@@ -179,5 +188,6 @@ if (Omega_h_USE_CUDA)
       ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper
       DESTINATION bin)
 endif()
+
 
 bob_end_package()

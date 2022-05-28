@@ -254,7 +254,6 @@ function(bob_cxx11_flags)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     message(STATUS "bob.cmake: no C++11 flag needed for MSVC")
   else()
-    set(FLAGS "${FLAGS} --std=c++11")
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
      if (${PROJECT_NAME}_CXX_WARNINGS)
         set(FLAGS "${FLAGS} -Wno-c++98-compat-pedantic -Wno-c++98-compat")
@@ -285,7 +284,7 @@ function(bob_end_cxx_flags)
 endfunction(bob_end_cxx_flags)
 
 macro(bob_add_dependency)
-  set(options PUBLIC PRIVATE)
+  set(options PUBLIC PRIVATE CONFIG)
   set(oneValueArgs NAME)
   set(multiValueArgs COMPONENTS TARGETS INCLUDE_DIR_VARS LIBRARY_VARS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -332,6 +331,11 @@ macro(bob_add_dependency)
           "${${ARG_NAME}_REQUIRED_VERSION}"
           ${ARG_COMPONENTS}
           ${ARG_PREFIX})
+      if (ARG_CONFIG)
+        set(${ARG_NAME}_find_package_args
+          ${${ARG_NAME}_find_package_args}
+          CONFIG)
+      endif()
       find_package(${ARG_NAME} ${${ARG_NAME}_find_package_args} REQUIRED)
       if(${ARG_NAME}_CONFIG)
         message(STATUS "${ARG_NAME}_CONFIG: ${${ARG_NAME}_CONFIG}")

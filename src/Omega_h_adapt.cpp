@@ -31,6 +31,8 @@ void TransferOpts::validate(Mesh* mesh) const {
     bool tag_exists = false;
     for (Int d = 0; d <= mesh->dim(); ++d) {
       if (mesh->has_tag(d, name)) tag_exists = true;
+      // all tags are supposed to be in mesh format here
+      OMEGA_H_CHECK(mesh->get_rc_tags(d).size() == 0);
     }
     if (!tag_exists) {
       Omega_h_fail("Field \"%s\" needs to be transferred but is not attached\n",
@@ -214,11 +216,11 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.egads_model) {
     ScopedTimer snap_timer("snap");
 
-    mesh->change_all_rcFieldsTorc();
+    //mesh->change_all_rcFieldsTorc();
 
     mesh->set_parting(OMEGA_H_GHOSTED);
 
-    mesh->change_all_rcFieldsToMesh();
+    //mesh->change_all_rcFieldsToMesh();
 
     auto warp = egads_get_snap_warp(
         mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
@@ -280,8 +282,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
 
-  mesh->change_all_rcFieldsToMesh();
-
+  ScopedChangeRCFieldsToMesh change_to_mesh(*mesh);
   if (!pre_adapt(mesh, opts)) return false;
   setup_conservation_tags(mesh, opts);
   auto t1 = now();
@@ -292,15 +293,12 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   correct_integral_errors(mesh, opts);
   auto t4 = now();
 
-  mesh->change_all_rcFieldsTorc();
 
   mesh->set_parting(OMEGA_H_ELEM_BASED);
 
-  mesh->change_all_rcFieldsToMesh();
 
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
 
-  mesh->change_all_rcFieldsTorc();
 
   return true;
 }

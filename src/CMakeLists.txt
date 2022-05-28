@@ -88,6 +88,7 @@ set(Omega_h_SOURCES
   Omega_h_shared_alloc.cpp
   Omega_h_simplify.cpp
   Omega_h_sort.cpp
+  Omega_h_stacktrace.cpp
   Omega_h_surface.cpp
   Omega_h_swap.cpp
   Omega_h_swap2d.cpp
@@ -171,11 +172,15 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
+if(Omega_h_USE_STK)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_stk.cpp)
+endif()
+
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
-if (Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
 
@@ -192,45 +197,6 @@ target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
 if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
-endif()
-
-if (Omega_h_USE_CUDA)
-  set_property(TARGET omega_h PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PUBLIC
-        "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
-        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
-        --expt-extended-lambda)
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    target_compile_options(omega_h PUBLIC
-        "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
-        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
-        --expt-extended-lambda)
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "NVHPC")
-    target_compile_options(omega_h PUBLIC --extended-lambda)
-  endif()
-else()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(omega_h PRIVATE
-        -W
-        -Wall
-        -Wextra
-        -Werror
-        -Wimplicit-fallthrough
-        )
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PRIVATE
-        -W
-        -Wall
-        -Wextra
-        -Werror
-        )
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    target_compile_options(omega_h PUBLIC
-        "/wd26451" #arithmetic overflow, long(int * int), shows up in much vector access
-		    "/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
-        )
-  endif()
 endif()
 
 bob_link_dependency(omega_h PUBLIC Kokkos)
@@ -254,7 +220,9 @@ bob_link_dependency(omega_h PUBLIC SEACASExodus)
 
 bob_link_dependency(omega_h PUBLIC ZLIB)
 
-bob_link_dependency(omega_h PUBLIC MPI)
+if (Omega_h_USE_MPI)
+  target_link_libraries(omega_h PUBLIC MPI::MPI_CXX)
+endif()
 
 if (Omega_h_USE_dwarf)
   target_include_directories(omega_h PRIVATE "${LIBDWARF_INCLUDE_DIRS}")
@@ -267,6 +235,10 @@ if(Omega_h_USE_DOLFIN)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
+if(Omega_h_USE_CUDA)
+  target_compile_options(omega_h PUBLIC "--expt-extended-lambda")
+endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set_target_properties(omega_h PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
@@ -274,7 +246,7 @@ endif()
 bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
-  if (Omega_h_USE_CUDA)
+  if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
@@ -491,8 +463,6 @@ if(BUILD_TESTING)
     test_func(run_random_test 1 ./random_test)
   endif()
   osh_add_exe(hypercube_test)
-  osh_add_exe(amr_test)
-  test_func(amr_test 1 ./amr_test)
   osh_add_exe(amr_test2)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
@@ -524,6 +494,8 @@ if(BUILD_TESTING)
       ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
       ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
   endif()
+  osh_add_exe(shape_test)
+  test_func(run_shape_test 1 ./shape_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -547,6 +519,7 @@ set(Omega_h_HEADERS
   Omega_h_cmdline.hpp
   Omega_h_comm.hpp
   Omega_h_compare.hpp
+  Omega_h_dbg.hpp
   Omega_h_defines.hpp
   Omega_h_dist.hpp
   Omega_h_eigen.hpp
@@ -603,6 +576,7 @@ set(Omega_h_HEADERS
   Omega_h_shared_alloc.hpp
   Omega_h_simplex.hpp
   Omega_h_sort.hpp
+  Omega_h_stacktrace.hpp
   Omega_h_std_vector.hpp
   Omega_h_svd.hpp
   Omega_h_table.hpp
@@ -622,6 +596,10 @@ endif()
 
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_dolfin.hpp)
+endif()
+
+if(Omega_h_USE_STK)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
@@ -657,10 +635,30 @@ if (Omega_h_USE_pybind11)
       LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
-add_custom_target(test_install
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100 ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
-    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk
+#define 'smoke tests' to test the install
+add_custom_target(test_install DEPENDS check) # maintain test_install target
+if(NOT BUILD_TESTING)
+  add_custom_target(check
+    COMMAND ${CMAKE_CTEST_COMMAND} -L SMOKE_TEST
     COMMENT "Test installed Omega_h utilities")
+endif()
+
+function(smoke_test EXE DEP)
+  set(prefix "smoke_test")
+  set(tname ${prefix}_${EXE})
+  add_test(NAME ${tname} COMMAND ${EXE} ${ARGN})
+  set(fixDep FIXTURES_REQUIRED ${prefix}_${DEP})
+  if( DEP STREQUAL "NONE" )
+    set(fixDep)
+  endif()
+  set_tests_properties(${tname} PROPERTIES
+    LABELS "SMOKE_TEST"
+    FIXTURES_SETUP ${tname}
+    ${fixDep})
+endfunction(smoke_test)
+
+smoke_test(osh_box NONE 1 1 1 2 2 2 box.osh)
+smoke_test(osh_scale osh_box box.osh 100 box_100.osh)
+smoke_test(osh2vtk osh_scale box_100.osh box_100_vtk)
 
 bob_end_subdir()

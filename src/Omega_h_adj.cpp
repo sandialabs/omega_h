@@ -125,7 +125,7 @@ Read<I8> find_canonical_jumps(
     auto const e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
   };
-  parallel_for(ne - 1, std::move(f));
+  parallel_for(max2(0, ne - 1), std::move(f));
   if (jumps.size()) jumps.set(jumps.size() - 1, 1);
   return jumps;
 }
@@ -733,6 +733,37 @@ Graph edges_across_tets(Adj const r2e, Adj const e2r) {
   return Adj(e2ee, ee2e);
 }
 
+class elements_across_sides_count_functor {
+  Int nsides_per_elem;
+  Read<LO> elem_side2side;
+  Read<I8> side_is_exposed;
+  Write<LO> degrees;
+ public:
+  elements_across_sides_count_functor(
+      Int nsides_per_elem_arg,
+      Read<LO> const& elem_side2side_arg,
+      Read<I8> const& side_is_exposed_arg,
+      Write<LO> const& degrees_arg
+      )
+    :nsides_per_elem(nsides_per_elem_arg)
+    ,elem_side2side(elem_side2side_arg)
+    ,side_is_exposed(side_is_exposed_arg)
+    ,degrees(degrees_arg)
+  {}
+  OMEGA_H_DEVICE void operator()(LO elem) const {
+    auto const begin = elem * nsides_per_elem;
+    auto const end = begin + nsides_per_elem;
+    Int n = 0;
+    for (auto elem_side = begin; elem_side < end; ++elem_side) {
+      auto const side = elem_side2side[elem_side];
+      if (!side_is_exposed[side]) {
+        ++n;
+      }
+    }
+    degrees[elem] = n;
+  };
+};
+
 Graph elements_across_sides(Int const dim, Adj const elems2sides,
     Adj const sides2elems, Read<I8> const side_is_exposed) {
   OMEGA_H_TIME_FUNCTION;
@@ -743,20 +774,12 @@ Graph elements_across_sides(Int const dim, Adj const elems2sides,
   auto const nelems =
       divide_no_remainder(elem_side2side.size(), nsides_per_elem);
   Write<LO> degrees(nelems);
-  auto count = OMEGA_H_LAMBDA(LO elem) {
-    auto const begin = elem * nsides_per_elem;
-    auto const end = begin + nsides_per_elem;
-    Int n = 0;
-    for (auto elem_side = begin; elem_side < end; ++elem_side) {
-      auto const side = elem_side2side[elem_side];
-      if (!side_is_exposed[side]) {
-        OMEGA_H_CHECK(side2side_elems[side + 1] - side2side_elems[side] == 2);
-        ++n;
-      }
-    }
-    degrees[elem] = n;
-  };
-  parallel_for(nelems, std::move(count));
+  parallel_for(nelems,
+      elements_across_sides_count_functor(
+        nsides_per_elem,
+        elem_side2side,
+        side_is_exposed,
+        degrees));
   auto const elem2elem_elems = offset_scan(LOs(degrees));
   auto const nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);

@@ -12,12 +12,7 @@
 namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
-  mesh->change_all_rcFieldsTorc();
-
   mesh->set_parting(OMEGA_H_GHOSTED);
-
-  mesh->change_all_rcFieldsToMesh();
-
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
