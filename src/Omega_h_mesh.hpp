@@ -215,7 +215,8 @@ class Mesh {
   template <typename T>
   void change_tagToMesh(Int ent_dim, Int ncomps, std::string const& name,
       LOs class_ids, bool remove = true);
-
+// Don't use these functions... they need to be public for OOMEGA_H_LAMBDA
+ public:
   template <typename T>
   [[nodiscard]] Read<T> get_rc_mesh_array(
       Int ent_dim, Int ncomps, std::string const& name, LOs class_ids);
