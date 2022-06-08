@@ -224,11 +224,11 @@ template <typename T>
 void Mesh::set_rc_from_mesh_array(Int ent_dim, Int ncomps, LOs class_ids,
     std::string const& name, Read<T> array) {
   OMEGA_H_TIME_FUNCTION;
-  auto tag_itr = rc_tag_iter(ent_dim,name);
+  auto tag_itr = rc_tag_iter(ent_dim, name);
   auto b_field =
       get_rc_array_from_mesh_array(ent_dim, ncomps, name, class_ids, array);
-  if(!tag_itr.had_tag) {
-    add_rcField<T>(class_ids,ent_dim,name,ncomps);
+  if (!tag_itr.had_tag) {
+    add_rcField<T>(class_ids, ent_dim, name, ncomps);
   }
   set_rcField_array(ent_dim, name, b_field);
 }
@@ -333,11 +333,11 @@ std::unique_ptr<Tag<T>> Mesh::get_rc_mesh_tag_from_rc_tag(
 
 std::unique_ptr<TagBase> Mesh::get_rc_mesh_tag_from_rc_tag(
     Int ent_dim, TagBase const* tag) {
-  auto new_tag = apply_to_omega_h_types(tag->type(), [&](auto t) {
-    using T = decltype(t);
-    return std::unique_ptr<TagBase>{
-        get_rc_mesh_tag_from_rc_tag(ent_dim, as<T>(tag))};
-  });
+  auto new_tag = apply_to_omega_h_types(
+      tag->type(), [&,this](auto t) -> std::unique_ptr<TagBase> {
+        using T = decltype(t);
+        return this->get_rc_mesh_tag_from_rc_tag(ent_dim, as<T>(tag));
+      });
   return new_tag;
 }
 
@@ -391,7 +391,7 @@ bool Mesh::has_rcField(Int ent_dim, std::string const& name) const {
 
 void Mesh::remove_rcField(Int ent_dim, std::string const& name) {
   auto new_name = get_rc_name(name);
-  auto tag_itr= rc_tag_iter(ent_dim, new_name);
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
   if (tag_itr.had_tag) {
     rc_field_tags_[ent_dim].erase(tag_itr.it);
   }
@@ -414,21 +414,20 @@ void Mesh::set_rcField_array(
 void Mesh::reduce_rcField(Int ent_dim, std::string const& name, Omega_h_Op op) {
   auto new_name = get_rc_name(name);
 
-  auto tag_itr= rc_tag_iter(ent_dim, new_name);
+  auto tag_itr = rc_tag_iter(ent_dim, new_name);
   OMEGA_H_CHECK(tag_itr.had_tag);
   // auto tagbase
   auto* tagbase = tag_itr.it->get();
   const auto class_ids = tagbase->class_ids();
   const auto ncomps = tagbase->ncomps();
 
-  auto f = [&](auto t) {
+  apply_to_omega_h_types(tagbase->type(), [&, this](auto t) {
     using T = decltype(t);
     auto mesh_array =
-        get_rc_mesh_array<T>(ent_dim, ncomps, new_name, class_ids);
-    auto out = reduce_array(ent_dim, mesh_array, ncomps, op);
-    set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
-  };
-  apply_to_omega_h_types(tagbase->type(), f);
+        this->get_rc_mesh_array<T>(ent_dim, ncomps, new_name, class_ids);
+    auto out = this->reduce_array(ent_dim, mesh_array, ncomps, op);
+    this->set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
+  });
 }
 
 void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
@@ -438,14 +437,13 @@ void Mesh::sync_rcField(Int ent_dim, std::string const& name) {
 
   const auto ncomps = (*tag_itr.it)->ncomps();
   const auto class_ids = (*tag_itr.it)->class_ids();
-  auto f = [&](auto t) {
+  apply_to_omega_h_types((*tag_itr.it)->type(), [&, this](auto t) {
     using T = decltype(t);
     auto mesh_array =
-        get_rc_mesh_array<T>(ent_dim, ncomps, new_name, class_ids);
-    auto out = sync_array(ent_dim, mesh_array, ncomps);
-    set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
-  };
-  apply_to_omega_h_types((*tag_itr.it)->type(), f);
+        this->get_rc_mesh_array<T>(ent_dim, ncomps, new_name, class_ids);
+    auto out = this->sync_array(ent_dim, mesh_array, ncomps);
+    this->set_rc_from_mesh_array(ent_dim, ncomps, class_ids, new_name, out);
+  });
 }
 
 bool Mesh::change_all_rcFieldsToMesh() {
@@ -458,13 +456,12 @@ bool Mesh::change_all_rcFieldsToMesh() {
       auto const& name = rc_tag->name();
       auto ncomps = rc_tag->ncomps();
       auto class_ids = rc_tag->class_ids();
-      auto f = [&](auto t) {
+      apply_to_omega_h_types(rc_tag->type(), [&, this](auto t) {
         using T = decltype(t);
         // TODO can change_tagToMesh just take a tag? because we get all the
         // data from the tag anyways...
-        change_tagToMesh<T>(ent_dim, ncomps, name, class_ids, false);
-      };
-      apply_to_omega_h_types(rc_tag->type(), f);
+        this->change_tagToMesh<T>(ent_dim, ncomps, name, class_ids, false);
+      });
       OMEGA_H_CHECK(has_tag(ent_dim, name));
     }
     rc_field_tags_[ent_dim].clear();
@@ -484,20 +481,17 @@ bool Mesh::change_all_rcFieldsTorc() {
         auto const& name = tag->name();
         auto ncomps = tag->ncomps();
         auto class_ids = tag->class_ids();
-        auto f = [&](auto t) {
+        apply_to_omega_h_types(tag->type(), [&, this](auto t) {
           using T = decltype(t);
           // TODO can change_tagToMesh just take a tag? because we get all the
           // data from the tag anyways...
-          change_tagTorc<T>(ent_dim, ncomps, name, class_ids, false);
-        };
-        apply_to_omega_h_types(tag->type(), f);
+          this->change_tagTorc<T>(ent_dim, ncomps, name, class_ids, false);
+        });
       }
     }
     tags_[ent_dim].erase(
         std::remove_if(tags_[ent_dim].begin(), tags_[ent_dim].end(),
-            [](const auto& tag) {
-              return is_rc_tag(tag->name());
-            }),
+            [](const auto& tag) { return is_rc_tag(tag->name()); }),
         tags_[ent_dim].end());
   }
   return changed;

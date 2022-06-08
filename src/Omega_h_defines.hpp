@@ -83,7 +83,7 @@ typedef I64 GO;
 typedef double Real;
 
 template <typename F>
-auto apply_to_omega_h_types(Omega_h_Type type, const F& f) {
+auto apply_to_omega_h_types(Omega_h_Type type, const F&& f) {
   switch (type) {
     case OMEGA_H_I8: {
       return f(I8{});
