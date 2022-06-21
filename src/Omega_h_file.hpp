@@ -33,6 +33,8 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 namespace meshsim {
 Mesh read(filesystem::path const& mesh, filesystem::path const& model,
           CommPtr comm);
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+          filesystem::path const& numbering, CommPtr comm);
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& model,
                CommPtr comm, Mesh *mesh, I8 is_in);
 }  // namespace meshsim

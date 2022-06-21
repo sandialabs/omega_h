@@ -24,13 +24,21 @@ namespace {
     assert((0 <= GEN_type(g)) && (3 >= GEN_type(g)));
     return GEN_type(g);
   }
+
+  int getNumber(pMeshNex nex, pEntity e, int order=0) {
+    if(!MeshNex_hasNode(nex, e, order)) {
+      fprintf(stderr, "ERROR: entity type %d id %d has no MeshNex node\n", EN_type(e), EN_id(e));
+    }
+    assert(MeshNex_hasNode(nex, e, order));
+    return MeshNex_node(nex, e, order);
+  }
 }
 
 namespace Omega_h {
 
 namespace meshsim {
 
-void read_internal(pMesh m, Mesh* mesh) {
+void read_internal(pMesh m, Mesh* mesh, pMeshNex numbering) {
 
   (void)mesh;
 
@@ -120,6 +128,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> edge_vertices[1];
   std::vector<int> ent_class_ids[4];
   std::vector<int> ent_class_dim[4];
+  std::vector<int> ent_numbering;
 
   ent_class_ids[0].reserve(numVtx);
   ent_class_dim[0].reserve(numVtx);
@@ -129,6 +138,9 @@ void read_internal(pMesh m, Mesh* mesh) {
   ent_class_dim[2].reserve(numFaces);
   ent_class_ids[3].reserve(numRegions);
   ent_class_dim[3].reserve(numRegions);
+  if(numbering) {
+    ent_numbering.reserve(numVtx);
+  }
 
   Int max_dim;
   if (numRegions) {
@@ -155,9 +167,13 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     ent_class_ids[0].push_back(classId(vtx));
     ent_class_dim[0].push_back(classType(vtx));
+    if(numbering) {
+      ent_numbering.push_back(getNumber(numbering,vtx));
+    }
     ++v;
   }
   VIter_delete(vertices);
+
 
   HostWrite<LO> host_class_ids_vtx(numVtx);
   HostWrite<I8> host_class_dim_vtx(numVtx);
@@ -180,6 +196,12 @@ void read_internal(pMesh m, Mesh* mesh) {
                            Read<ClassId>(host_class_ids_vtx.write()));
     mesh->add_tag<I8>(0, "class_dim", 1,
                       Read<I8>(host_class_dim_vtx.write()));
+    if(numbering) {
+      HostWrite<LO> host_numbering_vtx(numVtx);
+      for (int i = 0; i < numVtx; ++i)
+        host_numbering_vtx[i] = ent_numbering[static_cast<std::size_t>(i)];
+      mesh->add_tag<LO>(0, "simNumbering", 1, Read<LO>(host_numbering_vtx.write()));
+    }
   }
   else {
     mesh->set_family(OMEGA_H_MIXED);
@@ -189,6 +211,10 @@ void read_internal(pMesh m, Mesh* mesh) {
                            Read<ClassId>(host_class_ids_vtx.write()));
     mesh->add_tag<I8>(Topo_type::vertex, "class_dim", 1,
                       Read<I8>(host_class_dim_vtx.write()));
+    if(numbering) {
+      fprintf(stderr, "Warning: conversion of Simmetrix MeshNex vertex numbering "
+                      "is not yet supported for mixed meshes\n");
+    }
   }
 
   edge_vertices[0].reserve(numEdges*2);
@@ -611,8 +637,8 @@ void read_internal(pMesh m, Mesh* mesh) {
   return;
 }
 
-Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
-    CommPtr comm) {
+Mesh readImpl(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+    filesystem::path const& numbering_fname, CommPtr comm) {
   SimPartitionedMesh_start(NULL,NULL);
   SimModel_start();
   Sim_readLicenseFile(NULL);
@@ -621,15 +647,28 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   pProgress p = NULL;
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
   pMesh m = M_load(mesh_fname.c_str(), g, p);
+  const bool hasNumbering = (numbering_fname.native() != std::string(""));
+  pMeshNex numbering = hasNumbering ? MeshNex_load(numbering_fname.c_str(), m) : NULL;
   auto mesh = Mesh(comm->library());
   mesh.set_comm(comm);
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  meshsim::read_internal(m, &mesh);
+  meshsim::read_internal(m, &mesh, numbering);
+  if(hasNumbering) MeshNex_delete(numbering);
   M_release(m);
   GM_release(g);
   SimDiscrete_stop(0);
   SimModel_stop();
   return mesh;
+}
+
+Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+    filesystem::path const& numbering_fname, CommPtr comm) {
+  return readImpl(mesh_fname, mdl_fname, numbering_fname, comm);
+}
+
+Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
+    CommPtr comm) {
+  return readImpl(mesh_fname, mdl_fname, std::string(""), comm);
 }
 
 }  // namespace meshsim
