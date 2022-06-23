@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
   auto& numberingFlag = cmdline.add_flag(
       "-numbering", "Attach the vertex numbering from the specified Simmetrix .nex file");
   numberingFlag.add_arg<std::string>("numbering-in");
+  cmdline.add_flag("-reorder", "Reorder the osh mesh using Hilbert SFC before writing");
 
   if (!cmdline.parse_final(comm, &argc, argv)) return -1;
   auto mesh_in = cmdline.get<std::string>("mesh-in");
@@ -26,6 +27,9 @@ int main(int argc, char** argv) {
   }
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, numbering_in, comm);
   auto family = mesh.family();
+  if (cmdline.parsed("-reorder")) {
+    Omega_h::reorder_by_hilbert(&mesh);
+  }
   if ((family == OMEGA_H_SIMPLEX) || family == OMEGA_H_HYPERCUBE) {
     Omega_h::binary::write(mesh_out, &mesh);
   }

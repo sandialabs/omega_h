@@ -329,6 +329,25 @@ if(BUILD_TESTING)
   test_func(run_unit_math 1 ./unit_math)
 
   if(Omega_h_USE_SimModSuite)
+    set(d3dMesh ${CMAKE_SOURCE_DIR}/meshes/d3d)
+    test_func(run_tri_convert 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh.osh
+      -reorder)
+    test_func(diff_tri_convert 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-gold.osh
+      ${d3dMesh}/d3d-coreMesh.osh)
+    test_func(run_tri_convert_numbering 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh-numbered.osh
+      -reorder
+      -numbering ${d3dMesh}/d3d-coreMesh.nex)
+    test_func(diff_tri_convert_numbering 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-numbered-gold.osh
+      ${d3dMesh}/d3d-coreMesh-numbered.osh)
+
     osh_add_exe(mixed_writeMesh)
     set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
     test_func(run_mixed_writeMesh 1 ./mixed_writeMesh
