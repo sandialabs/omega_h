@@ -11,7 +11,6 @@ namespace Omega_h {
 
 void unmap_tags(
     Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents) {
-  std::cout<<"CALLING unmap tags"<<std::endl;
   ScopedChangeRCFieldsToMesh rc_to_mesh(*old_mesh);
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
