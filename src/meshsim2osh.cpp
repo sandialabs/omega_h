@@ -22,12 +22,14 @@ int main(int argc, char** argv) {
   auto model_in = cmdline.get<std::string>("model-in(geomSim)");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
   std::string numbering_in;
-  if (cmdline.parsed("-numbering-in")) {
-    numbering_in = cmdline.get<std::string>("numbering-in");
+  if (cmdline.parsed("-numbering")) {
+    std::cout << "attaching numbering...\n";
+    numbering_in = cmdline.get<std::string>("-numbering", "numbering-in");
   }
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, numbering_in, comm);
   auto family = mesh.family();
   if (cmdline.parsed("-reorder")) {
+    std::cout << "reordering...\n";
     Omega_h::reorder_by_hilbert(&mesh);
   }
   if ((family == OMEGA_H_SIMPLEX) || family == OMEGA_H_HYPERCUBE) {
