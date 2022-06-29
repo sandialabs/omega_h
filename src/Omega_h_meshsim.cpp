@@ -648,7 +648,7 @@ Mesh readImpl(filesystem::path const& mesh_fname, filesystem::path const& mdl_fn
   pGModel g = GM_load(mdl_fname.c_str(), nm, p);
   pMesh m = M_load(mesh_fname.c_str(), g, p);
   const bool hasNumbering = (numbering_fname.native() != std::string(""));
-  pMeshNex numbering = hasNumbering ? MeshNex_load(numbering_fname.c_str(), m) : NULL;
+  pMeshNex numbering = hasNumbering ? MeshNex_load(numbering_fname.c_str(), m) : nullptr;
   auto mesh = Mesh(comm->library());
   mesh.set_comm(comm);
   mesh.set_parting(OMEGA_H_ELEM_BASED);
