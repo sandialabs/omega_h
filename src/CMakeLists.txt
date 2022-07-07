@@ -329,6 +329,32 @@ if(BUILD_TESTING)
   test_func(run_unit_math 1 ./unit_math)
 
   if(Omega_h_USE_SimModSuite)
+    set(d3dMesh ${CMAKE_SOURCE_DIR}/meshes/d3d)
+    test_func(run_tri_convert 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh.osh)
+    #osh_diff requires a 'global' tag, the osh_reorder utility creates the tag
+    # and was used to generate the tag on the known-to-be-correct ('gold') mesh
+    #see #40 for additional discussion
+    test_func(run_tri_convert_reorder 1 ./osh_reorder
+      ${d3dMesh}/d3d-coreMesh.osh
+      ${d3dMesh}/d3d-coreMesh-reordered.osh)
+    test_func(diff_tri_convert 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-gold.osh
+      ${d3dMesh}/d3d-coreMesh-reordered.osh)
+    test_func(run_tri_convert_numbering 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh-numbered.osh
+      -numbering ${d3dMesh}/d3d-coreMesh.nex)
+    test_func(run_tri_convert_numbering_reorder 1 ./osh_reorder
+      ${d3dMesh}/d3d-coreMesh-numbered.osh
+      ${d3dMesh}/d3d-coreMesh-numbered-reordered.osh)
+    test_func(diff_tri_convert_numbering 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-numbered-gold.osh
+      ${d3dMesh}/d3d-coreMesh-numbered-reordered.osh)
+
     osh_add_exe(mixed_writeMesh)
     set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
     test_func(run_mixed_writeMesh 1 ./mixed_writeMesh

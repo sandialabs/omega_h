@@ -31,8 +31,25 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 
 #ifdef OMEGA_H_USE_SIMMODSUITE
 namespace meshsim {
+/**
+ * Convert a serial Simmetrix sms mesh classified on the specified model to an
+ * Omega_h mesh instance.
+ * @param[in] mesh path to Simmetrix .sms mesh file
+ * @param[in] model path to Simmetrix GeomSim .smd model file
+ * @param[in] comm path to Omega_h communicator instance
+ */
 Mesh read(filesystem::path const& mesh, filesystem::path const& model,
           CommPtr comm);
+/**
+ * Convert a serial Simmetrix sms mesh classified on the specified model to an
+ * Omega_h mesh instance and attach a Simmetrix MeshNex vertex numbering.
+ * @param[in] mesh path to Simmetrix .sms mesh file
+ * @param[in] model path to Simmetrix GeomSim .smd model file
+ * @param[in] numbering path to Simmetrix MeshNex .nex numbering file
+ * @param[in] comm path to Omega_h communicator instance
+ */
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+          filesystem::path const& numbering, CommPtr comm);
 void matchRead(filesystem::path const& mesh_fname, filesystem::path const& model,
                CommPtr comm, Mesh *mesh, I8 is_in);
 }  // namespace meshsim

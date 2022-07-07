@@ -12,11 +12,20 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("mesh-in");
   cmdline.add_arg<std::string>("model-in(geomSim)");
   cmdline.add_arg<std::string>("mesh-out");
+  auto& numberingFlag = cmdline.add_flag(
+      "-numbering", "Attach the vertex numbering from the specified Simmetrix .nex file");
+  numberingFlag.add_arg<std::string>("numbering-in");
+
   if (!cmdline.parse_final(comm, &argc, argv)) return -1;
   auto mesh_in = cmdline.get<std::string>("mesh-in");
   auto model_in = cmdline.get<std::string>("model-in(geomSim)");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
-  auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm);
+  std::string numbering_in;
+  if (cmdline.parsed("-numbering")) {
+    std::cout << "attaching numbering...\n";
+    numbering_in = cmdline.get<std::string>("-numbering", "numbering-in");
+  }
+  auto mesh = Omega_h::meshsim::read(mesh_in, model_in, numbering_in, comm);
   auto family = mesh.family();
   if ((family == OMEGA_H_SIMPLEX) || family == OMEGA_H_HYPERCUBE) {
     Omega_h::binary::write(mesh_out, &mesh);
