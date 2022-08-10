@@ -20,7 +20,7 @@ set(CMAKE_MODULE_PATH
 
 bob_begin_package()
 
-bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
+bob_option(Omega_h_CHECK_BOUNDS "Check array bounds when running on host (makes code slow too)" OFF)
 bob_option(Omega_h_THROW "Errors throw exceptions instead of abort" ${USE_XSDK_DEFAULTS})
 bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
@@ -122,6 +122,11 @@ if (Omega_h_USE_CUDA)
       AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.3)
     message(FATAL_ERROR "CUDA 11.2 does not support Omega_h, "
       "use an older or newer version")
+  endif()
+  #check for bad combos
+  if(Omega_h_CHECK_BOUNDS)
+    message(FATAL_ERROR "Bounds checking is only supported on the host, "
+      "disable CUDA/Kokkos+CUDA or bounds checking")
   endif()
 endif()
 
