@@ -118,44 +118,6 @@ T Write<T>::get(LO i) const {
 #endif
 }
 
-Bytes::Bytes(Write<Byte> write) : Read<Byte>(write) {}
-
-Bytes::Bytes(LO size_in, Byte value, std::string const& name_in)
-    : Read<Byte>(size_in, value, name_in) {}
-
-Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name_in)
-    : Read<Byte>(l, name_in) {}
-
-LOs::LOs(Write<LO> write) : Read<LO>(write) {}
-
-LOs::LOs(LO size_in, LO value, std::string const& name_in)
-    : Read<LO>(size_in, value, name_in) {}
-
-LOs::LOs(LO size_in, LO offset, LO stride, std::string const& name_in)
-    : Read<LO>(size_in, offset, stride, name_in) {}
-
-LOs::LOs(std::initializer_list<LO> l, std::string const& name_in)
-    : Read<LO>(l, name_in) {}
-
-GOs::GOs(Write<GO> write) : Read<GO>(write) {}
-
-GOs::GOs(LO size_in, GO value, std::string const& name_in)
-    : Read<GO>(size_in, value, name_in) {}
-
-GOs::GOs(LO size_in, GO offset, GO stride, std::string const& name_in)
-    : Read<GO>(size_in, offset, stride, name_in) {}
-
-GOs::GOs(std::initializer_list<GO> l, std::string const& name_in)
-    : Read<GO>(l, name_in) {}
-
-Reals::Reals(Write<Real> write) : Read<Real>(write) {}
-
-Reals::Reals(LO size_in, Real value, std::string const& name_in)
-    : Read<Real>(size_in, value, name_in) {}
-
-Reals::Reals(std::initializer_list<Real> l, std::string const& name_in)
-    : Read<Real>(l, name_in) {}
-
 template <typename T>
 Read<T>::Read(Write<T> write) : write_(write) {}
 
