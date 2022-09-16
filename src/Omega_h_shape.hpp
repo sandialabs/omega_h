@@ -63,9 +63,9 @@ OMEGA_H_INLINE Vector<edim +1 > barycentric_from_global(Vector<sdim> const & glo
 }
 
 template <Int n>
-OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
-  return 0.0 <= reduce(xi, minimum<Real>()) &&
-         reduce(xi, maximum<Real>()) <= 1.0;
+OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi, Real fuzz=0) {
+  return (0.0-fuzz) <= reduce(xi, minimum<Real>()) &&
+         reduce(xi, maximum<Real>()) <= (1.0+fuzz);
 }
 
 template <Int sdim>

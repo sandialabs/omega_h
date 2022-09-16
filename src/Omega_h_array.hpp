@@ -29,7 +29,7 @@ class Write {
 #endif
 
  public:
-  typedef T value_type;
+  using value_type = T;
   OMEGA_H_INLINE Write()
       :
 #ifdef OMEGA_H_USE_KOKKOS
@@ -112,7 +112,7 @@ class Read {
   Write<T> write_;
 
  public:
-  typedef T value_type;
+  using value_type = T;
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
@@ -147,44 +147,10 @@ template <typename T>
 Read<T> read(Write<T> a) {
   return Read<T>(a);
 }
-
-class Bytes : public Read<Byte> {
- public:
-  OMEGA_H_INLINE Bytes() {}
-  OMEGA_H_INLINE Bytes(Read<Byte> base) : Read<Byte>(base) {}
-  Bytes(Write<Byte> write);
-  Bytes(LO size_in, Byte value, std::string const& name = "");
-  Bytes(std::initializer_list<Byte> l, std::string const& name = "");
-};
-
-class LOs : public Read<LO> {
- public:
-  OMEGA_H_INLINE LOs() {}
-  OMEGA_H_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
-  LOs(Write<LO> write);
-  LOs(LO size_in, LO value, std::string const& name = "");
-  LOs(LO size_in, LO offset, LO stride, std::string const& name = "");
-  LOs(std::initializer_list<LO> l, std::string const& name = "");
-};
-
-class GOs : public Read<GO> {
- public:
-  OMEGA_H_INLINE GOs() {}
-  OMEGA_H_INLINE GOs(Read<GO> base) : Read<GO>(base) {}
-  GOs(Write<GO> write);
-  GOs(LO size_in, GO value, std::string const& name = "");
-  GOs(LO size_in, GO offset, GO stride, std::string const& name = "");
-  GOs(std::initializer_list<GO> l, std::string const& name = "");
-};
-
-class Reals : public Read<Real> {
- public:
-  OMEGA_H_INLINE Reals() {}
-  OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
-  Reals(Write<Real> write);
-  Reals(LO size_in, Real value, std::string const& name = "");
-  Reals(std::initializer_list<Real> l, std::string const& name = "");
-};
+using Bytes = Read<Byte>;
+using LOs = Read<LO>;
+using GOs = Read<GO>;
+using Reals = Read<Real>;
 
 template <typename T>
 class HostRead {
@@ -195,7 +161,7 @@ class HostRead {
   std::shared_ptr<T> mirror_;
 #endif
  public:
-  typedef T value_type;
+  using value_type = T;
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
@@ -228,7 +194,7 @@ class HostWrite {
   std::shared_ptr<T> mirror_;
 #endif
  public:
-  typedef T value_type;
+  using value_type = T;
   HostWrite() = default;
   HostWrite(LO size_in, std::string const& name = "");
   HostWrite(LO size_in, T offset, T stride, std::string const& name = "");
