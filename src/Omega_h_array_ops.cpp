@@ -79,6 +79,7 @@ promoted_t<T> get_sum(Read<T> a) {
     }, sum);
   return sum;
 #else
+  using PT = promoted_t<T>;
   return transform_reduce(a.begin(), a.end(), init, plus<PT>(),
       std::move(transform));
 #endif
