@@ -535,7 +535,7 @@ bool is_sorted(Read<T> a) {
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
   Int res;
   Kokkos::parallel_reduce(
-    Kokkos::RangePolicy<>(0, a.size() ),
+    Kokkos::RangePolicy<>(0, a.size()-1),
     KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
       update = (int)transform(i);
     }, Kokkos::Min< Omega_h::Int >(res) );
