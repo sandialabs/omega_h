@@ -34,12 +34,24 @@ template LOs offset_scan(Read<I32> a, std::string const& name);
 
 void fill_right(Write<LO> a) {
   OMEGA_H_TIME_FUNCTION;
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+  auto const op = maximum<LO>();
+  auto transform = identity<LO>();
+  Kokkos::Experimental::transform_inclusive_scan(
+    "omegah_kk_fill_right", ExecSpace(),
+    Kokkos::Experimental::cbegin(a.view()),
+    Kokkos::Experimental::cend(a.view()),
+    Kokkos::Experimental::begin(a.view()),
+    op, std::move(transform)
+  );
+#else
   auto const first = a.begin();
   auto const last = a.end();
   auto const result = a.begin();
   auto const op = maximum<LO>();
   auto transform = identity<LO>();
   transform_inclusive_scan(first, last, result, op, std::move(transform));
+#endif
 }
 
 }  // end namespace Omega_h
