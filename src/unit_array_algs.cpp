@@ -9,6 +9,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_atomics.hpp"
 
 using namespace Omega_h;
 
@@ -25,6 +26,18 @@ static void test_int128() {
   b = b + b;
   b = b >> 3;
   OMEGA_H_CHECK(b == a);
+}
+
+static void test_atomic() {
+  const auto a2b = LOs({0,1,1,3,2});
+  const auto na = a2b.size();
+  Write<LO> degrees(4, 0);
+  auto count = OMEGA_H_LAMBDA(LO a) {
+    auto const b = a2b[a];
+    atomic_increment(&degrees[b]);
+  };
+  parallel_for(na, std::move(count));
+  OMEGA_H_CHECK(read(degrees) == LOs({1,2,1,1}));
 }
 
 static void test_repro_sum() {
@@ -115,6 +128,11 @@ static void test_invert_map() {
     auto l2hl = invert_map_by_atomics(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0, 1));
     OMEGA_H_CHECK(l2hl.ab2b == LOs(4, 0, 1));
+  }
+  {
+    auto l2hl = invert_map_by_atomics(LOs({0,1,2,2,3,0}),4);
+    OMEGA_H_CHECK(l2hl.a2ab == LOs({0, 2, 3, 5, 6}));
+    OMEGA_H_CHECK(l2hl.ab2b == LOs({0, 5, 1, 2, 3, 4}));
   }
   {
     LOs hl2l({}, "hl2l");
@@ -313,12 +331,13 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_write();
+  test_atomic(); //fails here
   test_int128();
   test_repro_sum();
   test_sort();
   test_sort_small_range();
   fprintf(stderr, "0.2\n");
-  test_scan(); //fails here
+  test_scan();
   fprintf(stderr, "0.3\n");
   test_fan_and_funnel();
   test_permute();
