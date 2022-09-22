@@ -147,6 +147,7 @@ template <typename T>
 Read<T> read(Write<T> a) {
   return Read<T>(a);
 }
+
 using Bytes = Read<Byte>;
 using LOs = Read<LO>;
 using GOs = Read<GO>;

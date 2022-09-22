@@ -741,7 +741,7 @@ static void test_hypercube_split_template() {
   OMEGA_H_CHECK(compare_hst(3, 3, 7, 7, {0, 7}));
 }
 
-static void test_copy_constructor(Library* lib)
+void test_copy_constructor(Library* lib)
 {
   auto world = lib->world();
   fprintf(stderr, "before build_box\n");
