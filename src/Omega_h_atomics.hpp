@@ -27,7 +27,7 @@ OMEGA_H_DEVICE int atomic_fetch_add(int* const dest, const int val) {
 #pragma GCC diagnostic pop
 #endif
   return oldval;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) && defined(__CUDA_ARCH__)
   return atomicAdd(dest, val);
 #else
   int oldval = *dest;

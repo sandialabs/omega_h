@@ -648,6 +648,17 @@ void write(
   auto all_conn = mesh->ask_elem_verts();
   auto elems2file_idx = Write<LO>(mesh->nelems());
   auto elem_file_offset = LO(0);
+
+  // create block_id to name map
+  std::map<LO,std::string> blockID_to_name;
+  std::map<std::string,std::vector<ClassPair>>::const_iterator class_sets_iter;
+  for(class_sets_iter = mesh->class_sets.begin(); class_sets_iter != mesh->class_sets.end(); class_sets_iter++) {
+    for (size_t n=0; n<class_sets_iter->second.size(); ++n) {
+      if (class_sets_iter->second[n].dim == 3)
+        blockID_to_name.insert({class_sets_iter->second[n].id,class_sets_iter->first});
+    }
+  }
+
   for (auto block_id : region_set) {
     auto type_name = (dim == 3) ? "tetra4" : "tri3";
     auto elems_in_block = each_eq_to(elem_class_ids, block_id);
@@ -660,7 +671,15 @@ void write(
     auto deg = element_degree(mesh->family(), dim, VERT);
     CALL(ex_put_block(
         file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems, deg, 0, 0, 0));
-    std::string block_name = "block_" + std::to_string(block_id);
+
+    // set block name
+    std::string block_name;
+    std::map<LO,std::string>::const_iterator blockID_to_name_iter = blockID_to_name.find(block_id);
+    if (blockID_to_name_iter != blockID_to_name.end())
+      block_name = blockID_to_name_iter->second;
+    else
+      block_name = "block_" + std::to_string(block_id);
+
     CALL(ex_put_name(file, EX_ELEM_BLOCK, block_id, block_name.c_str()));
     auto block_conn = read(unmap(block_elems2elem, all_conn, deg));
     auto block_conn_ex = add_to_each(block_conn, 1);

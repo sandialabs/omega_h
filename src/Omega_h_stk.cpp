@@ -92,14 +92,22 @@ static LOs get_elem_node_indices(const stk::mesh::BulkData & stk_mesh, const std
   return elem_node_indices.write();
 }
 
-static LOs get_elem_block_ids_compress(const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems, std::map<LO,LO>& unique_ids_map)
+static LOs get_elem_block_ids_compress(const stk::mesh::BulkData & stk_mesh,
+                                       const std::vector<stk::mesh::Entity> & stk_elems,
+                                       const std::vector<std::set<int>> & merging_blocks_original_IDs,
+                                       std::map<LO,LO>& unique_ids_map)
 {
   HostWrite<LO> elem_block_ids(LO(stk_elems.size()));
   LO unique_count = 0;
 
+  // data for merging blocks
+  std::vector<LO> new_merged_unique_ID(merging_blocks_original_IDs.size());
+  std::vector<bool> block_set_processed(merging_blocks_original_IDs.size(), false);
+
   LO index = 0;
   for (auto && elem : stk_elems)
   {
+    // check if this element's block needs to be added to unique_ids_map
     auto const original_id = get_element_part_id(stk_mesh, elem);
     bool add_unique = true;
     for (auto const& a_pair : unique_ids_map) {
@@ -108,10 +116,32 @@ static LOs get_elem_block_ids_compress(const stk::mesh::BulkData & stk_mesh, con
         break;
       }
     }
-    if (add_unique) unique_ids_map.insert({original_id,unique_count++});
+
+    if (add_unique) {
+
+      // check if element is in a set of blocks to be merged
+      size_t block_set_index = 0;
+      bool block_is_merging = false;
+      for (size_t b=0; b<merging_blocks_original_IDs.size(); ++b) {
+        std::set<int>::const_iterator iter = merging_blocks_original_IDs[b].find(original_id);
+        if (iter != merging_blocks_original_IDs[b].end()) {
+          if (!block_set_processed[b]) {
+            new_merged_unique_ID[b] = unique_count++;
+            block_set_processed[b] = true;
+          }
+          block_set_index = b;
+          block_is_merging = true;
+          break;
+        }
+      }
+
+      if (block_is_merging)
+        unique_ids_map.insert({original_id,new_merged_unique_ID[block_set_index]});
+      else
+        unique_ids_map.insert({original_id,unique_count++});
+    }
     elem_block_ids[index++] = unique_ids_map[original_id];
   }
-
   return elem_block_ids.write();
 }
 
@@ -184,20 +214,74 @@ static std::vector<stk::mesh::Entity> get_side_entities(Mesh* mesh, const stk::m
   return side_entities;
 }
 
-static void classify_elements(Mesh * mesh, const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems)
+static void classify_elements(Mesh * mesh,
+                              const stk::mesh::BulkData & stk_mesh,
+                              const std::vector<stk::mesh::Entity> & stk_elems,
+                              const std::vector<std::pair<std::string,std::set<std::string>>> & merging_block_names)
 {
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   classify_elements(mesh);
-  std::map<LO,LO> unique_ids_map;
-  LOs elem_class_ids = get_elem_block_ids_compress(stk_mesh, stk_elems, unique_ids_map);
-  mesh->add_tag(dim, "class_id", 1, elem_class_ids);
+
+  // store ID's of blocks to be merged by block set
   std::vector<stk::mesh::Part*> const& myparts = stk_mesh.mesh_meta_data().get_parts();
+  std::vector<std::set<int>> merging_blocks_original_IDs;
+  std::map<std::string,std::string> old2new_names;
+
+  if (merging_block_names.size() > 0) {
+    std::set<int> merge_IDs;
+    for(size_t b=0; b<merging_block_names.size(); ++b) {
+      merge_IDs.clear();
+      for (size_t k=0; k<myparts.size(); ++k) {
+        if (myparts[k]->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
+            myparts[k]->id() > 0) {
+
+          std::set<std::string>::const_iterator iter = merging_block_names[b].second.find(myparts[k]->name());
+          if (iter != merging_block_names[b].second.end()) {
+            merge_IDs.insert(myparts[k]->id());
+            old2new_names[myparts[k]->name()] = merging_block_names[b].first;
+          }
+        }
+      }
+      merging_blocks_original_IDs.push_back(merge_IDs);
+    }
+  }
+
+  std::map<LO,LO> unique_ids_map;
+  LOs elem_class_ids = get_elem_block_ids_compress(stk_mesh, stk_elems, merging_blocks_original_IDs, unique_ids_map);
+  mesh->add_tag(dim, "class_id", 1, elem_class_ids);
+  std::set<std::string> new_names_added;
   for (size_t k=0; k<myparts.size(); ++k) {
+
+    bool id_used_by_elements = false;
+    std::map<LO,LO>::const_iterator iter = unique_ids_map.find(myparts[k]->id());
+    if (iter != unique_ids_map.end())
+      id_used_by_elements = true;
     if (myparts[k]->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
-        myparts[k]->id() > 0) {
-      int the_id = int(myparts[k]->id());
-      int the_new_id = unique_ids_map[the_id];
-      mesh->class_sets[myparts[k]->name()].push_back({dim, the_new_id});
+        myparts[k]->id() > 0 &&
+        id_used_by_elements) {
+
+      // process blocks with changing names due to merging
+      bool name_is_changing = false;
+      if (old2new_names.size() > 0) {
+        std::map<std::string,std::string>::const_iterator old2new_names_iter = old2new_names.find(myparts[k]->name());
+        if (old2new_names_iter != old2new_names.end()) {
+          name_is_changing = true;
+          std::set<std::string>::iterator new_names_iter = new_names_added.find(old2new_names_iter->second);
+          if (new_names_iter == new_names_added.end()) { // not found so add it
+            int the_id = int(myparts[k]->id());
+            int the_new_id = unique_ids_map[the_id];
+            mesh->class_sets[old2new_names_iter->second].push_back({dim, the_new_id});
+            new_names_added.insert(old2new_names_iter->second);
+          }
+        }
+      }
+
+      // process blocks whose names are not changing
+      if (!name_is_changing) {
+        int the_id = int(myparts[k]->id());
+        int the_new_id = unique_ids_map[the_id];
+        mesh->class_sets[myparts[k]->name()].push_back({dim, the_new_id});
+      }
     }
   }
 }
@@ -241,7 +325,10 @@ static void classify_sides(Mesh * mesh, const stk::mesh::BulkData & stk_mesh, co
       mesh->class_sets[myparts[k]->name()].push_back({dim-1, int(myparts[k]->id())});
 }
 
-void read_from_stk(Mesh* mesh, const stk::mesh::BulkData & stk_mesh, const std::vector<stk::mesh::Entity> & stk_elems)
+void read_from_stk(Mesh* mesh,
+                   const stk::mesh::BulkData & stk_mesh,
+                   const std::vector<stk::mesh::Entity> & stk_elems,
+                   const std::vector<std::pair<std::string,std::set<std::string>>> & merging_block_names)
 {
   begin_code("stk::clone_from_stk");
 
@@ -253,18 +340,20 @@ void read_from_stk(Mesh* mesh, const stk::mesh::BulkData & stk_mesh, const std::
   auto dim = int(stk_mesh.mesh_meta_data().spatial_dimension());
   build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
 
-  classify_elements(mesh, stk_mesh, stk_elems);
+  classify_elements(mesh, stk_mesh, stk_elems, merging_block_names);
   classify_sides(mesh, stk_mesh, sorted_nodes);
   finalize_classification(mesh);
 
   end_code();
 }
 
-void read_from_stk(Mesh* mesh, const stk::mesh::BulkData & stk_mesh)
+void read_from_stk(Mesh* mesh,
+                   const stk::mesh::BulkData & stk_mesh,
+                   const std::vector<std::pair<std::string,std::set<std::string>>> & merging_block_names)
 {
   std::vector<stk::mesh::Entity> stk_elems;
   stk::mesh::get_selected_entities( stk_mesh.mesh_meta_data().locally_owned_part(), stk_mesh.buckets(stk::topology::ELEMENT_RANK), stk_elems );
-  read_from_stk(mesh, stk_mesh, stk_elems);
+  read_from_stk(mesh, stk_mesh, stk_elems, merging_block_names);
 }
 
 }  // end namespace stk_mesh
