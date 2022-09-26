@@ -6,6 +6,8 @@
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_file.hpp"
+#include <fstream>
 
 namespace Omega_h {
 
@@ -217,8 +219,15 @@ LOs invert_funnel(LOs ab2a, LO na) {
   return a2ab;
 }
 
+static int callCnt=0;
+
 Graph invert_map_by_sorting(LOs a2b, LO nb) {
   auto& ab2b = a2b;
+  fprintf(stderr, "%s ab2b\n", __func__);
+  std::ofstream out("ab2b"+std::to_string(callCnt)+".dat", std::ios::out);
+  callCnt++;
+  binary::write_array<LO>(out, ab2b, false, false);
+  out.close();
   auto ba2ab = sort_by_keys(ab2b);
   auto ba2b = unmap(ba2ab, ab2b, 1);
   auto b2ba = invert_funnel(ba2b, nb);

@@ -19,6 +19,7 @@ namespace Omega_h {
 static Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
   auto deg = element_degree(mesh->family(), ent_dim, VERT);
+  fprintf(stderr, "deg %d nverts %d\n", deg, mesh->nverts());
   auto e2fv = get_component(ev2v, deg, 0);
   auto fv2e = invert_map_by_sorting(e2fv, mesh->nverts());
   return fv2e;
@@ -29,6 +30,9 @@ static LOs ent_order_from_vert_order(
   OMEGA_H_CHECK(new_verts2old_verts.size() == mesh->nverts());
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
   OMEGA_H_CHECK(old_verts2old_ents.a2ab.size() == mesh->nverts() + 1);
+  if(old_verts2old_ents.a2ab.last() != mesh->nents(ent_dim)) {
+    fprintf(stderr, "last %d nents(%d) %d\n", old_verts2old_ents.a2ab.last(), ent_dim, mesh->nents(ent_dim));
+  }
   OMEGA_H_CHECK(old_verts2old_ents.a2ab.last() == mesh->nents(ent_dim));
   OMEGA_H_CHECK(old_verts2old_ents.ab2b.size() == mesh->nents(ent_dim));
   auto new_verts2old_ents =
