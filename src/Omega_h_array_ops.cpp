@@ -4,7 +4,7 @@
 #include "Omega_h_int_iterator.hpp"
 #include "Omega_h_reduce.hpp"
 
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
 namespace Omega_h {
 struct Int128Wrap {
   Int128 i128;
@@ -50,7 +50,7 @@ bool operator==(Read<T> a, Read<T> b) {
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] == b[i]; };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   auto const kkFirst = Kokkos::Experimental::cbegin(a.view());
   auto const kkLast = Kokkos::Experimental::cend(a.view());
   LO const kkInit = 0;
@@ -72,7 +72,7 @@ promoted_t<T> get_sum(Read<T> a) {
   auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   auto sum = init;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -102,7 +102,7 @@ T get_min(Read<T> a) {
   auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   auto r = init;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -124,7 +124,7 @@ T get_max(Read<T> a) {
   auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   auto r = init;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -161,7 +161,7 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
   auto transform = OMEGA_H_LAMBDA(LO i)->bool {
     return are_close(a[i], b[i], tol, floor);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   LO sum = 0;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -185,7 +185,7 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
   auto transform = OMEGA_H_LAMBDA(LO i)->bool {
     return (std::abs(a[i] - b[i]) <= tol);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   LO sum = 0;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -513,7 +513,7 @@ LO find_last(Read<T> array, T value) {
     else
       return -1;
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   LO res = init;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, array.size() ),
@@ -534,7 +534,7 @@ bool is_sorted(Read<T> a) {
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   Int res;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size()-1),
@@ -623,7 +623,7 @@ int max_exponent(Reals a) {
     std::frexp(a[i], &expo);
     return expo;
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   Int res;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
@@ -648,7 +648,7 @@ Int128 int128_sum(Reals const a, double const unit) {
   auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   Omega_h::Int128Wrap res;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),

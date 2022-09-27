@@ -4,7 +4,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_reduce.hpp"
 
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
 namespace Omega_h {
 template< int N >
 struct bboxWrap {
@@ -79,7 +79,7 @@ BBox<dim> find_bounding_box(Reals coords) {
     init.min[i] = ArithTraits<Real>::max();
     init.max[i] = ArithTraits<Real>::min();
   }
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   bboxWrap<dim> res;
   const auto transform = GetBBoxOp<dim>(coords);
 

@@ -92,7 +92,7 @@ std::string const& Write<T>::name() const {
 template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   Kokkos::deep_copy(Kokkos::subview(view_,i),value);
 #elif defined(OMEGA_H_USE_CUDA)
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
@@ -104,7 +104,7 @@ void Write<T>::set(LO i, T value) const {
 template <typename T>
 T Write<T>::get(LO i) const {
   ScopedTimer timer("single device to host");
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
   T value;
   Kokkos::deep_copy(value, Kokkos::subview(view_,i));
   return value;

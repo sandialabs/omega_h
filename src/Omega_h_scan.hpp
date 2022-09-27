@@ -53,7 +53,7 @@ void parallel_scan(LO n, T f, char const* name = "") {
 #endif
 }
 
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
 
 template <typename InputIterator, typename OutputIterator>
 OutputIterator inclusive_scan(
