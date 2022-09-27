@@ -109,10 +109,7 @@ INST(GO)
 
 template <typename T>
 T next_smallest_value(Read<T> const a, T const value) {
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(a.size());
   auto const init = ArithTraits<T>::max();
-  auto const op = minimum<T>();
   auto transform = OMEGA_H_LAMBDA(LO i)->T {
     return (a[i] > value) ? a[i] : init;
   };
@@ -125,6 +122,9 @@ T next_smallest_value(Read<T> const a, T const value) {
     }, Kokkos::Min<T>(res) );
   return res;
 #else
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const op = minimum<T>();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }
@@ -133,10 +133,6 @@ template <typename T>
 LO number_same_values(
     Read<T> const a, T const value, Write<LO> const tmp_perm) {
   tmp_perm.set(0, 0);
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(a.size());
-  auto const result = tmp_perm.begin() + 1;
-  auto const op = plus<LO>();
   auto transform = OMEGA_H_LAMBDA(LO i)->LO {
     return a[i] == value ? LO(1) : LO(0);
   };
@@ -148,6 +144,10 @@ LO number_same_values(
       if(final) tmp_perm[i+1] = update;
     });
 #else
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const result = tmp_perm.begin() + 1;
+  auto const op = plus<LO>();
   transform_inclusive_scan(first, last, result, op, std::move(transform));
 #endif
   return read(tmp_perm).last();
