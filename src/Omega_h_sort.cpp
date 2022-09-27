@@ -134,14 +134,19 @@ LO number_same_values(
     Read<T> const a, T const value, Write<LO> const tmp_perm) {
   tmp_perm.set(0, 0);
   auto transform = OMEGA_H_LAMBDA(LO i)->LO {
-    return a[i] == value ? LO(1) : LO(0);
+    LO v = (a[i] == value) ? LO(1) : LO(0);
+    printf("a[%d] %d value %d v %d\n", i, a[i], value, v);
+    return v;
   };
 #if defined(OMEGA_H_USE_KOKKOS)
   Kokkos::parallel_scan(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, LO& update, const bool final) {
       update += transform(i);
-      if(final) tmp_perm[i+1] = update;
+      if(final) {
+        tmp_perm[i+1] = update;
+        printf("%d update %d\n", i, update);
+      }
     });
 #else
   auto const first = IntIterator(0);

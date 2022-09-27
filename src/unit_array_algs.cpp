@@ -74,7 +74,9 @@ static void test_sort_small_range() {
   LOs perm;
   LOs fan;
   Read<I32> uniq;
+  fprintf(stderr, "test_sort_small 0.1\n");
   sort_small_range(in, &perm, &fan, &uniq);
+  fprintf(stderr, "test_sort_small 0.2\n");
   OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
   OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
   OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));
@@ -331,10 +333,11 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_write();
-  test_atomic(); //fails here
+  test_atomic();
   test_int128();
   test_repro_sum();
   test_sort();
+  fprintf(stderr, "0.1\n");
   test_sort_small_range();
   fprintf(stderr, "0.2\n");
   test_scan();
