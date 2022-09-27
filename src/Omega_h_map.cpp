@@ -219,19 +219,9 @@ LOs invert_funnel(LOs ab2a, LO na) {
   return a2ab;
 }
 
-static int callCnt=0;
-
 Graph invert_map_by_sorting(LOs a2b, LO nb) {
   auto& ab2b = a2b;
-  fprintf(stderr, "%s ab2b\n", __func__);
-  std::ofstream out("ab2b"+std::to_string(callCnt)+".dat", std::ios::out);
-  binary::write_array<LO>(out, ab2b, false, false);
-  out.close();
-  std::ofstream outGold("ba2ab"+std::to_string(callCnt)+".dat", std::ios::out);
   auto ba2ab = sort_by_keys(ab2b);
-  binary::write_array<LO>(outGold, ba2ab, false, false);
-  outGold.close();
-  callCnt++;
   auto ba2b = unmap(ba2ab, ab2b, 1);
   auto b2ba = invert_funnel(ba2b, nb);
   auto& ba2a = ba2ab;
