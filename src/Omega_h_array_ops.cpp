@@ -53,9 +53,13 @@ bool operator==(Read<T> a, Read<T> b) {
 #if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
   auto const kkFirst = Kokkos::Experimental::cbegin(a.view());
   auto const kkLast = Kokkos::Experimental::cend(a.view());
-  return Kokkos::Experimental::transform_reduce(
+  LO const kkInit = 0;
+  auto const kkOp = plus<LO>();
+  auto kkTransform = OMEGA_H_LAMBDA(LO i)->LO { return (a[i] == b[i]); };
+  LO const sum = Kokkos::Experimental::transform_reduce(
       "omegah_kk_array_compare", ExecSpace(),
-      kkFirst, kkLast, init, op, std::move(transform));
+      kkFirst, kkLast, kkInit, kkOp, std::move(kkTransform));
+  return (sum == a.size());
 #else
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
