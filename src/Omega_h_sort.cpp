@@ -1,7 +1,7 @@
-//FIXME this needs a preprocessor conditional {
+#if defined(OMEGA_H_USE_SYCL)
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/execution>
-//}
+#endif
 
 #include <Omega_h_int_iterator.hpp>
 #include <Omega_h_scan.hpp>
