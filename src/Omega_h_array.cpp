@@ -33,6 +33,7 @@ Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name_in) {
   begin_code("Write allocation");
+  OMEGA_H_CHECK(size_in >= 0);
 #ifdef OMEGA_H_USE_KOKKOS
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
