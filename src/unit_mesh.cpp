@@ -248,7 +248,6 @@ static void test_build(Library* lib) {
     auto mesh = build_box(
       lib->world(), OMEGA_H_SIMPLEX, 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);
   }
-  /*
   {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, OMEGA_H_SIMPLEX, 2, LOs({0, 1, 2}), 3);
@@ -283,7 +282,6 @@ static void test_build(Library* lib) {
     auto mesh =
         build_box(lib->world(), OMEGA_H_HYPERCUBE, 1.0, 1.0, 1.0, 2, 2, 2);
   }
-  */
 }
 
 static void test_star(Library* lib) {
@@ -752,7 +750,6 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_build(&lib);
-  return 0;
   test_down_template();
   test_tri_align();
   test_form_uses();
