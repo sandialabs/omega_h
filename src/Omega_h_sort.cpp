@@ -135,7 +135,6 @@ LO number_same_values(
   tmp_perm.set(0, 0);
   auto transform = OMEGA_H_LAMBDA(LO i)->LO {
     LO v = (a[i] == value) ? LO(1) : LO(0);
-    printf("a[%d] %d value %d v %d\n", i, a[i], value, v);
     return v;
   };
 #if defined(OMEGA_H_USE_KOKKOS)
@@ -145,7 +144,6 @@ LO number_same_values(
       update += transform(i);
       if(final) {
         tmp_perm[i+1] = update;
-        printf("%d update %d\n", i, update);
       }
     });
 #else
