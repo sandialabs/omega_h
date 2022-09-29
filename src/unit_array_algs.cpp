@@ -69,6 +69,17 @@ static void test_sort() {
   }
 }
 
+static void test_equal() {
+  OMEGA_H_CHECK(LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}) == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
+  OMEGA_H_CHECK(LOs({0, 3, 6, 9}) == LOs({0, 3, 6, 9}));
+  OMEGA_H_CHECK(Read<I32>({10, 100, 1000}) == Read<I32>({10, 100, 1000}));
+  OMEGA_H_CHECK(LOs({}) == LOs({}));
+  OMEGA_H_CHECK(LOs({0}) == LOs({0}));
+  OMEGA_H_CHECK(Read<I32>({}) == Read<I32>({}));
+}
+
+
+
 static void test_sort_small_range() {
   Read<I32> in({10, 100, 1000, 10, 100, 1000, 10, 100, 1000});
   LOs perm;
@@ -93,8 +104,14 @@ static void test_scan() {
     OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
   }
   {
-    LOs scanned = offset_scan(Read<I8>(3, 1));
-    OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
+    LOs scannedByte = offset_scan(Read<I8>(3, 1));
+    LOs scannedLo = offset_scan(LOs(3, 1));
+    auto gold = Read<LO>(4,0,1);
+    auto foo = OMEGA_H_LAMBDA(LO i) {
+      printf("idx scannedLo scannedByte %d %d %d\n", i, scannedLo[i], scannedByte[i]);
+    };
+    parallel_for(scannedLo.size(), std::move(foo));
+    OMEGA_H_CHECK(scannedByte == gold);
   }
 }
 
@@ -332,16 +349,15 @@ static void test_array_from_kokkos() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
+  test_scan();
+  return 0;
+  test_equal();
+  test_sort_small_range();
   test_write();
   test_atomic();
   test_int128();
   test_repro_sum();
   test_sort();
-  fprintf(stderr, "0.1\n");
-  test_sort_small_range();
-  fprintf(stderr, "0.2\n");
-  test_scan();
-  fprintf(stderr, "0.3\n");
   test_fan_and_funnel();
   test_permute();
   test_invert_map();
