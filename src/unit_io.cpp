@@ -34,6 +34,36 @@ Mesh 2;
 )GMSH";
 #endif
 
+static const char* GMSH_PHYSICAL_ENTITIES_MSH2 = R"GMSH(
+$MeshFormat
+2.2 0 8
+$EndMeshFormat
+$PhysicalNames
+4
+2 13 "patch1"
+2 14 "patchInBetween"
+3 15 "comp1"
+3 16 "comp2"
+$EndPhysicalNames
+$Nodes
+6
+1 0 0 0
+2 1 0 0
+3 0 1 0
+4 0 0 1
+5 -1 0 0
+6 0 -1 0
+$EndNodes
+$Elements
+5
+1 2 2 14 2 1 4 2
+2 2 2 13 4 1 5 3
+3 4 2 15 1 2 4 3 1
+4 4 2 15 1 5 3 4 1
+5 4 2 16 2 1 2 4 6
+$EndElements
+)GMSH";
+
 static const char* GMSH_SQUARE_MSH2 = R"GMSH(
 $MeshFormat
 2.2 0 8
@@ -1391,6 +1421,26 @@ static void test_gmsh(Library* lib) {
         OMEGA_H_CHECK(mesh.nverts() == 29);
       }
       OMEGA_H_CHECK(mesh.class_sets.empty());
+    }
+  }
+  {
+    if (lib->world()->rank() == 0) {
+      {
+        std::ofstream oss("physical-entities.msh");
+        oss << GMSH_PHYSICAL_ENTITIES_MSH2;
+      }
+      lib->world()->barrier();
+      auto mesh = Omega_h::gmsh::read("physical-entities.msh", lib->world());
+      const auto num_class_sets = mesh.class_sets.size();
+      OMEGA_H_CHECK(num_class_sets == 4);
+      OMEGA_H_CHECK(mesh.class_sets["patch1"].size() == 1);
+      OMEGA_H_CHECK(mesh.class_sets["patch1"][0].id == 4);
+      OMEGA_H_CHECK(mesh.class_sets["patchInBetween"].size() == 1);
+      OMEGA_H_CHECK(mesh.class_sets["patchInBetween"][0].id == 2);
+      OMEGA_H_CHECK(mesh.class_sets["comp1"].size() == 1);
+      OMEGA_H_CHECK(mesh.class_sets["comp1"][0].id == 1);
+      OMEGA_H_CHECK(mesh.class_sets["comp2"].size() == 1);
+      OMEGA_H_CHECK(mesh.class_sets["comp2"][0].id == 2);
     }
   }
   {
