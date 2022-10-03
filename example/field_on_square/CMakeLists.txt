@@ -1,5 +1,8 @@
 add_executable(osh_field_on_square main.cpp)
 target_link_libraries(osh_field_on_square PRIVATE omega_h)
+set_property(TARGET osh_field_on_square PROPERTY CXX_STANDARD "14")
+set_property(TARGET osh_field_on_square PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET osh_field_on_square PROPERTY CXX_EXTENSIONS OFF)
 add_test(NAME osh_field_on_square COMMAND $<TARGET_FILE:osh_field_on_square>)
 
 add_custom_command(OUTPUT square.msh

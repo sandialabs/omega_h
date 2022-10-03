@@ -1,5 +1,8 @@
 add_executable(osh_laplacian main.cpp)
 target_link_libraries(osh_laplacian PRIVATE omega_h)
+set_property(TARGET osh_laplacian PROPERTY CXX_STANDARD "14")
+set_property(TARGET osh_laplacian PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET osh_laplacian PROPERTY CXX_EXTENSIONS OFF)
 add_test(NAME osh_laplacian COMMAND $<TARGET_FILE:osh_laplacian>)
 
 add_custom_command(OUTPUT square.msh
