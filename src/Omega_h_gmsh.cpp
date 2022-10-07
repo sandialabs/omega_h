@@ -144,7 +144,7 @@ static void read(
 }
 
 static void read_internal_entities_section(Mesh& mesh, Real format,
-    std::vector<std::string>& physical_names, std::istream& stream,
+    std::unordered_map<int, std::string>& physical_names, std::istream& stream,
     bool is_binary, bool needs_swapping) {
   Int num_points, num_curves, num_surfaces, num_volumes;
   read(stream, num_points, is_binary, needs_swapping);
@@ -171,8 +171,9 @@ static void read_internal_entities_section(Mesh& mesh, Real format,
       read(stream, physical, is_binary, needs_swapping);
       OMEGA_H_CHECK(physical != 0);
       if (physical > 0) {
-        const auto& physicalname = physical_names[physical - 1];
-        mesh.class_sets[physicalname].emplace_back(0, tag);
+        const auto& physicalname = physical_names.find(physical);
+        OMEGA_H_CHECK(physicalname != physical_names.end());
+        mesh.class_sets[physicalname->second].emplace_back(0, tag);
       }
     }
   }
@@ -198,8 +199,9 @@ static void read_internal_entities_section(Mesh& mesh, Real format,
         read(stream, physical, is_binary, needs_swapping);
         OMEGA_H_CHECK(physical != 0);
         if (physical > 0) {
-          const auto& physical_name = physical_names[physical - 1];
-          mesh.class_sets[physical_name].emplace_back(dim, tag);
+          auto physical_name = physical_names.find(physical);
+          OMEGA_H_CHECK(physical_name != physical_names.end());
+          mesh.class_sets[physical_name->second].emplace_back(dim, tag);
         }
       }
       Int num_bounding_points;
@@ -232,20 +234,18 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     }
   }
   OMEGA_H_CHECK(data_size == sizeof(Real));
-  std::vector<std::string> physical_names;
+  std::unordered_map<int, std::string> physical_names;
   if (seek_optional_section(stream, "$PhysicalNames")) {
     Int num_physicals;
     read(stream, num_physicals, is_binary, needs_swapping);
-    physical_names.reserve(static_cast<std::size_t>(num_physicals));
     eat_newlines(stream);
     for (auto i = 0; i < num_physicals; ++i) {
       Int dim, number;
       read(stream, dim, is_binary, needs_swapping);
       read(stream, number, is_binary, needs_swapping);
-      OMEGA_H_CHECK(number == i + 1);
       std::string name;
       stream >> name;
-      physical_names.push_back(name.substr(1, name.size() - 2));
+      physical_names.emplace(number, name.substr(1, name.size() - 2));
     }
   }
   if (seek_optional_section(stream, "$Entities")) {
@@ -465,8 +465,9 @@ void read_internal(std::istream& stream, Mesh* mesh) {
         const auto entity = pair.first;
         const auto physical = pair.second;
         std::string physical_name(std::to_string(physical));
-        if (physical <= static_cast<Int>(physical_names.size())) {
-          physical_name = physical_names[physical - 1];
+        auto physical_name_it = physical_names.find(physical);
+        if (physical_name_it != physical_names.end()) {
+          physical_name = physical_name_it->second;
         }
         mesh->class_sets[physical_name].emplace_back(dim, entity);
       }
