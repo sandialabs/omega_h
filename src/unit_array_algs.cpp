@@ -347,7 +347,6 @@ int main(int argc, char** argv) {
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_equal();
   test_scan();
-  return 0;
   test_sort_small_range();
   test_write();
   test_atomic();
@@ -368,4 +367,6 @@ int main(int argc, char** argv) {
   test_expr();
   test_expr2();
   test_array_from_kokkos();
+  fprintf(stderr, "done\n");
+  return 0;
 }
