@@ -107,10 +107,6 @@ static void test_scan() {
     LOs scannedByte = offset_scan(Read<I8>(3, 1));
     LOs scannedLo = offset_scan(LOs(3, 1));
     auto gold = Read<LO>(4,0,1);
-    auto foo = OMEGA_H_LAMBDA(LO i) {
-      printf("idx scannedLo scannedByte %d %d %d\n", i, scannedLo[i], scannedByte[i]);
-    };
-    parallel_for(scannedLo.size(), std::move(foo));
     OMEGA_H_CHECK(scannedByte == gold);
   }
 }
