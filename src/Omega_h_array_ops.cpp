@@ -39,25 +39,11 @@ struct reduction_identity< Omega_h::Int128Wrap > {
 namespace Omega_h {
 
 template <typename T>
-struct isValueEqual {
-  KOKKOS_FUNCTION
-    constexpr T operator()(const T& a, const T& b) const {
-      return (a == b);
-    }
-};
-
-template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
 #if defined(OMEGA_H_USE_KOKKOS)
-  LO const kkInit = 0;
-  auto const kkOp = plus<T>();
-  auto const kkTransform = isValueEqual<T>();
-  LO const sum = Kokkos::Experimental::transform_reduce(
-      "omegah_kk_array_compare", ExecSpace(),
-      a.view(), b.view(), kkInit, kkOp, kkTransform);
-  Kokkos::fence(); //required?
-  return (sum == a.size());
+  Kokkos::View<const T*> nonConstB = b.view();
+  return Kokkos::Experimental::equal("array_equal",ExecSpace(), a.view(), nonConstB);
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());

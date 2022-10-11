@@ -349,9 +349,9 @@ static void test_array_from_kokkos() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
+  test_equal();
   test_scan();
   return 0;
-  test_equal();
   test_sort_small_range();
   test_write();
   test_atomic();
