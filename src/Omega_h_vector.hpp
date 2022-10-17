@@ -12,7 +12,7 @@ template <Int n>
 class Vector : public Few<Real, n> {
  public:
   OMEGA_H_INLINE Vector() {}
-  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
+  OMEGA_H_INLINE Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
   OMEGA_H_INLINE void operator=(Vector<n> const& rhs) volatile {
     Few<Real, n>::operator=(rhs);
   }
