@@ -293,6 +293,14 @@ static Omega_h::any test_expr2(
   return op->eval(env);
 }
 
+static void test_get_component() {
+  LOs in({0,1,0,1,0,1});
+  auto const ones = get_component(in, 2, 1);
+  OMEGA_H_CHECK(ones == LOs({1,1,1}));
+  auto const zeros = get_component(in, 2, 0);
+  OMEGA_H_CHECK(zeros == LOs({0,0,0}));
+}
+
 static void test_expr2() {
   using Omega_h::any;
   using Omega_h::any_cast;
@@ -345,6 +353,7 @@ static void test_array_from_kokkos() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
+  test_get_component();
   test_equal();
   test_scan();
   test_sort_small_range();
