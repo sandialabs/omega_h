@@ -73,17 +73,7 @@ set(Omega_h_USE_Gmodel_DEFAULT OFF)
 bob_add_dependency(PRIVATE NAME Gmodel TARGETS gmodel)
 
 set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
-set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME SEACASExodus
-    TARGETS exodus
-    INCLUDE_DIR_VARS
-      SEACASExodus_INCLUDE_DIRS
-      SEACASExodus_TPL_INCLUDE_DIRS
-    LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
-if (Omega_h_USE_SEACASExodus)
-  set(Omega_h_USE_HDF5_DEFAULT ON)
-  bob_add_dependency(PUBLIC NAME HDF5 CONFIG)
-endif()
+bob_add_dependency(PUBLIC NAME SEACASExodus TARGETS SEACASExodus::all_libs)
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
