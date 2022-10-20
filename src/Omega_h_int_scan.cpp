@@ -7,6 +7,7 @@
 
 namespace Omega_h {
 
+#if defined(OMEGA_H_USE_KOKKOS)
 template< typename T>
 struct i32Plus {
   KOKKOS_INLINE_FUNCTION
@@ -17,6 +18,7 @@ struct i32Plus {
       return res;
     }
 };
+#endif
 
 template <typename T>
 LOs offset_scan(Read<T> a, std::string const& name) {
