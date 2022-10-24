@@ -32,7 +32,14 @@ Omega\_h is developed and distributed via GitHub,
 a popular software hosting platform based on the
 Git distributed version control system.
 
+The principle repo is maintained by Sandia National Laboratories:
 \url{https://github.com/sandialabs/omega_h}
+and a fork with some functionality extensions, see
+\url{https://github.com/SCOREC/omega_h#extensions} for a discussion,
+is maintained by SCOREC at Rensselear Polytechnic Institute:
+\url{https://github.com/SCOREC/omega_h}.
+As such, some of the utilities, and functionality discussed here are
+specific to the SCOREC fork.
 
 The most common way to obtain Omega\_h is to
 use Git to clone the repository and automatically
@@ -191,7 +198,18 @@ Omega\_h will compile command-line programs that perform these operations.
 
 \begin{enumerate}
 \item \texttt{msh2osh}: Convert from Gmsh's native text format to the Omega\_h binary format.
-\item \texttt{osh2vtk}: Convert from the Omega\_h binary format (tree) to a tree as follows:
+\item \texttt{meshsim2osh}, \texttt{matchMeshsim2osh}: Convert from Simmetrix
+SimModSuite native format \texttt{.sms} (with matched/periodic mesh entities) to
+the Omega\_h binary format. These utilities become available when the
+\texttt{SimModSuite} dependency is enabled.
+\item \texttt{ascii\_vtk2osh}: Convert from the Kitware ASCII VTU format to the
+Omega\_h binary format.
+\item \texttt{exo2osh}, \texttt{osh2exo}: Convert from (to) the Exodus II
+format to (from) the Omega\_h binary format. These utilities become available
+when the \texttt{SEACASExodus} dependency is enabled.
+\item \texttt{osh2vtk}: Convert from the Omega\_h binary file format (a directory
+tree for parallel representations) to a directory tree with Kitware VTU formatted
+files as follows:
 \begin{verbatim}
 given-name/
 given-name/pieces.pvtu
@@ -225,12 +243,18 @@ An increase in the number of parts must multiply the number of parts by a power 
 due to limitations of Omega\_h's Recursive Inertial Bisection implementation.
 The number of parts may also be decreased, in which case certain consecutive parts will
 be merged.
+\item \texttt{osh\_reorder}: Reorder the entities of the mesh following the Hilbert
+space filling curve.
 \item \texttt{osh\_scale}: Adapts a mesh such that it retains approximately the
 same variation of resolution (metric gradient) and upon output contains approximately
 the desired number of elements.
 This can be convenient for convergence studies, to generate a series of meshes which
 have prescribed element counts and whose resolution variation over the spatial domain
 mirrors the variation in resolution of the initial starting mesh.
+\item \texttt{osh\_fix}: Adapts a mesh such that it has either the requested
+edge length, or isotropic elements.  Note, both requests will be satisfied
+to the extent possible in a reasonable amount of time while maintaining
+mesh quality.
 \end{enumerate}
 
 \subsection{Header and Library}
