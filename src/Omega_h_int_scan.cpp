@@ -15,6 +15,7 @@ struct i32Plus {
       LO al(a);
       LO bl(b);
       LO res = al + bl;
+      printf("res al bl %d %d %d\n", res, al, bl);
       return res;
     }
 };
@@ -26,17 +27,10 @@ LOs offset_scan(Read<T> a, std::string const& name) {
   Write<LO> out(a.size() + 1, name);
   out.set(0, 0);
 #if defined(OMEGA_H_USE_KOKKOS)
-  //HACK to avoid bug in inclusive_scan w/cuda - https://github.com/kokkos/kokkos/issues/5513 {
-  Write<LO> aLO(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    aLO[i] = LO(a[i]);
-  };
-  Kokkos::parallel_for(a.size(), f);
-  // }
   auto outSub = Kokkos::subview(out.view(),std::make_pair(1,out.size()));
   assert(outSub.size()==a.size());
   auto kkOp = i32Plus<T>();
-  Kokkos::Experimental::inclusive_scan("omegah_kk_offset_scan", ExecSpace(), aLO.view(), outSub, kkOp);
+  Kokkos::Experimental::inclusive_scan("omegah_kk_offset_scan", ExecSpace(), a.view(), outSub, kkOp);
   Kokkos::fence();
 #else
   auto const first = CastIterator<LO, T>(a.begin());
