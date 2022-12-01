@@ -38,6 +38,7 @@ class Few {
     OMEGA_H_FEW_AT;
   }
 #undef OMEGA_H_FEW_AT
+  OMEGA_H_INLINE
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
@@ -91,6 +92,7 @@ class Few {
     OMEGA_H_FEW_AT;
   }
 #undef OMEGA_H_FEW_AT
+  OMEGA_H_INLINE
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
