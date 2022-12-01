@@ -37,6 +37,12 @@ class Few {
   OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
     OMEGA_H_FEW_AT;
   }
+  OMEGA_H_INLINE T& operator()(Int i) { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const& operator()(Int i) const { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T volatile& operator()(Int i) volatile { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const volatile& operator()(Int i) const volatile {
+    OMEGA_H_FEW_AT;
+  }
 #undef OMEGA_H_FEW_AT
   Few(std::initializer_list<T> l) {
     Int i = 0;
@@ -88,6 +94,10 @@ class Few {
 #endif
   OMEGA_H_INLINE T& operator[](Int i) OMEGA_H_NOEXCEPT { OMEGA_H_FEW_AT; }
   OMEGA_H_INLINE T const& operator[](Int i) const OMEGA_H_NOEXCEPT {
+    OMEGA_H_FEW_AT;
+  }
+  OMEGA_H_INLINE T& operator()(Int i) OMEGA_H_NOEXCEPT { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const& operator()(Int i) const OMEGA_H_NOEXCEPT {
     OMEGA_H_FEW_AT;
   }
 #undef OMEGA_H_FEW_AT
