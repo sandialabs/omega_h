@@ -19,22 +19,11 @@ class Matrix : public Few<Vector<m>, n> {
    */
   inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
   inline Matrix(std::initializer_list<Real> l);
-  OMEGA_H_INLINE void operator=(Matrix<m, n> const& rhs) volatile {
-    Few<Vector<m>, n>::operator=(rhs);
-  }
   OMEGA_H_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
-  OMEGA_H_INLINE Matrix(const volatile Matrix<m, n>& rhs)
-      : Few<Vector<m>, n>(rhs) {}
   OMEGA_H_INLINE Real& operator()(Int i, Int j) {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
   OMEGA_H_INLINE Real const& operator()(Int i, Int j) const {
-    return Few<Vector<m>, n>::operator[](j)[i];
-  }
-  OMEGA_H_INLINE Real volatile& operator()(Int i, Int j) volatile {
-    return Few<Vector<m>, n>::operator[](j)[i];
-  }
-  OMEGA_H_INLINE Real const volatile& operator()(Int i, Int j) const volatile {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
 };
