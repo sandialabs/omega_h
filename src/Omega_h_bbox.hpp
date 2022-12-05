@@ -19,13 +19,11 @@ struct BBox {
   Vector<dim> min;
   Vector<dim> max;
   /* playing the volatile game again (see int128.hpp) */
-  OMEGA_H_INLINE void operator=(BBox<dim> const& rhs) volatile {
+  OMEGA_H_INLINE void operator=(BBox<dim> const& rhs) {
     min = rhs.min;
     max = rhs.max;
   }
   OMEGA_H_INLINE BBox(BBox<dim> const& rhs) : min(rhs.min), max(rhs.max) {}
-  OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs)
-      : min(rhs.min), max(rhs.max) {}
 };
 
 #else
