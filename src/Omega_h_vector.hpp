@@ -6,53 +6,9 @@
 
 namespace Omega_h {
 
-#ifdef OMEGA_H_USE_KOKKOS
 
 template <Int n>
-class Vector : public Few<Real, n> {
- public:
-  OMEGA_H_INLINE Vector() {}
-  OMEGA_H_INLINE Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
-  OMEGA_H_INLINE void operator=(Vector<n> const& rhs) volatile {
-    Few<Real, n>::operator=(rhs);
-  }
-  OMEGA_H_INLINE void operator=(Vector<n> const& rhs) {
-    Few<Real, n>::operator=(rhs);
-  }
-  OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
-  OMEGA_H_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
-#define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
-  OMEGA_H_INLINE Real& operator()(Int i) { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real const& operator()(Int i) const { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real volatile& operator()(Int i) volatile {
-    OMEGA_H_VECTOR_AT;
-  }
-  OMEGA_H_INLINE Real const volatile& operator()(Int i) const volatile {
-    OMEGA_H_VECTOR_AT;
-  }
-#undef OMEGA_H_VECTOR_AT
-};
-
-#else
-
-template <Int n>
-class Vector : public Few<Real, n> {
- public:
-  inline Vector() = default;
-  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
-  inline Vector& operator=(Vector const&) = default;
-  inline Vector& operator=(Vector&&) = default;
-  inline Vector(Vector const&) = default;
-  inline Vector(Vector&&) = default;
-#define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
-  OMEGA_H_INLINE Real& operator()(Int i) OMEGA_H_NOEXCEPT { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real const& operator()(Int i) const OMEGA_H_NOEXCEPT {
-    OMEGA_H_VECTOR_AT;
-  }
-#undef OMEGA_H_VECTOR_AT
-};
-
-#endif
+using Vector = Few<Real,n>;
 
 template <Int n>
 OMEGA_H_INLINE Real* scalar_ptr(Vector<n>& v) {
