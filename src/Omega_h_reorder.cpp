@@ -19,7 +19,6 @@ namespace Omega_h {
 static Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
   auto deg = element_degree(mesh->family(), ent_dim, VERT);
-  fprintf(stderr, "deg %d nverts %d\n", deg, mesh->nverts());
   auto e2fv = get_component(ev2v, deg, 0);
   auto fv2e = invert_map_by_sorting(e2fv, mesh->nverts());
   return fv2e;
