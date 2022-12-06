@@ -103,15 +103,15 @@ static void test_scan() {
     LOs scanned = offset_scan(LOs(3, 1));
     OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
   }
-  {
-    std::ifstream stream("marks.bin", std::ios::binary);
-    Read<I8> marks;
-    binary::read_array(stream, marks, false, false);
-    std::ifstream stream2("expectedOffsets.bin", std::ios::binary);
-    Read<LO> expectedOffsets;
-    binary::read_array(stream2, expectedOffsets, false, false);
-    auto offsets = offset_scan(marks);
-    OMEGA_H_CHECK(offsets == expectedOffsets);
+  { //test for overflow
+    //see https://github.com/kokkos/kokkos/issues/5513#issuecomment-1338092552
+    const int size = 128;
+    Write<I8> marks_w(size);
+    fill<I8>(marks_w,1);
+    auto offsets = offset_scan(Read<I8>(marks_w));
+    parallel_for(offsets.size(), OMEGA_H_LAMBDA(LO i) {
+        assert(offsets[i] == i);
+    },"checkOffsets");
   }
   {
     LOs scannedByte = offset_scan(Read<I8>(3, 1));
