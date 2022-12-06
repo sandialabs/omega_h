@@ -15,7 +15,6 @@ struct i32Plus {
       LO al(a);
       LO bl(b);
       LO res = al + bl;
-      printf("res al bl %d %d %d\n", res, al, bl);
       return res;
     }
 };
@@ -29,8 +28,8 @@ LOs offset_scan(Read<T> a, std::string const& name) {
 #if defined(OMEGA_H_USE_KOKKOS)
   auto outSub = Kokkos::subview(out.view(),std::make_pair(1,out.size()));
   assert(outSub.size()==a.size());
-  auto kkOp = i32Plus<T>();
-  Kokkos::Experimental::inclusive_scan("omegah_kk_offset_scan", ExecSpace(), a.view(), outSub, kkOp);
+  auto kkOp = i32Plus<LO>();
+  Kokkos::Experimental::inclusive_scan("omegah_kk_offset_scan", ExecSpace(), a.view(), outSub, kkOp, LO());
   Kokkos::fence();
 #else
   auto const first = CastIterator<LO, T>(a.begin());

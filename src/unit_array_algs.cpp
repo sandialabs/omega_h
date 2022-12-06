@@ -10,6 +10,8 @@
 #include "Omega_h_mark.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_atomics.hpp"
+#include "Omega_h_file.hpp"
+#include <fstream>
 
 using namespace Omega_h;
 
@@ -104,6 +106,16 @@ static void test_scan() {
     OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
   }
   {
+    std::ifstream stream("marks.bin", std::ios::binary);
+    Read<I8> marks;
+    binary::read_array(stream, marks, false, false);
+    std::ifstream stream2("expectedOffsets.bin", std::ios::binary);
+    Read<LO> expectedOffsets;
+    binary::read_array(stream2, expectedOffsets, false, false);
+    auto offsets = offset_scan(marks);
+    OMEGA_H_CHECK(offsets == expectedOffsets);
+  }
+  {
     LOs scannedByte = offset_scan(Read<I8>(3, 1));
     LOs scannedLo = offset_scan(LOs(3, 1));
     auto gold = Read<LO>(4,0,1);
@@ -113,6 +125,7 @@ static void test_scan() {
     parallel_for(scannedLo.size(), std::move(foo));
     OMEGA_H_CHECK(scannedByte == gold);
   }
+  fprintf(stderr, "done test_scan\n");
 }
 
 static void test_fan_and_funnel() {
