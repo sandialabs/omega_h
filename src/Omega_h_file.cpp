@@ -35,12 +35,29 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
-  assert(false);
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
+  a = __builtin_bswap32(a);
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
+  a = _byteswap_ulong(a);
+#else
+  a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
+      ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
+#endif
   return a;
 }
 
 OMEGA_H_INLINE std::uint64_t bswap64(std::uint64_t a) {
-  assert(false);
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
+  a = __builtin_bswap64(a);
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
+  a = _byteswap_uint64(a);
+#else
+  a = ((a & 0x00000000000000FFULL) << 56) |
+      ((a & 0x000000000000FF00ULL) << 40) |
+      ((a & 0x0000000000FF0000ULL) << 24) | ((a & 0x00000000FF000000ULL) << 8) |
+      ((a & 0x000000FF00000000ULL) >> 8) | ((a & 0x0000FF0000000000ULL) >> 24) |
+      ((a & 0x00FF000000000000ULL) >> 40) | ((a & 0xFF00000000000000ULL) >> 56);
+#endif
   return a;
 }
 
