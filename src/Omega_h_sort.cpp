@@ -1,3 +1,4 @@
+#include <Omega_h_config.h>
 #if defined(OMEGA_H_USE_SYCL)
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/execution>
