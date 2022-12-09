@@ -147,12 +147,8 @@ Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       auto n = normalize(cross(ab, ac));
       auto oa = a - o;
       auto od = n * (n * oa);
-      Matrix<3, 2> basis;
-      basis[0] = ab;
-      basis[1] = ac;
-      auto inv_basis = pseudo_invert(basis);
-      auto ad = od - oa;
-      auto xi = form_barycentric(inv_basis * ad);
+      // parametric coords for triangle in 3d space
+      auto xi = barycentric_from_global<3,2>(od, vve2x);
       if (!is_barycentric_inside(xi)) continue;
       auto this_h = norm(od);
       h = min2(h, this_h);

@@ -3,6 +3,7 @@
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_iterator.hpp"
 #include "Omega_h_reduce.hpp"
+#include "Omega_h_dbg.hpp"
 
 #if defined(OMEGA_H_USE_KOKKOS)
 namespace Omega_h {
@@ -71,8 +72,8 @@ promoted_t<T> get_sum(Read<T> a) {
   return sum;
 #else
   using PT = promoted_t<T>;
-  return transform_reduce(a.begin(), a.end(), init, plus<PT>(),
-      std::move(transform));
+  return transform_reduce(a.begin(), a.end(), PT(0), plus<PT>(),
+      OMEGA_H_LAMBDA(T val)->PT { return PT(val); });
 #endif
 
 }
@@ -606,9 +607,11 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 int max_exponent(Reals a) {
   auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
+    if (a[i] == 0.0) return init;
     std::frexp(a[i], &expo);
     return expo;
   };
+<<<<<<< HEAD
 #if defined(OMEGA_H_USE_KOKKOS)
   Int res;
   Kokkos::parallel_reduce(
@@ -631,6 +634,9 @@ struct Int128Plus {
 };
 
 Int128 int128_sum(Reals const a, double const unit) {
+  if (a.size() == 0) {
+    return Int128(0);
+  }
   auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
@@ -652,22 +658,32 @@ Int128 int128_sum(Reals const a, double const unit) {
 }
 
 Real repro_sum(Reals a) {
+  if (a.size() == 0) {
+    return 0.0;
+  }
   begin_code("repro_sum");
   int expo = max_exponent(a);
+  auto const init = ArithTraits<int>::min();
+  if (expo == init) return 0.0;
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
+  double ret = fixpt_sum.to_double(unit);
   end_code();
-  return fixpt_sum.to_double(unit);
+  return ret;
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
   begin_code("repro_sum(comm)");
-  int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
+  auto const init = ArithTraits<int>::min();
+  auto expo0 = max_exponent(a);
+  int expo = comm->allreduce(expo0, OMEGA_H_MAX);
+  if (expo == init) return 0.0;
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = int128_sum(a, unit);
   fixpt_sum = comm->add_int128(fixpt_sum);
+  double ret = fixpt_sum.to_double(unit);
   end_code();
-  return fixpt_sum.to_double(unit);
+  return ret;
 }
 
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {

@@ -14,27 +14,30 @@ namespace Omega_h {
 template <Int dim>
 Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
     Bytes verts_matter,
-    Real simple_algorithm_threshold =
-        0.95) {  // constant given by Aubry and Lohner
+    Real simple_algorithm_threshold = 0.95)  // constant given by Aubry and Lohner
+{
   constexpr auto side_dim = dim - 1;
-  constexpr auto max_adj_sides =
-      SimplexAvgDegree<side_dim, VERT, side_dim>::value * 4;
   auto v2s = mesh->ask_up(VERT, side_dim);
   auto sv2v = mesh->ask_verts_of(side_dim);
   auto verts_that_matter = collect_marked(verts_matter);
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * dim, 0.0);
+  auto const threshold_copy = simple_algorithm_threshold;
+  auto sides_are_exposed_copy = sides_are_exposed;
   auto f = OMEGA_H_LAMBDA(LO vm) {
     auto v = verts_that_matter[vm];
     auto N_c = zero_vector<dim>();
+    constexpr auto max_adj_sides =
+        SimplexAvgDegree<side_dim, VERT, side_dim>::value * 4;
     Few<Vector<dim>, max_adj_sides> N;
     auto n = 0;
     for (auto vs = v2s.a2ab[v]; vs < v2s.a2ab[v + 1]; ++vs) {
       auto s = v2s.ab2b[vs];
-      if (!sides_are_exposed[s]) continue;
+      if (!sides_are_exposed_copy[s]) continue;
       OMEGA_H_CHECK(n < max_adj_sides);
-      auto ssv2v = gather_verts<side_dim + 1>(sv2v, s);
-      auto ssv2x = gather_vectors<side_dim + 1, dim>(coords, ssv2v);
+      constexpr auto side_dim2 = dim - 1;
+      auto ssv2v = gather_verts<side_dim2 + 1>(sv2v, s);
+      auto ssv2x = gather_vectors<side_dim2 + 1, dim>(coords, ssv2v);
       auto svec = get_side_vector(ssv2x);
       N_c += svec;  // svec is the area weighted face normal
       N[n++] = normalize(svec);
@@ -48,7 +51,7 @@ Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
     // surfaces
     Int i;
     for (i = 0; i < n; ++i) {
-      if (N_c * N[i] < simple_algorithm_threshold) break;
+      if (N_c * N[i] < threshold_copy) break;
     }
     if (i < n) {
       // nope, we actually have some nontrivial normals here.

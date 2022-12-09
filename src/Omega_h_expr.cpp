@@ -6,6 +6,9 @@
 #include <Omega_h_math_lang.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
+#include <Omega_h_dbg.hpp>
+
+#include <sstream>
 
 namespace Omega_h {
 
@@ -858,18 +861,18 @@ ExprOp::~ExprOp() {}
 struct ConstOp final : public ExprOp {
   double value;
   OpPtr rhs;
-  ~ConstOp() override = default;
+  virtual ~ConstOp() override final = default;
   ConstOp(double value_in) : value(value_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any ConstOp::eval(ExprEnv&) { return value; }
 
 struct SemicolonOp final : public ExprOp {
   OpPtr lhs;
   OpPtr rhs;
-  ~SemicolonOp() override = default;
+  virtual ~SemicolonOp() override final = default;
   SemicolonOp(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any SemicolonOp::eval(ExprEnv& env) {
   lhs->eval(env);  // LHS result ignored
@@ -879,10 +882,10 @@ any SemicolonOp::eval(ExprEnv& env) {
 struct AssignOp final : public ExprOp {
   std::string name;
   OpPtr rhs;
-  ~AssignOp() override = default;
+  virtual ~AssignOp() override final = default;
   AssignOp(std::string const& name_in, OpPtr rhs_in)
       : name(name_in), rhs(rhs_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any AssignOp::eval(ExprEnv& env) {
   env.variables[name] = rhs->eval(env);
@@ -891,9 +894,9 @@ any AssignOp::eval(ExprEnv& env) {
 
 struct VarOp final : public ExprOp {
   std::string name;
-  ~VarOp() override = default;
+  virtual ~VarOp() override final = default;
   VarOp(std::string const& name_in) : name(name_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any VarOp::eval(ExprEnv& env) {
   auto it = env.variables.find(name);
@@ -907,9 +910,9 @@ any VarOp::eval(ExprEnv& env) {
 
 struct NegOp final : public ExprOp {
   OpPtr rhs;
-  ~NegOp() override = default;
+  virtual ~NegOp() override final = default;
   NegOp(OpPtr rhs_in) : rhs(rhs_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any NegOp::eval(ExprEnv& env) { return neg(env.dim, rhs->eval(env)); }
 
@@ -917,10 +920,10 @@ struct TernaryOp final : public ExprOp {
   OpPtr cond;
   OpPtr lhs;
   OpPtr rhs;
-  ~TernaryOp() override = default;
+  virtual ~TernaryOp() override final = default;
   TernaryOp(OpPtr cond_in, OpPtr lhs_in, OpPtr rhs_in)
       : cond(cond_in), lhs(lhs_in), rhs(rhs_in) {}
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any TernaryOp::eval(ExprEnv& env) {
   auto lhs_val = lhs->eval(env);
@@ -933,7 +936,7 @@ struct CallOp final : public ExprOp {
   std::string name;
   std::vector<OpPtr> rhs;
   ExprEnv::Args args;
-  ~CallOp() override = default;
+  virtual ~CallOp() override final = default;
   CallOp(std::string const& name_in, ExprEnv::Args const& args_in)
       : name(name_in) {
     for (auto& arg : args_in) {
@@ -942,7 +945,7 @@ struct CallOp final : public ExprOp {
     }
     args.reserve(rhs.size());
   }
-  any eval(ExprEnv& env) override;
+  virtual any eval(ExprEnv& env) override final;
 };
 any CallOp::eval(ExprEnv& env) {
   args.resize(rhs.size());
@@ -971,12 +974,12 @@ any CallOp::eval(ExprEnv& env) {
 }
 
 #define OMEGA_H_BINARY_OP(ClassName, func_call)                                \
-  struct ClassName final : public ExprOp {                                           \
+  struct ClassName final : public ExprOp {                                     \
     OpPtr lhs;                                                                 \
     OpPtr rhs;                                                                 \
-    ~ClassName() override = default;                             \
+    virtual ~ClassName() override final = default;                             \
     ClassName(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}        \
-    any eval(ExprEnv& env) override;                             \
+    virtual any eval(ExprEnv& env) override final;                             \
   };                                                                           \
   any ClassName::eval(ExprEnv& env) {                                          \
     auto lhs_val = lhs->eval(env);                                             \
@@ -1129,6 +1132,27 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     }
   }
   return any();
+}
+
+std::string ExprEnv::string(int verbose) {
+  //std::map<std::string, any> variables;
+  //std::map<std::string, Function> functions;
+  //LO size;
+  //Int dim;
+  std::ostringstream oss, vs;
+  std::string sep = "";
+  for(auto i : variables) {
+    auto v = i.second;
+    std::string str = any_cast<std::string>(v);
+    vs << sep << "{" << i.first << " : " << str << "}";
+    sep = " ";
+  }
+  oss << "ExprEnv:"
+      << "\n  size      = " << size
+      << "\n  dim       = " << dim
+      << "\n  variables = " << vs.str();
+  (void)verbose;
+  return oss.str();
 }
 
 #undef OMEGA_H_BINARY_REDUCE

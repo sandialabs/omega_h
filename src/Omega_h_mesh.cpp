@@ -17,6 +17,9 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_reduce.hpp"
+#include "Omega_h_print.hpp"
+#include "Omega_h_dbg.hpp"
 
 namespace Omega_h {
 
@@ -123,59 +126,42 @@ GO Mesh::nglobal_ents(Int ent_dim) {
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
-  if (has_tag(ent_dim, name)) remove_tag(ent_dim, name);
-  check_dim2(ent_dim);
-  check_tag_name(name);
-  OMEGA_H_CHECK(ncomps >= 0);
-  OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
-  OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-  TagPtr ptr(new Tag<T>(name, ncomps));
-  tags_[ent_dim].push_back(std::move(ptr));
+  this->add_tag(ent_dim, name, ncomps, Read<T>(), true);
 }
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  check_dim2(ent_dim);
-  auto it = tag_iter(ent_dim, name);
-  auto had_tag = (it != tags_[ent_dim].end());
-  Tag<T>* tag;
-  if (had_tag) {
-    tag = as<T>(it->get());
-    OMEGA_H_CHECK(ncomps == tag->ncomps());
-  } else {
+  auto it = this->tag_iter(ent_dim, name);
+  bool const had = (it != tags_[ent_dim].end());
+  if (!had) {
+    check_dim2(ent_dim);
     check_tag_name(name);
     OMEGA_H_CHECK(ncomps >= 0);
     OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
     OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-    tag = new Tag<T>(name, ncomps);
-    TagPtr ptr(tag);
+  }
+  auto ptr = std::make_shared<Tag<T>>(name, ncomps);
+  if (array.exists()) {
+    OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
+    ptr->set_array(array);
+  }
+  if (had) {
+    *it = std::move(ptr);
+  } else {
     tags_[ent_dim].push_back(std::move(ptr));
   }
-  OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
      etc. without updating dependent fields */
   if (!internal) react_to_set_tag(ent_dim, name);
-  tag->set_array(array);
 }
 
 template <typename T>
 void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
-  if (!has_tag(ent_dim, name)) {
-    Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
-        topological_plural_name(family(), ent_dim), name.c_str());
-  }
-  Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
-  OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
-  /* internal typically indicates migration/adaptation/file reading,
-     when we do not want any invalidation to take place.
-     the invalidation is there to prevent users changing coordinates
-     etc. without updating dependent fields */
-  if (!internal) react_to_set_tag(ent_dim, name);
-  tag->set_array(array);
+  this->add_tag(ent_dim, name, divide_no_remainder(array.size(), nents(ent_dim)), array, internal);
 }
 
 void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
@@ -213,7 +199,6 @@ Read<T> Mesh::get_array(Int ent_dim, std::string const& name) const {
 void Mesh::remove_tag(Int ent_dim, std::string const& name) {
   if (!has_tag(ent_dim, name)) return;
   check_dim2(ent_dim);
-  OMEGA_H_CHECK(has_tag(ent_dim, name));
   tags_[ent_dim].erase(tag_iter(ent_dim, name));
 }
 
@@ -285,8 +270,8 @@ Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
 }
 
 void Mesh::check_dim(Int ent_dim) const {
-  OMEGA_H_CHECK(0 <= ent_dim);
-  OMEGA_H_CHECK(ent_dim <= dim());
+  OMEGA_H_CHECK_OP(0, <=, ent_dim);
+  OMEGA_H_CHECK_OP(ent_dim, <=, dim());
 }
 
 void Mesh::check_dim2(Int ent_dim) const {
@@ -597,6 +582,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
 
 template <typename T>
 Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).invert().exch(a, width);
 }
@@ -631,6 +617,17 @@ Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width) {
   auto o = owned(ent_dim);
   auto o2e = collect_marked(o);
   return unmap(o2e, a, width);
+}
+
+template <typename T>
+Read<T> Mesh::owned_subset_array(
+    Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width) {
+  if (!could_be_shared(ent_dim)) return a_data;
+  auto e_data = map_onto(a_data, a2e, nents(ent_dim), default_val, width);
+  OMEGA_H_CHECK(e_data.size() == width * nents(ent_dim));
+  auto o = owned(ent_dim);
+  auto o2e = collect_marked(o);
+  return unmap(o2e, e_data, width);
 }
 
 void Mesh::sync_tag(Int ent_dim, std::string const& name) {
@@ -749,6 +746,71 @@ Real Mesh::imbalance(Int ent_dim) const {
   return m / a;
 }
 
+std::string Mesh::string(int verbose) {
+  auto gre = ghosted_ratio(dim());
+  auto gr0 = ghosted_ratio(0);
+  auto gre_max = comm()->allreduce(gre, OMEGA_H_MAX);
+  auto gr0_max = comm()->allreduce(gr0, OMEGA_H_MAX);
+
+  std::ostringstream oss;
+  oss << "Mesh:" 
+      << "\n    comm()->size                = " << comm()->size()
+      << "\n    parting                     = " << parting()
+      << "\n    dim                         = " << dim()
+      << "\n    family                      = " << family()
+      << "\n    nents(dim)                  = " << nents(dim())
+      << "\n    nents(0)                    = " << nents(0)
+      << "\n    nelems                      = " << nelems();
+  if (dim() > 2) {
+    oss 
+      << "\n    nregions                    = " << nregions();
+  }
+  if (dim() > 1) {
+    oss 
+      << "\n    nfaces                      = " << nfaces();
+  }
+  oss << "\n    nedges                      = " << nedges()
+      << "\n    nverts                      = " << nverts()
+      << "\n    nglobal_ents(dim)           = " << nglobal_ents(dim())
+      << "\n    nglobal_ents(0)             = " << nglobal_ents(0)
+      << "\n    ntags                       = " << ntags(dim())
+      << "\n    ntags(0)                    = " << ntags(0)
+    //<< "\n    min_quality                 = " << min_quality()
+    //<< "\n    max_length                  = " << max_length()
+      << "\n    could_be_shared(dim)        = " << could_be_shared(dim())
+      << "\n    could_be_shared(0)          = " << could_be_shared(0)
+      << "\n    owners_have_all_upward(dim) = " << owners_have_all_upward(dim())
+      << "\n    owners_have_all_upward(0)   = " << owners_have_all_upward(0)
+      << "\n    have_all_upward             = " << have_all_upward()
+      << "\n    imbalance                   = " << imbalance()
+      << "\n    ghosted_ratio(dim)          = " << gre
+      << "\n    ghosted_ratio(0)            = " << gr0
+      << "\n    max ghosted_ratio(dim)      = " << gre_max
+      << "\n    max ghosted_ratio(0)        = " << gr0_max;
+
+  if (verbose) {
+    oss 
+      << "\n    globals(dim)                =\n" << globals(dim())
+      << "\n    globals(0)                  =\n" << globals(0);
+  }
+  return oss.str();
+}
+
+LO Mesh::nents_owned(Int ent_dim) {
+  auto all_ents = owned(ent_dim);
+  auto transform = OMEGA_H_LAMBDA(int ent)->LO {
+    if (all_ents[ent]) return 1;
+    return 0;
+  };
+  return Omega_h::transform_reduce(Omega_h::IntIterator(0), Omega_h::IntIterator(all_ents.size()), 0, plus<LO>(), std::move(transform));
+}
+
+Real Mesh::ghosted_ratio(Int ent_dim) {
+  auto all_ents = owned(ent_dim);
+  LO const nowned = nents_owned(ent_dim);
+  return static_cast<Real>(all_ents.size())/static_cast<Real>(nowned);
+}
+
 bool can_print(Mesh* mesh) {
   return (!mesh->library()->silent_) && (mesh->comm()->rank() == 0);
 }
@@ -862,9 +924,11 @@ __host__
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
-  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);   \
+  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);     \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \
+      Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
+  template Read<T> Mesh::owned_subset_array(                                   \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);

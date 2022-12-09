@@ -11,9 +11,11 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include <thrust/functional.h>
 #include <thrust/transform_reduce.h>
+#include <cuda_runtime_api.h>
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -68,10 +70,19 @@ template <class T>
 thrust::minimum<T> native_op(Omega_h::minimum<T> const&) {
   return thrust::minimum<T>();
 }
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION < 11020)
 template <class T>
 thrust::identity<T> native_op(Omega_h::identity<T> const&) {
   return thrust::identity<T>();
 }
+#else
+template <class T>
+thrust::identity<> native_op(Omega_h::identity<T> const&) {
+  return thrust::identity<>();
+}
+#endif
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(

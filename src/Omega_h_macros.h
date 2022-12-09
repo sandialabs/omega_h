@@ -9,7 +9,9 @@
 
 #define OMEGA_H_PRAGMA(x) _Pragma(#x)
 
-#if defined(__clang__)
+#if defined(_MSC_VER)
+#define OMEGA_H_SYSTEM_HEADER
+#elif defined(__clang__)
 #define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(clang system_header)
 #elif defined(__GNUC__)
 #define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
@@ -62,7 +64,7 @@
 #define OMEGA_H_NOEXCEPT noexcept
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(OMEGA_H_IS_SHARED)
 #ifdef omega_h_EXPORTS
 #define OMEGA_H_DLL __declspec(dllexport)
 #else

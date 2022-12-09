@@ -1,13 +1,14 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <numeric>
+
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_build.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml_lite.hpp"
-
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <sstream>
 
 #ifdef OMEGA_H_USE_GMSH
 #include <gmsh.h>
@@ -700,6 +701,244 @@ $Elements
 $EndElements
 )GMSH";
 
+static const char* GMSH_3TETS_2SURFACES_2VOLUMES_MSH41[2] = {
+    R"GMSH($MeshFormat
+4.1 0 8
+$EndMeshFormat
+$PhysicalNames
+4
+2 1 "patch1"
+2 2 "patchInBetween"
+3 3 "comp1"
+3 4 "comp2"
+$EndPhysicalNames
+$Entities
+6 12 10 2
+1 0 0 0 0
+2 1 0 0 0
+3 0 1 0 0
+4 0 0 1 0
+5 -1 0 0 0
+6 0 -1 0 0
+1 -1e-07 -1e-07 -9.999999994736442e-08 1e-07 1e-07 1.0000001 0 2 1 -4
+2 -1e-07 -9.999999994736442e-08 -9.999999994736442e-08 1e-07 1.0000001 1.0000001 0 2 4 -3
+3 -1e-07 -9.999999994736442e-08 -1e-07 1e-07 1.0000001 1e-07 0 2 3 -1
+4 -1.0000001 -1e-07 -1e-07 9.999999994736442e-08 1e-07 1e-07 0 2 1 -5
+5 -1.0000001 -9.999999994736442e-08 -1e-07 9.999999994736442e-08 1.0000001 1e-07 0 2 5 -3
+6 -9.999999994736442e-08 -1e-07 -1e-07 1.0000001 1e-07 1e-07 0 2 1 -2
+7 -9.999999994736442e-08 -9.999999994736442e-08 -1e-07 1.0000001 1.0000001 1e-07 0 2 2 -3
+8 -1.0000001 -1e-07 -9.999999994736442e-08 9.999999994736442e-08 1e-07 1.0000001 0 2 5 -4
+9 -9.999999994736442e-08 -1e-07 -9.999999994736442e-08 1.0000001 1e-07 1.0000001 0 2 4 -2
+10 -1e-07 -1.0000001 -9.999999994736442e-08 1e-07 9.999999994736442e-08 1.0000001 0 2 4 -6
+11 -1e-07 -1.0000001 -1e-07 1e-07 9.999999994736442e-08 1e-07 0 2 6 -1
+12 -9.999999994736442e-08 -1.0000001 -1e-07 1.0000001 9.999999994736442e-08 1e-07 0 2 6 -2
+1 -1.0000001 -1e-07 -9.999999994736442e-08 9.999999994736442e-08 1e-07 1.0000001 0 3 8 -1 4
+2 -9.999999994736442e-08 -1e-07 -9.999999994736442e-08 1.0000001 1e-07 1.0000001 1 2 3 1 9 -6
+3 -9.999999994736442e-08 -9.999999994736442e-08 -1e-07 1.0000001 1.0000001 1e-07 0 3 6 7 3
+4 -1.0000001 -9.999999994736442e-08 -1e-07 9.999999994736442e-08 1.0000001 1e-07 1 1 3 3 4 5
+5 -1.0000001 -9.999999994736442e-08 -9.999999994736442e-08 9.999999994736442e-08 1.0000001 1.0000001 0 3 5 -2 -8
+6 -1e-07 -9.999999994736442e-08 -9.999999994736442e-08 1e-07 1.0000001 1.0000001 0 3 1 2 3
+7 -9.999999994736442e-08 -9.999999994736442e-08 -9.999999994736442e-08 1.0000001 1.0000001 1.0000001 0 3 2 -7 -9
+8 -1e-07 -1.0000001 -9.999999994736442e-08 1e-07 9.999999994736442e-08 1.0000001 0 3 10 11 1
+9 -9.999999994736442e-08 -1.0000001 -9.999999994736442e-08 1.0000001 9.999999994736442e-08 1.0000001 0 3 10 12 -9
+10 -9.999999994736442e-08 -1.0000001 -1e-07 1.0000001 9.999999994736442e-08 1e-07 0 3 12 -6 -11
+1 -1.0000001 -9.999999994736442e-08 -9.999999994736442e-08 1.0000001 1.0000001 1.0000001 1 3 6 5 1 4 3 7 2
+2 -9.999999994736442e-08 -1.0000001 -9.999999994736442e-08 1.0000001 9.999999994736442e-08 1.0000001 1 4 4 9 8 10 2
+$EndEntities
+$PartitionedEntities
+2
+0
+7 6 5 1
+7 0 1 1 1 0 0 0 0
+9 0 3 1 1 0 1 0 0
+10 0 4 1 1 0 0 1 0
+11 0 5 1 1 -1 0 0 0
+13 1 5 2 1 2 0 0 0 0
+14 1 8 2 1 2 0 0 0 0
+15 1 4 2 1 2 0 0 0 0
+16 1 4 1 1 -1 0 0 0 0 0 0 2 15 -11
+17 1 5 1 1 -1 0 0 0 1 0 0 2 11 -13
+20 1 8 1 1 -1 0 0 0 0 1 0 2 11 -14
+25 2 5 2 1 2 0 0 0 0 1 1 0 2 13 -14
+26 2 4 2 1 2 0 0 0 0 1 0 1 1 2 13 -15
+27 2 1 2 1 2 0 0 0 0 0 1 0 2 14 -15
+11 2 1 1 1 -1 0 0 0 0 1 0 4 -13 16 20 27
+14 2 4 1 1 -1 0 0 0 1 0 1 1 4 15 16 17 26
+15 2 5 1 1 -1 0 0 0 1 1 0 4 -14 -20 17 25
+16 2 6 1 1 0 0 0 0 1 1 0 6 13 14 15 -25 26 -27
+21 3 1 2 1 2 0 0 0 0 1 1 1 3 3 25 -26 27
+4 3 1 1 1 -1 0 0 0 1 1 1 3 5 -11 -14 -15 -16 21
+$EndPartitionedEntities
+$Nodes
+19 4 1 5
+0 7 0 1
+1
+0 0 0
+0 9 0 1
+3
+0 1 0
+0 10 0 1
+4
+0 0 1
+0 11 0 1
+5
+-1 0 0
+0 13 0 0
+0 14 0 0
+0 15 0 0
+1 16 0 0
+1 17 0 0
+1 20 0 0
+1 25 0 0
+1 26 0 0
+1 27 0 0
+2 11 0 0
+2 14 0 0
+2 15 0 0
+2 16 0 0
+2 21 0 0
+3 4 0 0
+$EndNodes
+$Elements
+4 4 2 70
+1 26 1 1
+70 3 1
+2 14 2 1
+2 1 5 3
+2 21 2 1
+68 1 3 4
+3 4 4 1
+4 5 3 4 1
+$EndElements
+)GMSH",
+    R"GMSH($MeshFormat
+4.1 0 8
+$EndMeshFormat
+$PhysicalNames
+4
+2 1 "patch1"
+2 2 "patchInBetween"
+3 3 "comp1"
+3 4 "comp2"
+$EndPhysicalNames
+$Entities
+6 12 10 2
+1 0 0 0 0
+2 1 0 0 0
+3 0 1 0 0
+4 0 0 1 0
+5 -1 0 0 0
+6 0 -1 0 0
+1 -1e-07 -1e-07 -9.999999994736442e-08 1e-07 1e-07 1.0000001 0 2 1 -4
+2 -1e-07 -9.999999994736442e-08 -9.999999994736442e-08 1e-07 1.0000001 1.0000001 0 2 4 -3
+3 -1e-07 -9.999999994736442e-08 -1e-07 1e-07 1.0000001 1e-07 0 2 3 -1
+4 -1.0000001 -1e-07 -1e-07 9.999999994736442e-08 1e-07 1e-07 0 2 1 -5
+5 -1.0000001 -9.999999994736442e-08 -1e-07 9.999999994736442e-08 1.0000001 1e-07 0 2 5 -3
+6 -9.999999994736442e-08 -1e-07 -1e-07 1.0000001 1e-07 1e-07 0 2 1 -2
+7 -9.999999994736442e-08 -9.999999994736442e-08 -1e-07 1.0000001 1.0000001 1e-07 0 2 2 -3
+8 -1.0000001 -1e-07 -9.999999994736442e-08 9.999999994736442e-08 1e-07 1.0000001 0 2 5 -4
+9 -9.999999994736442e-08 -1e-07 -9.999999994736442e-08 1.0000001 1e-07 1.0000001 0 2 4 -2
+10 -1e-07 -1.0000001 -9.999999994736442e-08 1e-07 9.999999994736442e-08 1.0000001 0 2 4 -6
+11 -1e-07 -1.0000001 -1e-07 1e-07 9.999999994736442e-08 1e-07 0 2 6 -1
+12 -9.999999994736442e-08 -1.0000001 -1e-07 1.0000001 9.999999994736442e-08 1e-07 0 2 6 -2
+1 -1.0000001 -1e-07 -9.999999994736442e-08 9.999999994736442e-08 1e-07 1.0000001 0 3 8 -1 4
+2 -9.999999994736442e-08 -1e-07 -9.999999994736442e-08 1.0000001 1e-07 1.0000001 1 2 3 1 9 -6
+3 -9.999999994736442e-08 -9.999999994736442e-08 -1e-07 1.0000001 1.0000001 1e-07 0 3 6 7 3
+4 -1.0000001 -9.999999994736442e-08 -1e-07 9.999999994736442e-08 1.0000001 1e-07 1 1 3 3 4 5
+5 -1.0000001 -9.999999994736442e-08 -9.999999994736442e-08 9.999999994736442e-08 1.0000001 1.0000001 0 3 5 -2 -8
+6 -1e-07 -9.999999994736442e-08 -9.999999994736442e-08 1e-07 1.0000001 1.0000001 0 3 1 2 3
+7 -9.999999994736442e-08 -9.999999994736442e-08 -9.999999994736442e-08 1.0000001 1.0000001 1.0000001 0 3 2 -7 -9
+8 -1e-07 -1.0000001 -9.999999994736442e-08 1e-07 9.999999994736442e-08 1.0000001 0 3 10 11 1
+9 -9.999999994736442e-08 -1.0000001 -9.999999994736442e-08 1.0000001 9.999999994736442e-08 1.0000001 0 3 10 12 -9
+10 -9.999999994736442e-08 -1.0000001 -1e-07 1.0000001 9.999999994736442e-08 1e-07 0 3 12 -6 -11
+1 -1.0000001 -9.999999994736442e-08 -9.999999994736442e-08 1.0000001 1.0000001 1.0000001 1 3 6 5 1 4 3 7 2
+2 -9.999999994736442e-08 -1.0000001 -9.999999994736442e-08 1.0000001 9.999999994736442e-08 1.0000001 1 4 4 9 8 10 2
+$EndEntities
+$PartitionedEntities
+2
+0
+5 12 7 2
+8 0 2 1 2 1 0 0 0
+12 0 6 1 2 0 -1 0 0
+13 1 5 2 1 2 0 1 0 0
+14 1 8 2 1 2 0 0 1 0
+15 1 4 2 1 2 0 0 0 0
+13 1 1 1 2 0 0 0 0 0 1 0 2 15 -14
+14 1 2 1 2 0 0 0 0 1 1 0 2 14 -13
+15 1 3 1 2 0 0 0 0 1 0 0 2 13 -15
+18 1 6 1 2 0 0 0 1 0 0 0 2 15 -8
+19 1 7 1 2 0 0 0 1 1 0 0 2 8 -13
+21 1 9 1 2 0 0 0 1 0 1 0 2 14 -8
+22 1 10 1 2 0 -1 0 0 0 1 0 2 14 -12
+23 1 11 1 2 0 -1 0 0 0 0 0 2 12 -15
+24 1 12 1 2 0 -1 0 1 0 0 0 2 12 -8
+25 2 5 2 1 2 0 0 0 0 1 1 0 2 13 -14
+26 2 4 2 1 2 0 0 0 0 1 0 1 1 2 13 -15
+27 2 1 2 1 2 0 0 0 0 0 1 0 2 14 -15
+12 2 2 1 2 0 0 0 1 0 1 1 2 4 -18 13 21 -27
+13 2 3 1 2 0 0 0 1 1 0 0 4 15 18 19 26
+17 2 7 1 2 0 0 0 1 1 1 0 4 -19 -21 14 -25
+18 2 8 1 2 0 -1 0 0 0 1 0 4 13 22 23 -27
+19 2 9 1 2 0 -1 0 1 0 1 0 3 -21 22 24
+20 2 10 1 2 0 -1 0 1 0 0 0 3 -18 -23 24
+21 3 1 2 1 2 0 0 0 0 1 1 1 3 3 25 -26 27
+3 3 1 1 2 0 0 0 1 1 1 1 3 5 -12 -13 -17 16 -21
+5 3 2 1 2 0 -1 0 1 0 1 1 4 4 -18 -19 -20 12
+$EndPartitionedEntities
+$Nodes
+26 5 1 6
+0 8 0 1
+2
+1 0 0
+0 12 0 1
+6
+0 -1 0
+0 13 0 1
+3
+0 1 0
+0 14 0 1
+4
+0 0 1
+0 15 0 1
+1
+0 0 0
+1 13 0 0
+1 14 0 0
+1 15 0 0
+1 18 0 0
+1 19 0 0
+1 21 0 0
+1 22 0 0
+1 23 0 0
+1 24 0 0
+1 25 0 0
+1 26 0 0
+1 27 0 0
+2 12 0 0
+2 13 0 0
+2 17 0 0
+2 18 0 0
+2 19 0 0
+2 20 0 0
+2 21 0 0
+3 3 0 0
+3 5 0 0
+$EndNodes
+$Elements
+5 5 1 70
+1 26 1 1
+70 3 1
+2 12 2 1
+1 1 4 2
+2 21 2 1
+68 1 3 4
+3 3 4 1
+3 2 4 3 1
+3 5 4 1
+5 1 2 4 6
+$EndElements
+)GMSH"};
+
 static const char* GMSH_PHYSICAL_MSH41 = R"GMSH(
 $MeshFormat
 4.1 0 8
@@ -986,6 +1225,13 @@ static void test_file(Library* lib) {
   }
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& ostr, const Omega_h::Read<T>& array) {
+  ostr << '[';
+  std::copy(array.begin(), array.end(), std::ostream_iterator<T>(ostr, " "));
+  return ostr << ']';
+}
+
 #ifdef OMEGA_H_USE_GMSH
 Omega_h_Comparison light_compare_meshes(Mesh& a, Mesh& b) {
   OMEGA_H_CHECK(a.comm()->size() == b.comm()->size());
@@ -1007,14 +1253,30 @@ Omega_h_Comparison light_compare_meshes(Mesh& a, Mesh& b) {
 
   Omega_h_Comparison result = OMEGA_H_SAME;
   for (Int dim = 0; dim <= a.dim(); ++dim) {
-    const auto anents = a.nglobal_ents(dim);
-    const auto bnents = b.nglobal_ents(dim);
-    if (anents != bnents) {
-      if (should_print) {
-        std::clog << "global " << topological_singular_name(a.family(), dim)
-                  << " counts differ (" << anents << " != " << bnents << ")\n";
+    {
+      const auto anents = a.nglobal_ents(dim);
+      const auto bnents = b.nglobal_ents(dim);
+      if (anents != bnents) {
+        if (should_print) {
+          std::clog << "global " << topological_singular_name(a.family(), dim)
+                    << " counts differ (" << anents << " != " << bnents
+                    << ")\n";
+        }
+        result = OMEGA_H_DIFF;
       }
-      result = OMEGA_H_DIFF;
+    }
+    if (comm->size() == 1) {
+      const auto& a_globals = a.globals(dim);
+      const auto& b_globals = b.globals(dim);
+      if (!std::equal(a_globals.begin(), a_globals.end(), b_globals.begin())) {
+        if (should_print) {
+          std::clog << "global " << topological_singular_name(a.family(), dim)
+                    << " identifiers differ"
+                    << "\n  A: " << a_globals
+                    << "\n  B: " << b_globals << '\n';
+        }
+        result = OMEGA_H_DIFF;
+      }
     }
   }
   const auto lo_measures_a = measure_elements_real(&a);
@@ -1033,24 +1295,83 @@ Omega_h_Comparison light_compare_meshes(Mesh& a, Mesh& b) {
   return result;
 }
 
+static void check_entities_global_ordering(Mesh& mesh) {
+  // ensure global ids of all entities are in [0 ... N[
+  for (int dim = 0; dim < mesh.dim(); ++dim) {
+    /// global id of entities owned by this rank
+    std::vector<Omega_h::GO> local_globals;
+    {
+      const auto& owned = mesh.owned(dim);
+      const auto& globals = mesh.globals(dim);
+      for (int i = 0; i < owned.size(); ++i) {
+        if (owned[i]) {
+          local_globals.push_back(globals[i]);
+        }
+      }
+    }
+
+    /// global ids of entities in the entire mesh
+    std::vector<Omega_h::GO> all_globals;
+    {  // on rank 0, gather local_globals vectors into all_globals
+      std::vector<int> sizes(mesh.comm()->size());
+      auto local_size = local_globals.size();
+      MPI_Allgather(&local_size, 1, MPI_UINT32_T, sizes.data(), 1, MPI_UINT32_T,
+          mesh.comm()->get_impl());
+
+      all_globals.resize(std::accumulate(sizes.begin(), sizes.end(), 0));
+      std::vector<int> displs(sizes.size());
+      if (sizes.size() > 1) {
+        std::partial_sum(sizes.begin(), --sizes.end(), ++displs.begin());
+      }
+      MPI_Gatherv(local_globals.data(), local_size, MPI_INT64_T,
+          all_globals.data(), sizes.data(), displs.data(), MPI_INT64_T, 0,
+          mesh.comm()->get_impl());
+    }
+
+    if (mesh.comm()->rank() == 0) {
+      std::sort(all_globals.begin(), all_globals.end());
+      for (int i = 0; i < all_globals.size(); ++i) {
+        OMEGA_H_CHECK(all_globals[i] == i);
+      }
+    }
+  }
+}
+
 static void test_gmsh_parallel(Library* lib) {
   ::gmsh::initialize();
 
   {
-    std::ofstream oss("square.geo");
-    oss << GMSH_SQUARE_GEO;
+    if (lib->world()->rank() == 0) {
+      {
+        std::ofstream oss("square.geo");
+        oss << GMSH_SQUARE_GEO;
+      }
+      ::gmsh::open("square.geo");
+      ::gmsh::write("square.msh");
+      ::gmsh::clear();
+    }
+
+    auto mesh = Omega_h::gmsh::read("square.msh", lib->world());
+    Omega_h::gmsh::write_parallel("square_parallel", mesh);
+
+    auto pmesh = Omega_h::gmsh::read_parallel("square_parallel", lib->world());
+    OMEGA_H_CHECK(light_compare_meshes(mesh, pmesh) == OMEGA_H_SAME);
+    check_entities_global_ordering(pmesh);
   }
-  ::gmsh::open("square.geo");
-  ::gmsh::write("square.msh");
-  ::gmsh::clear();
 
-  auto mesh = Omega_h::gmsh::read("square.msh", lib->world());
-  Omega_h::gmsh::write_parallel("square_parallel", mesh);
-
-  auto pmesh = Omega_h::gmsh::read_parallel("square_parallel", lib->world());
+  if (lib->world()->size() == 2) {
+    {
+      std::ofstream oss("3tets_2surfaces_2_volumes_" +
+                        std::to_string(lib->world()->rank() + 1) + ".msh");
+      oss << GMSH_3TETS_2SURFACES_2VOLUMES_MSH41[lib->world()->rank()];
+    }
+    lib->world()->barrier();
+    auto pmesh =
+        Omega_h::gmsh::read_parallel("3tets_2surfaces_2_volumes", lib->world());
+    check_entities_global_ordering(pmesh);
+  }
 
   ::gmsh::finalize();
-  OMEGA_H_CHECK(light_compare_meshes(mesh, pmesh) == OMEGA_H_SAME);
 }
 
 #endif  // OMEGA_H_USE_GMSH
@@ -1163,4 +1484,5 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_GMSH
   test_gmsh_parallel(&lib);
 #endif  // OMEGA_H_USE_GMSH
+  return 0;
 }

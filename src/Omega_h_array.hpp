@@ -29,6 +29,7 @@ class Write {
 #endif
 
  public:
+  typedef T value_type;
   OMEGA_H_INLINE Write()
       :
 #ifdef OMEGA_H_USE_KOKKOS
@@ -58,8 +59,8 @@ class Write {
   }
   OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
     return view_(i);
@@ -111,6 +112,7 @@ class Read {
   Write<T> write_;
 
  public:
+  typedef T value_type;
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
@@ -118,6 +120,10 @@ class Read {
   Read(std::initializer_list<T> l, std::string const& name = "");
   OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT { return write_.size(); }
   OMEGA_H_DEVICE T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
+#endif
     return write_[i];
   }
   OMEGA_H_INLINE T const* data() const OMEGA_H_NOEXCEPT {
@@ -142,43 +148,11 @@ Read<T> read(Write<T> a) {
   return Read<T>(a);
 }
 
-class Bytes : public Read<Byte> {
- public:
-  OMEGA_H_INLINE Bytes() {}
-  OMEGA_H_INLINE Bytes(Read<Byte> base) : Read<Byte>(base) {}
-  Bytes(Write<Byte> write);
-  Bytes(LO size_in, Byte value, std::string const& name = "");
-  Bytes(std::initializer_list<Byte> l, std::string const& name = "");
-};
+using Bytes = Read<Byte>;
+using LOs = Read<LO>;
+using GOs = Read<GO>;
+using Reals = Read<Real>;
 
-class LOs : public Read<LO> {
- public:
-  OMEGA_H_INLINE LOs() {}
-  OMEGA_H_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
-  LOs(Write<LO> write);
-  LOs(LO size_in, LO value, std::string const& name = "");
-  LOs(LO size_in, LO offset, LO stride, std::string const& name = "");
-  LOs(std::initializer_list<LO> l, std::string const& name = "");
-};
-
-class GOs : public Read<GO> {
- public:
-  OMEGA_H_INLINE GOs() {}
-  OMEGA_H_INLINE GOs(Read<GO> base) : Read<GO>(base) {}
-  GOs(Write<GO> write);
-  GOs(LO size_in, GO value, std::string const& name = "");
-  GOs(LO size_in, GO offset, GO stride, std::string const& name = "");
-  GOs(std::initializer_list<GO> l, std::string const& name = "");
-};
-
-class Reals : public Read<Real> {
- public:
-  OMEGA_H_INLINE Reals() {}
-  OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
-  Reals(Write<Real> write);
-  Reals(LO size_in, Real value, std::string const& name = "");
-  Reals(std::initializer_list<Real> l, std::string const& name = "");
-};
 
 template <typename T>
 class HostRead {
@@ -189,22 +163,19 @@ class HostRead {
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
+  typedef T value_type;
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_USE_KOKKOS
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
+#ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
-#endif
     return mirror_[i];
 #else
     return read_[i];
@@ -225,6 +196,7 @@ class HostWrite {
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
+  typedef T value_type;
   HostWrite() = default;
   HostWrite(LO size_in, std::string const& name = "");
   HostWrite(LO size_in, T offset, T stride, std::string const& name = "");
@@ -233,18 +205,14 @@ class HostWrite {
   Write<T> write() const;
   LO size() const OMEGA_H_NOEXCEPT;
   inline T& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_USE_KOKKOS
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
+    OMEGA_H_CHECK_OP(0, <=, i);
+    OMEGA_H_CHECK_OP(i, <, size());
 #endif
+#ifdef OMEGA_H_USE_KOKKOS
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(0 <= i);
-    OMEGA_H_CHECK(i < size());
-#endif
     return mirror_[i];
 #else
     return write_[i];
