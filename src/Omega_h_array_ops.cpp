@@ -605,13 +605,13 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 */
 
 int max_exponent(Reals a) {
+  auto const init = ArithTraits<int>::min();
   auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
     if (a[i] == 0.0) return init;
     std::frexp(a[i], &expo);
     return expo;
   };
-<<<<<<< HEAD
 #if defined(OMEGA_H_USE_KOKKOS)
   Int res;
   Kokkos::parallel_reduce(
@@ -623,7 +623,6 @@ int max_exponent(Reals a) {
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
-  auto const init = ArithTraits<int>::min();
   auto const op = maximum<int>();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
