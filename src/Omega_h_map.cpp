@@ -178,11 +178,6 @@ LOs collect_marked(Read<I8> marks) {
   OMEGA_H_TIME_FUNCTION;
   auto ntotal = marks.size();
   auto offsets = offset_scan(marks);
-  {
-    std::string suffix = std::to_string(callNum) + ".bin";
-    std::ofstream ostrm2("collect_marked_offsets" + suffix, std::ios::binary);
-    binary::write_array(ostrm2,offsets,false,false);
-  } //offsets is different on cuda vs serial backend
   auto nmarked = offsets.last();
   Write<LO> marked(nmarked);
   auto f = OMEGA_H_LAMBDA(LO i) {
