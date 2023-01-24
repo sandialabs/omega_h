@@ -96,6 +96,8 @@ static void test_two_ranks_dist_for_two_variable_sized_actors(CommPtr comm) {
     copies2owners.set_dest_ranks(Read<I32>({0, 0}));
     copies2owners.set_dest_idxs(LOs({0, 1}), 2);
   }
+  /*Creates the following Graph:
+   */
   {
     LOs copies2data;
     if (comm->rank() == 0) {

@@ -87,6 +87,20 @@ namespace Omega_h {
    Due to the symmetry, we use the terms "forward" and "reverse"
    to refer to roots, items, content, and communicators for the
    sent and received data, respectively.
+
+   Glossary:
+   - Forward: refers to recieved data.
+   - Reverse: refers to recieved data.
+   - Node: A discrete unit(graph edges, vertices, or partition) 
+           that will communicate using the dist. A node can 
+           belong to only one rank, but ranks can contain 
+           multiple nodes.
+   - Packet: A tuple of n values of type T.
+   - Roots: All nodes on a given MPI rank. Forward Roots are 
+            all nodes on the current rank.
+   - Item: A packet sorted by source node, given there is one 
+           packet per destination node
+   - Content: Items sorted by destination node(graph edges).
  */
 
 class Dist {
