@@ -61,10 +61,33 @@ static void test_two_ranks_dist(CommPtr comm) {
                   {4,3,2}{1,0} */
   if (comm->rank() == 0) {
     dist.set_dest_ranks(Read<I32>({1, 1, 0}));
+    /*Forward Roots: {0, 1, 2}
+     *                │  │╔═╝
+     *                ╰──┴╫──╮
+     *               ╔════╝  │
+     *Destination: Rank 0  Rank 1
+     */
     dist.set_dest_idxs(LOs({1, 0, 2}), 3);
+    /*Forward Roots:    {0, 1, 2}
+     *                   │╔═╪══╝
+     *                   ╰╫─╂─────╮
+     *                    ║ ┗━━┓  │
+     *Destination: {_, _, _}  {_, _}
+     */ 
   } else {
     dist.set_dest_ranks(Read<I32>({0, 0}));
+    /*Forward Roots:   {3, 4}
+     *                  ├──╯
+     *                  │
+     *               ╭──╯
+     *Destination: Rank 0  Rank 1
+     */ 
     dist.set_dest_idxs(LOs({1, 0}), 2);
+    /*Forward Roots:     {3, 4}
+     *                 ╭──╯  ║
+     *              ╔══╪═════╝
+     *Destination: {_, _, _}  {_, _}
+     */ 
   }
   Reals a;
   if (comm->rank() == 0) {
@@ -96,8 +119,6 @@ static void test_two_ranks_dist_for_two_variable_sized_actors(CommPtr comm) {
     copies2owners.set_dest_ranks(Read<I32>({0, 0}));
     copies2owners.set_dest_idxs(LOs({0, 1}), 2);
   }
-  /*Creates the following Graph:
-   */
   {
     LOs copies2data;
     if (comm->rank() == 0) {
