@@ -307,8 +307,10 @@ if(BUILD_TESTING)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
       set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}\\bin;$ENV{PATH}" )
     endif()
-    add_test(NAME ${TEST_NAME}_gpuCleanup
-      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/gpuCleanup.cmake)
+    if(Omega_h_GPU_CHECK)
+      add_test(NAME ${TEST_NAME}_gpuCleanup
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/gpuCleanup.cmake)
+    endif()
   endfunction(test_func_impl)
 
   # 'base' tests are those that do not depend on a mesh object

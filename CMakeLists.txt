@@ -31,6 +31,7 @@ bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 bob_option(Omega_h_ENABLE_DEMANGLED_STACKTRACE "Add linker options to enable human-readable stacktraces on gnu-c platforms." OFF)
 bob_option(Omega_h_DBG "Enable debug prints, stacktraces, etc." OFF)
+bob_option(Omega_h_GPU_CHECK "Run GPU check after each test" OFF) #the check command is hardcoded!
 
 if (Omega_h_ENABLE_DEMANGLED_STACKTRACE)
   message(STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}")
