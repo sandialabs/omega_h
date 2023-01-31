@@ -70,11 +70,11 @@ static void test_two_ranks_dist(CommPtr comm) {
      *Destination: Rank 0  Rank 1
      */
     dist.set_dest_idxs(LOs({1, 0, 2}), 3);
-    /*Forward Roots:    {0, 1, 2}
-     *                   │╔═╪══╝
-     *                   ╰╫─╂─────╮
-     *                    ║ ┗━━┓  │
-     *Destination: {_, _, _}  {_, _}
+    /*Forward Roots:      {0, 1, 2}
+     *                     │╔═╪══╝
+     *                     ╰╫─╂─────╮
+     *                      ║ ┗━━┓  │
+     *Reverse Roots: {_, _, _}  {_, _}
      */ 
   } else {
     dist.set_dest_ranks(Read<I32>({0, 0}));
@@ -85,14 +85,14 @@ static void test_two_ranks_dist(CommPtr comm) {
      *Destination: Rank 0  Rank 1
      */ 
     dist.set_dest_idxs(LOs({1, 0}), 2);
-    /*Forward Roots:     {3, 4}
-     *                 ╭──╯  ║
-     *              ╔══╪═════╝
-     *Destination: {_, _, _}  {_, _}
+    /*Forward Roots:       {3, 4}
+     *                   ╭──╯  ║
+     *                ╔══╪═════╝
+     *Reverse Roots: {_, _, _}  {_, _}
      */ 
   }
   Reals a;
-  //Populate the partition for this rank
+  //Populate the packets for this rank
   if (comm->rank() == 0) {
     a = Reals({0., 1., 2.});
   } else {
@@ -105,6 +105,10 @@ static void test_two_ranks_dist(CommPtr comm) {
   } else {
     OMEGA_H_CHECK(b == Reals({1., 0.}));
   }
+  /* Invert the Dist graph, swapping the forward and reverse relationship of
+   * graph nodes. Then perform an exchange, effectively reversing the earlier
+   * exchange operation
+   */
   auto c = dist.invert().exch(b, 1);
   OMEGA_H_CHECK(c == a);
 }
