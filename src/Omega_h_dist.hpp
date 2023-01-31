@@ -90,24 +90,22 @@ namespace Omega_h {
 
    Glossary:
    - Forward: Describes data that resides in a source rank's memory 
-           during an exchange operation, including all intermediate 
-           data structures. 
+           during an exchange operation(eg Packets, Items, and Contents). 
    - Reverse: Describes data that resides in a destination rank's memory
-           during an exchange operation, including all intermediate 
-           data structures.
-   - Graph Node: A discrete unit(graph edges, vertices, or object) 
+           during an exchange operation(eg Packets, Items, and Contents). 
+   - Graph Node: A discrete unit(eg. graph edges or vertices) 
            that will communicate using the dist. A graph node can 
            belong to only one rank, but ranks can contain 
-           multiple graoh nodes.
+           multiple graph nodes.
+   - Roots: All graph nodes on a given MPI rank. Forward Roots are 
+           all graph nodes on the current rank.
    - Packet: A tuple of n values of type T. A packet may have multiple 
            destination roots, but only one source/forward root. The dist 
            assumes the number of packets per root(both forward and reverse)
            is bound by a small constant.
-   - Roots: All graph nodes on a given MPI rank. Forward Roots are 
-           all graph nodes on the current rank.
    - Items: An intermediate data structure formed when a forward root's 
            array of packets is expanded. Packets are duplicated such 
-           that there is one packet per graph edge(reverse root) 
+           that there is one packet per source graph node(forward root). 
    - Contents: An intermediate data structure derived by sorting the Items 
            array by destination/reverse root such that packets destined for
            the same root are stored contiguously.
