@@ -89,17 +89,17 @@ namespace Omega_h {
    sent and received data, respectively.
 
    Glossary:
-   - Forward: describes data that resides in a source rank's memory 
+   - Forward: Describes data that resides in a source rank's memory 
            during an exchange operation, including all intermediate 
            data structures. 
-   - Reverse: describes data that resides in a destination rank's memory
+   - Reverse: Describes data that resides in a destination rank's memory
            during an exchange operation, including all intermediate 
            data structures.
    - Graph Node: A discrete unit(graph edges, vertices, or object) 
            that will communicate using the dist. A graph node can 
            belong to only one rank, but ranks can contain 
            multiple graoh nodes.
-   - Packet: A tuple of n values of type T. a packet may have multiple 
+   - Packet: A tuple of n values of type T. A packet may have multiple 
            destination roots, but only one source/forward root. The dist 
            assumes the number of packets per root(both forward and reverse)
            is bound by a small constant.
@@ -110,7 +110,7 @@ namespace Omega_h {
            that there is one packet per graph edge(reverse root) 
    - Contents: An intermediate data structure derived by sorting the Items 
            array by destination/reverse root such that packets destined for
-           the same root are stored contiguosly.
+           the same root are stored contiguously.
    
    An in depth overview of the dist is provided in Section 4.5(Page 105) of 
    Dr.Daniel Ibanez's Dissertation. 
