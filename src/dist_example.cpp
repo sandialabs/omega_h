@@ -1,8 +1,8 @@
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_dist.hpp>
 #include <Omega_h_compare.hpp>
+#include <Omega_h_library.hpp>
 
-#include <Omega_h_build.hpp>
 using namespace Omega_h;
 
 static void test_three_ranks(CommPtr comm){
@@ -35,10 +35,42 @@ static void test_three_ranks(CommPtr comm){
     OMEGA_H_CHECK(b == Reals({2.0 * reverse_root + 1, 2.0 * reverse_root}));
 }
 
+static void test_reduce_exchange(CommPtr comm){
+    OMEGA_H_CHECK(comm->size() == 3);
+    Dist dist;
+    dist.set_parent_comm(comm);
+/*
+ * Starting Partition: {1, 1}  {0, 0}  {0, 0}
+ * End Partition:      {1, 1}  {1, 1}  {1, 1}
+ * Reduced Exchange:   {3, 3}  {1, 1}  {1, 1}
+*/
+    if(comm->rank() == 0){
+        dist.set_dest_ranks(Read<I32>({1, 2}));
+        //Fan out using roots2items
+    }
+    else
+        dist.set_dest_ranks(Read<I32>({})); //Note: need to call on every rank
+
+    int width = 1;
+    Reals a;
+
+    if(comm->rank() == 0)
+        a = Reals({1.0, 1.0});
+    else
+        a = Reals({});
+    
+    auto b = dist.exch(a, width);
+    std::cout << b.size() << std::endl;
+    if(comm->rank() == 0)
+        OMEGA_H_CHECK(b == Reals({}));
+    else
+        OMEGA_H_CHECK(b == Reals({1}));
+}
 
 int main(int argc, char** argv) {
-  auto lib = Library(&argc, &argv);
-  auto world = lib.world();
-  assert(world->size() == 3);
-  test_three_ranks(world);
+    auto lib = Library(&argc, &argv);
+    auto world = lib.world();
+    assert(world->size() == 3);
+    //test_three_ranks(world);
+    test_reduce_exchange(world);
 }
