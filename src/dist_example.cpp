@@ -47,24 +47,28 @@ static void test_reduce_exchange(CommPtr comm){
     if(comm->rank() == 0){
         dist.set_dest_ranks(Read<I32>({1, 2}));
         //Fan out using roots2items
+        dist.set_roots2items(LOs({0, 2}));
     }
-    else
+    else{
         dist.set_dest_ranks(Read<I32>({})); //Note: need to call on every rank
-
-    int width = 1;
+    }
+    int width = 2;
     Reals a;
 
     if(comm->rank() == 0)
         a = Reals({1.0, 1.0});
     else
         a = Reals({});
-    
+    std::cout << comm->rank() << " Ready for Exchange" << std::endl; 
     auto b = dist.exch(a, width);
-    std::cout << b.size() << std::endl;
     if(comm->rank() == 0)
         OMEGA_H_CHECK(b == Reals({}));
-    else
-        OMEGA_H_CHECK(b == Reals({1}));
+    else{
+	auto host_b = HostRead<Real>(b);
+	std::cout << "Rank " << comm->rank() << ": Exchange Contents - " << host_b.get(0) 
+		  << " " << host_b.get(1) << std::endl;	
+        OMEGA_H_CHECK(b == Reals({1, 1}));
+    }
 }
 
 int main(int argc, char** argv) {
