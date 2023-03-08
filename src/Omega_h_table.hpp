@@ -22,8 +22,8 @@ struct Table {
 template <typename T>
 int get_nrows(Table<T> const& t) {
   OMEGA_H_CHECK(t.ncols > 0);
-  OMEGA_H_CHECK(size(t.data) % t.ncols == 0);
-  return size(t.data) / t.ncols;
+  OMEGA_H_CHECK(Omega_h::size(t.data) % t.ncols == 0);
+  return Omega_h::size(t.data) / t.ncols;
 }
 
 template <typename T>

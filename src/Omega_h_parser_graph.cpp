@@ -10,7 +10,7 @@ ParserGraph make_graph_with_nnodes(int nnodes) {
   return ParserGraph(std::size_t(nnodes));
 }
 
-int get_nnodes(ParserGraph const& g) { return size(g); }
+int get_nnodes(ParserGraph const& g) { return Omega_h::size(g); }
 
 void add_edge(ParserGraph& g, int i, int j) { at(g, i).push_back(j); }
 

@@ -88,11 +88,11 @@ void Reader::at_token(std::istream& stream) {
       }
       auto& prod = at(grammar->productions, parser_action.production);
       reduction_rhs.clear();
-      for (int i = 0; i < size(prod.rhs); ++i) {
+      for (int i = 0; i < Omega_h::size(prod.rhs); ++i) {
         reduction_rhs.emplace_back(
-            std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
+            std::move(at(value_stack, Omega_h::size(value_stack) - Omega_h::size(prod.rhs) + i)));
       }
-      resize(value_stack, size(value_stack) - size(prod.rhs));
+      resize(value_stack, Omega_h::size(value_stack) - Omega_h::size(prod.rhs));
       Omega_h::any reduce_result;
       try {
         reduce_result =
@@ -107,9 +107,9 @@ void Reader::at_token(std::istream& stream) {
       }
       value_stack.emplace_back(std::move(reduce_result));
       if (sensing_indent) {
-        if (size(prod.rhs)) {
+        if (Omega_h::size(prod.rhs)) {
           resize(symbol_indentation_stack,
-              (size(symbol_indentation_stack) + 1) - size(prod.rhs));
+              (Omega_h::size(symbol_indentation_stack) + 1) - Omega_h::size(prod.rhs));
         } else {
           symbol_indentation_stack.push_back(symbol_indentation_stack.back());
         }
@@ -364,7 +364,7 @@ any DebugReader::at_reduce(int prod_i, std::vector<any>& rhs) {
   os << "REDUCE";
   std::string lhs_text;
   auto& prod = at(grammar->productions, prod_i);
-  for (int i = 0; i < size(prod.rhs); ++i) {
+  for (int i = 0; i < Omega_h::size(prod.rhs); ++i) {
     auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
     auto rhs_text = move_value<std::string>(at(rhs, i));
     os << " (" << rhs_name << ")[" << rhs_text << "]";

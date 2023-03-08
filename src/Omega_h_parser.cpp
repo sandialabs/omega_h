@@ -32,7 +32,7 @@ void add_terminal_action(Parser& p, int state, int terminal, Action action) {
     OMEGA_H_CHECK(action.next_state < get_nstates(p));
   } else {
     OMEGA_H_CHECK(0 <= action.production);
-    OMEGA_H_CHECK(action.production < size(p.grammar->productions));
+    OMEGA_H_CHECK(action.production < Omega_h::size(p.grammar->productions));
   }
   at(p.terminal_table, state, terminal) = action;
 }
@@ -56,7 +56,7 @@ int execute_action(
     stack.push_back(action.next_state);
   } else {
     auto& prod = at(p.grammar->productions, action.production);
-    for (int i = 0; i < size(prod.rhs); ++i) stack.pop_back();
+    for (int i = 0; i < Omega_h::size(prod.rhs); ++i) stack.pop_back();
     OMEGA_H_CHECK(p.grammar.get());
     auto& grammar = *(p.grammar);
     auto nt = as_nonterminal(grammar, prod.lhs);

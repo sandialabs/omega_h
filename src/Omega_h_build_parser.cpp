@@ -29,9 +29,9 @@ namespace Omega_h {
 // expand the grammar productions into marked productions
 static Configs make_configs(Grammar const& g) {
   Configs configs;
-  for (int i = 0; i < size(g.productions); ++i) {
+  for (int i = 0; i < Omega_h::size(g.productions); ++i) {
     auto& production = at(g.productions, i);
-    for (int j = 0; j <= size(production.rhs); ++j) {
+    for (int j = 0; j <= Omega_h::size(production.rhs); ++j) {
       configs.push_back({i, j});
     }
   }
@@ -41,7 +41,7 @@ static Configs make_configs(Grammar const& g) {
 static ParserGraph get_left_hand_sides_to_start_configs(
     Configs const& cs, Grammar const& grammar) {
   auto lhs2sc = make_graph_with_nnodes(grammar.nsymbols);
-  for (int c_i = 0; c_i < size(cs); ++c_i) {
+  for (int c_i = 0; c_i < Omega_h::size(cs); ++c_i) {
     auto& c = at(cs, c_i);
     if (c.dot > 0) continue;
     auto p_i = c.production;
@@ -75,7 +75,7 @@ static void close(StateInProgress& state, Configs const& cs,
     auto& config = at(cs, config_i);
     auto prod_i = config.production;
     auto& prod = at(grammar.productions, prod_i);
-    if (config.dot == size(prod.rhs)) continue;
+    if (config.dot == Omega_h::size(prod.rhs)) continue;
     auto symbol_after_dot = at(prod.rhs, config.dot);
     if (is_terminal(grammar, symbol_after_dot)) continue;
     for (auto sc : get_edges(lhs2sc, symbol_after_dot)) {
@@ -101,7 +101,7 @@ static void add_reduction_actions(
       auto& config = at(cs, config_i);
       auto prod_i = config.production;
       auto& prod = at(grammar.productions, prod_i);
-      if (config.dot != size(prod.rhs)) continue;
+      if (config.dot != Omega_h::size(prod.rhs)) continue;
       ActionInProgress reduction;
       reduction.action.kind = ACTION_REDUCE;
       reduction.action.production = config.production;
@@ -138,7 +138,7 @@ static StatesInProgress build_lr0_parser(
     auto start_accept_config = get_edges(lhs2sc, accept_nt).front();
     start_state.configs.push_back(start_accept_config);
     close(start_state, cs, grammar, lhs2sc);
-    auto start_state_i = size(states);
+    auto start_state_i = Omega_h::size(states);
     state_q.push(start_state_i);
     emplace_back(states, start_state);
     state_ptrs2idxs[states.back().get()] = start_state_i;
@@ -152,7 +152,7 @@ static StatesInProgress build_lr0_parser(
       auto& config = at(cs, config_i);
       auto prod_i = config.production;
       auto& prod = at(grammar.productions, prod_i);
-      if (config.dot == size(prod.rhs)) continue;
+      if (config.dot == Omega_h::size(prod.rhs)) continue;
       auto symbol_after_dot = at(prod.rhs, config.dot);
       transition_symbols.insert(symbol_after_dot);
     }
@@ -162,7 +162,7 @@ static StatesInProgress build_lr0_parser(
         auto& config = at(cs, config_i);
         auto prod_i = config.production;
         auto& prod = at(grammar.productions, prod_i);
-        if (config.dot == size(prod.rhs)) continue;
+        if (config.dot == Omega_h::size(prod.rhs)) continue;
         auto symbol_after_dot = at(prod.rhs, config.dot);
         if (symbol_after_dot != transition_symbol) continue;
         /* transition successor should just be the next index */
@@ -173,7 +173,7 @@ static StatesInProgress build_lr0_parser(
       auto it = state_ptrs2idxs.find(&next_state);
       int next_state_i;
       if (it == state_ptrs2idxs.end()) {
-        next_state_i = size(states);
+        next_state_i = Omega_h::size(states);
         state_q.push(next_state_i);
         emplace_back(states, next_state);
         state_ptrs2idxs[states.back().get()] = next_state_i;
@@ -195,7 +195,7 @@ static StatesInProgress build_lr0_parser(
 static ParserGraph get_productions_by_lhs(Grammar const& grammar) {
   auto nsymbols = grammar.nsymbols;
   auto lhs2prods = make_graph_with_nnodes(nsymbols);
-  for (int prod_i = 0; prod_i < size(grammar.productions); ++prod_i) {
+  for (int prod_i = 0; prod_i < Omega_h::size(grammar.productions); ++prod_i) {
     auto& prod = at(grammar.productions, prod_i);
     add_edge(lhs2prods, prod.lhs, prod_i);
   }
@@ -257,7 +257,7 @@ static FirstSet get_first_set_of_string(
   /* walk the string, stop when any symbol is found that doesn't
      have a null terminal descendant */
   int i;
-  for (i = 0; i < size(string); ++i) {
+  for (i = 0; i < Omega_h::size(string); ++i) {
     auto symbol = at(string, i);
     bool has_null = false;
     for (auto first_symbol : at(first_sets, symbol)) {
@@ -268,7 +268,7 @@ static FirstSet get_first_set_of_string(
     }
     if (!has_null) break;
   }
-  if (i == size(string)) out.insert(FIRST_NULL);
+  if (i == Omega_h::size(string)) out.insert(FIRST_NULL);
   return out;
 }
 
@@ -351,17 +351,17 @@ static std::vector<FirstSet> compute_first_sets(
 
 StateConfigs form_state_configs(StatesInProgress const& states) {
   StateConfigs out;
-  for (int i = 0; i < size(states); ++i) {
+  for (int i = 0; i < Omega_h::size(states); ++i) {
     auto& state = *at(states, i);
-    for (int j = 0; j < size(state.configs); ++j) out.push_back({i, j});
+    for (int j = 0; j < Omega_h::size(state.configs); ++j) out.push_back({i, j});
   }
   return out;
 }
 
 ParserGraph form_states_to_state_configs(
     StateConfigs const& scs, StatesInProgress const& states) {
-  auto out = make_graph_with_nnodes(size(states));
-  for (int i = 0; i < size(scs); ++i) {
+  auto out = make_graph_with_nnodes(Omega_h::size(states));
+  for (int i = 0; i < Omega_h::size(scs); ++i) {
     auto& sc = at(scs, i);
     at(out, sc.state).push_back(i);
   }
@@ -395,12 +395,12 @@ void print_dot(std::string const& filepath, ParserInProgress const& pip) {
   file << "graph [\n";
   file << "rankdir = \"LR\"\n";
   file << "]\n";
-  for (int s_i = 0; s_i < size(sips); ++s_i) {
+  for (int s_i = 0; s_i < Omega_h::size(sips); ++s_i) {
     auto& state = *at(sips, s_i);
     file << s_i << " [\n";
     file << "label = \"";
     file << "State " << s_i << "\\l";
-    for (int cis_i = 0; cis_i < size(state.configs); ++cis_i) {
+    for (int cis_i = 0; cis_i < Omega_h::size(state.configs); ++cis_i) {
       auto c_i = at(state.configs, cis_i);
       auto& config = at(cs, c_i);
       auto& prod = at(grammar->productions, config.production);
@@ -408,15 +408,15 @@ void print_dot(std::string const& filepath, ParserInProgress const& pip) {
       file << sc_i << ": ";
       auto lhs_name = at(grammar->symbol_names, prod.lhs);
       file << escape_dot(lhs_name) << " ::= ";
-      for (int rhs_i = 0; rhs_i <= size(prod.rhs); ++rhs_i) {
+      for (int rhs_i = 0; rhs_i <= Omega_h::size(prod.rhs); ++rhs_i) {
         if (rhs_i == config.dot) file << " .";
-        if (rhs_i < size(prod.rhs)) {
+        if (rhs_i < Omega_h::size(prod.rhs)) {
           auto rhs_symb = at(prod.rhs, rhs_i);
           auto rhs_symb_name = at(grammar->symbol_names, rhs_symb);
           file << " " << escape_dot(rhs_symb_name);
         }
       }
-      if (config.dot == size(prod.rhs)) {
+      if (config.dot == Omega_h::size(prod.rhs)) {
         file << ", \\{";
         bool found = false;
         for (auto& action : state.actions) {
@@ -461,18 +461,18 @@ void print_dot(std::string const& filepath, ParserInProgress const& pip) {
 static ParserGraph make_immediate_predecessor_graph(StateConfigs const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
-  auto out = make_graph_with_nnodes(size(scs));
-  for (int s_i = 0; s_i < size(states); ++s_i) {
+  auto out = make_graph_with_nnodes(Omega_h::size(scs));
+  for (int s_i = 0; s_i < Omega_h::size(states); ++s_i) {
     auto& state = *at(states, s_i);
-    for (int cis_i = 0; cis_i < size(state.configs); ++cis_i) {
+    for (int cis_i = 0; cis_i < Omega_h::size(state.configs); ++cis_i) {
       auto config_i = at(state.configs, cis_i);
       auto& config = at(cs, config_i);
       auto& prod = at(grammar->productions, config.production);
       auto dot = config.dot;
-      if (dot == size(prod.rhs)) continue;
+      if (dot == Omega_h::size(prod.rhs)) continue;
       auto s = at(prod.rhs, dot);
       if (is_terminal(*grammar, s)) continue;
-      for (int cis_j = 0; cis_j < size(state.configs); ++cis_j) {
+      for (int cis_j = 0; cis_j < Omega_h::size(state.configs); ++cis_j) {
         auto config_j = at(state.configs, cis_j);
         auto& config2 = at(cs, config_j);
         auto& prod2 = at(grammar->productions, config2.production);
@@ -490,8 +490,8 @@ static ParserGraph make_immediate_predecessor_graph(StateConfigs const& scs,
 static ParserGraph find_transition_predecessors(StateConfigs const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
-  auto out = make_graph_with_nnodes(size(scs));
-  for (int state_i = 0; state_i < size(states); ++state_i) {
+  auto out = make_graph_with_nnodes(Omega_h::size(scs));
+  for (int state_i = 0; state_i < Omega_h::size(states); ++state_i) {
     auto& state = *at(states, state_i);
     for (auto& action : state.actions) {
       if (action.action.kind != ACTION_SHIFT) continue;
@@ -499,10 +499,10 @@ static ParserGraph find_transition_predecessors(StateConfigs const& scs,
       auto symbol = *(action.context.begin());
       auto state_j = action.action.next_state;
       auto& state2 = *at(states, state_j);
-      for (int cis_i = 0; cis_i < size(state.configs); ++cis_i) {
+      for (int cis_i = 0; cis_i < Omega_h::size(state.configs); ++cis_i) {
         auto config_i = at(state.configs, cis_i);
         auto& config = at(cs, config_i);
-        for (int cis_j = 0; cis_j < size(state2.configs); ++cis_j) {
+        for (int cis_j = 0; cis_j < Omega_h::size(state2.configs); ++cis_j) {
           auto config_j = at(state2.configs, cis_j);
           auto& config2 = at(cs, config_j);
           if (config.production == config2.production &&
@@ -525,11 +525,11 @@ static ParserGraph find_transition_predecessors(StateConfigs const& scs,
 static ParserGraph make_originator_graph(StateConfigs const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
-  auto out = make_graph_with_nnodes(size(scs));
+  auto out = make_graph_with_nnodes(Omega_h::size(scs));
   auto ipg =
       make_immediate_predecessor_graph(scs, states, states2scs, cs, grammar);
   auto tpg = find_transition_predecessors(scs, states, states2scs, cs, grammar);
-  for (auto sc_i = 0; sc_i < size(scs); ++sc_i) {
+  for (auto sc_i = 0; sc_i < Omega_h::size(scs); ++sc_i) {
     std::set<int> originators;
     /* breadth-first search through the transition
        precessor graph, followed by a single hop
@@ -562,12 +562,12 @@ static std::vector<int> get_follow_string(int sc_addr, StateConfigs const& scs,
   auto config_i = at(state.configs, sc.config_in_state);
   auto& config = at(cs, config_i);
   auto& prod = at(grammar->productions, config.production);
-  auto out_size = size(prod.rhs) - (config.dot + 1);
+  auto out_size = Omega_h::size(prod.rhs) - (config.dot + 1);
   std::vector<int> out;
   /* out_size can be negative */
   if (out_size < 1) return out;
   reserve(out, out_size);
-  for (auto i = config.dot + 1; i < size(prod.rhs); ++i) {
+  for (auto i = config.dot + 1; i < Omega_h::size(prod.rhs); ++i) {
     out.push_back(at(prod.rhs, i));
   }
   return out;
@@ -707,8 +707,8 @@ static void deal_with_tests_failed(int& num_originators_failed,
     auto zeta_double_prime_addr = first_originator_failed;
     if (verbose)
       std::cerr << "    the first was " << zeta_double_prime_addr << '\n';
-    OMEGA_H_CHECK(at(lane, size(lane) - 1) == zeta_double_prime_addr);
-    OMEGA_H_CHECK(at(lane, size(lane) - 2) == zeta_addr);
+    OMEGA_H_CHECK(at(lane, Omega_h::size(lane) - 1) == zeta_double_prime_addr);
+    OMEGA_H_CHECK(at(lane, Omega_h::size(lane) - 2) == zeta_addr);
     if (verbose)
       std::cerr << "    pop LANE, push {marker, " << zeta_double_prime_addr
                 << "} onto it:\n    ";
@@ -745,7 +745,7 @@ static void heuristic_propagation_of_context_sets(int tau_addr,
   auto& config = at(cs, config_i);
   if (config.dot != 0) return;
   auto& prod = at(grammar->productions, config.production);
-  for (int cis_j = 0; cis_j < size(state.configs); ++cis_j) {
+  for (int cis_j = 0; cis_j < Omega_h::size(state.configs); ++cis_j) {
     auto config_j = at(state.configs, cis_j);
     if (config_j == config_i) continue;
     auto& config2 = at(cs, config_j);
@@ -777,7 +777,7 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
   std::vector<int> stack;
   // need random access, inner insert, which std::stack doesn't provide
   std::vector<int> lane;
-  auto in_lane = make_vector<bool>(size(scs), false);
+  auto in_lane = make_vector<bool>(Omega_h::size(scs), false);
   lane.push_back(zeta_j_addr);
   at(in_lane, zeta_j_addr) = true;
   bool tests_failed = false;
@@ -792,7 +792,7 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
     if (verbose) {
       std::cerr << "Top of LANE is $\\zeta$ = " << zeta_addr << '\n';
     }
-    auto zeta_pointer = size(lane) - 1;
+    auto zeta_pointer = Omega_h::size(lane) - 1;
     if (verbose) std::cerr << "$\\zeta$-POINTER <- " << zeta_pointer << '\n';
     int num_originators_failed = 0;
     int first_originator_failed = -1;
@@ -906,7 +906,7 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
         std::cerr << "  LANE:";
         print_stack(lane);
       }
-      if (at(lane, size(lane) - 1) == MARKER) {
+      if (at(lane, Omega_h::size(lane) - 1) == MARKER) {
         if (verbose) std::cerr << "  Top of LANE is a marker\n";
         if (verbose) std::cerr << "  Start STACK popping\n";
         while (true) {  // STACK popping loop
@@ -920,19 +920,19 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
           if (stack.back() == MARKER) {
             if (verbose)
               std::cerr << "    Top of STACK is a marker, pop STACK and LANE\n";
-            resize(stack, size(stack) - 1);
-            resize(lane, size(lane) - 1);
+            resize(stack, Omega_h::size(stack) - 1);
+            resize(lane, Omega_h::size(lane) - 1);
             break;  // out of STACK popping, back into LANE popping
           } else if (at(complete, stack.back())) {
             if (verbose)
               std::cerr << "    Top of STACK is has COMPLETE flag, pop STACK\n";
-            resize(stack, size(stack) - 1);
+            resize(stack, Omega_h::size(stack) - 1);
             // back into STACK popping
           } else {
             auto addr = stack.back();
             if (verbose)
               std::cerr << "    Top of STACK is " << addr << ", pop STACK\n";
-            resize(stack, size(stack) - 1);
+            resize(stack, Omega_h::size(stack) - 1);
             if (verbose) std::cerr << "    Push " << addr << " onto LANE\n";
             lane.push_back(addr);
             if (verbose) std::cerr << "    IN_LANE(" << addr << ") <- ON\n";
@@ -941,10 +941,10 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
             break;  // out of STACK and LANE popping, into top-level loop
           }         // end STACK top checks
         }           // end STACK popping loop
-      } else if (at(lane, size(lane) - 1) == ZERO) {
+      } else if (at(lane, Omega_h::size(lane) - 1) == ZERO) {
         if (verbose) std::cerr << "  Top of LANE is a zero\n";
         if (verbose) std::cerr << "  Pop LANE\n";
-        resize(lane, size(lane) - 1);  // pop LANE
+        resize(lane, Omega_h::size(lane) - 1);  // pop LANE
         // back to top of LANE popping loop
       } else {  // top of LANE neither marker nor zero
         auto tau_addr = lane.back();
@@ -957,12 +957,12 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
         if (verbose) std::cerr << "  HEURISTIC PROPAGATION OF CONTEXT SETS\n";
         heuristic_propagation_of_context_sets(
             tau_addr, contexts, complete, scs, states, states2scs, cs, grammar);
-        if (size(lane) == 1 && at(lane, 0) == zeta_j_addr) {
+        if (Omega_h::size(lane) == 1 && at(lane, 0) == zeta_j_addr) {
           if (verbose) std::cerr << "END PROGRAM\n\n";
           return;
         }
         if (verbose) std::cerr << "  Pop LANE\n";
-        resize(lane, size(lane) - 1);  // pop LANE
+        resize(lane, Omega_h::size(lane) - 1);  // pop LANE
         // back to top of LANE popping loop
       }  // end top of LANE checks
     }    // end LANE popping loop
@@ -971,17 +971,17 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
 
 static std::vector<bool> determine_adequate_states(
     StatesInProgress const& states, GrammarPtr grammar, bool verbose) {
-  auto out = make_vector<bool>(size(states));
-  for (int s_i = 0; s_i < size(states); ++s_i) {
+  auto out = make_vector<bool>(Omega_h::size(states));
+  for (int s_i = 0; s_i < Omega_h::size(states); ++s_i) {
     auto& state = *at(states, s_i);
     bool state_is_adequate = true;
-    for (int a_i = 0; a_i < size(state.actions); ++a_i) {
+    for (int a_i = 0; a_i < Omega_h::size(state.actions); ++a_i) {
       auto& action = at(state.actions, a_i);
       if (action.action.kind == ACTION_SHIFT &&
           is_nonterminal(*grammar, *(action.context.begin()))) {
         continue;
       }
-      for (int a_j = a_i + 1; a_j < size(state.actions); ++a_j) {
+      for (int a_j = a_i + 1; a_j < Omega_h::size(state.actions); ++a_j) {
         auto& action2 = at(state.actions, a_j);
         if (action2.action.kind == ACTION_SHIFT &&
             is_nonterminal(*grammar, *(action2.context.begin()))) {
@@ -1040,12 +1040,12 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
     if (verbose) std::cerr << "The grammar is LR(0)!\n";
     return out;
   }
-  auto complete = make_vector<bool>(size(scs), false);
-  auto contexts = make_vector<Context>(size(scs));
+  auto complete = make_vector<bool>(Omega_h::size(scs), false);
+  auto contexts = make_vector<Context>(Omega_h::size(scs));
   auto accept_prod_i = get_accept_production(*grammar);
   /* initialize the accepting state-configs as described in
      footnote 8 at the bottom of page 37 */
-  for (int sc_i = 0; sc_i < size(scs); ++sc_i) {
+  for (int sc_i = 0; sc_i < Omega_h::size(scs); ++sc_i) {
     auto& sc = at(scs, sc_i);
     auto& state = *at(states, sc.state);
     auto config_i = at(state.configs, sc.config_in_state);
@@ -1061,14 +1061,14 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
   auto first_sets = compute_first_sets(*grammar, verbose);
   /* compute context sets for all state-configs associated with reduction
      actions that are part of an inadequate state */
-  for (int s_i = 0; s_i < size(states); ++s_i) {
+  for (int s_i = 0; s_i < Omega_h::size(states); ++s_i) {
     if (at(adequate, s_i)) continue;
     auto& state = *at(states, s_i);
-    for (int cis_i = 0; cis_i < size(state.configs); ++cis_i) {
+    for (int cis_i = 0; cis_i < Omega_h::size(state.configs); ++cis_i) {
       auto config_i = at(state.configs, cis_i);
       auto& config = at(cs, config_i);
       auto& prod = at(grammar->productions, config.production);
-      if (config.dot != size(prod.rhs)) continue;
+      if (config.dot != Omega_h::size(prod.rhs)) continue;
       auto zeta_j_addr = at(states2scs, s_i, cis_i);
       compute_context_set(zeta_j_addr, contexts, complete, scs, og, states,
           states2scs, cs, first_sets, grammar, verbose);
@@ -1076,15 +1076,15 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
   }
   /* update the context sets for all reduction state-configs
      which are marked complete, even if they aren't in inadequate states */
-  for (int s_i = 0; s_i < size(states); ++s_i) {
+  for (int s_i = 0; s_i < Omega_h::size(states); ++s_i) {
     auto& state = *at(states, s_i);
-    for (int cis_i = 0; cis_i < size(state.configs); ++cis_i) {
+    for (int cis_i = 0; cis_i < Omega_h::size(state.configs); ++cis_i) {
       auto sc_i = at(states2scs, s_i, cis_i);
       if (!at(complete, sc_i)) continue;
       auto config_i = at(state.configs, cis_i);
       auto& config = at(cs, config_i);
       auto& prod = at(grammar->productions, config.production);
-      if (config.dot != size(prod.rhs)) continue;
+      if (config.dot != Omega_h::size(prod.rhs)) continue;
       for (auto& action : state.actions) {
         if (action.action.kind == ACTION_REDUCE &&
             action.action.production == config.production) {
@@ -1109,11 +1109,11 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
 Parser accept_parser(ParserInProgress const& pip) {
   auto& sips = pip.states;
   auto& grammar = pip.grammar;
-  auto out = Parser(grammar, size(sips));
-  for (int s_i = 0; s_i < size(sips); ++s_i) {
+  auto out = Parser(grammar, Omega_h::size(sips));
+  for (int s_i = 0; s_i < Omega_h::size(sips); ++s_i) {
     add_state(out);
   }
-  for (int s_i = 0; s_i < size(sips); ++s_i) {
+  for (int s_i = 0; s_i < Omega_h::size(sips); ++s_i) {
     auto& sip = *at(sips, s_i);
     for (auto& action : sip.actions) {
       if (action.action.kind == ACTION_SHIFT &&
