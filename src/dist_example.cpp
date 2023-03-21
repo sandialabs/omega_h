@@ -40,28 +40,35 @@ static void test_packet_fanout(CommPtr comm){
   Dist dist;
   dist.set_parent_comm(comm);
 /*
- * Starting Partition: {1, 1}  {0, 0}  {0, 0}
- * End Partition:      {1, 1}  {1, 1}  {1, 1}
- * Reduced Exchange:   {3, 3}  {1, 1}  {1, 1}
+ * Starting Partition: {1, 2}  {0, 0}  {0, 0}
+ * End Partition:      {}      {1, 1}  {2, 2}
 */
+
+  //Configure the directed graph. Note when explicitly setting parameters such as roots2items, 
+  //undefined behavior may occur when not set for every rank. Also note that roots2items is an
+  //offset array.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({1, 1, 2, 2}));
-    //Fan out using roots2items
-    //Note: Uses offset array
     dist.set_roots2items(LOs({0, 2, 4}));
   }
   else{
     dist.set_dest_ranks(Read<I32>({})); 
+    //Offset arrays of length 0 may cause undefined behavior, especially in inverted dists
+    dist.set_roots2items(LOs({0}));
   }
 
-  int width = 1;
+  //Allocate Starting Partition
   Reals a;
-
   if(comm->rank() == 0)
     a = Reals({1.0, 2.0});
   else
     a = Reals({});
+  
+  //Perform Exchange Operation
+  int width = 1;
   auto b = dist.exch(a, width);
+  
+  //Check our that our end partition is what we expected
   if(comm->rank() == 0)
     OMEGA_H_CHECK(b == Reals({}));
   else if(comm->rank() == 1){
@@ -76,25 +83,36 @@ static void test_rank_fanout(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
+/*
+ * Starting Partition: {1, 2}  {0, 0}  {0, 0}
+ * End Partition:      {}      {1, 2}  {1, 2}
+*/
 
+  //Configure the directed graph. Note when explicitly setting parameters such as roots2items, 
+  //undefined behavior may occur when not set for every rank. Also note that roots2items is an
+  //offset array.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({1, 2, 1, 2}));
     dist.set_roots2items(LOs({0, 2, 4}));
   }
   else{
     dist.set_dest_ranks(Read<I32>({}));
+    //Offset arrays of length 0 may cause undefined behavior, especially in inverted dists
+    dist.set_roots2items(LOs({0}));
   }
 
-  int width = 1;
+  //Allocate Starting Partition
   Reals a;
-
   if(comm->rank() == 0)
     a = Reals({1.0, 2.0});
   else
     a = Reals({});
 
+  //Perform Exchange Operation
+  int width = 1;
   auto b = dist.exch(a, width);
 
+  //Check End Partition is what we expected
   if(comm->rank() == 0)
     OMEGA_H_CHECK(b == Reals({}));
   else{
@@ -106,7 +124,13 @@ static void test_exchange_reduce(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-
+/*
+ * Starting Partition: {}   {1}  {1}
+ * End Partition:      {2}  {}   {}
+*/
+  
+  //Configure the directed graph. Note that dest_idxs must be set for all destination ranks, 
+  //as well as the number of destination roots on this rank.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({}));
     dist.set_dest_idxs(LOs({}), 1);
@@ -116,26 +140,37 @@ static void test_exchange_reduce(CommPtr comm){
     dist.set_dest_idxs(LOs({0}), 0);
   }
 
-  int width = 1;
+  //Allocate Starting Position
   Reals a;
-
   if(comm->rank() == 0)
     a = Reals({});
   else
     a = Reals({1});
-		
+ 
+  //Perform Exchange Operation
+  int width = 1;
   auto b = dist.exch_reduce(a, width, OMEGA_H_SUM);	
 
-  HostRead<Real> host_b(b);
-  std::cout << "Rank: " << comm->rank() << " - size: "<< host_b.size() << " - data[0]: "  
-            << host_b[0] << std::endl;
+  //Check End Partition is what we expected
+  if(comm->rank() == 0)
+    OMEGA_H_CHECK(b == Reals({2}));
+  else
+    OMEGA_H_CHECK(b == Reals({}));
 }
 
 static void test_fan_reduce(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
+/*
+ * Starting Partition: {1}  {}   {}
+ * End Partition:      {}   {1}  {1}
+ * Inverted Partition: {2}  {}   {}
+*/
 
+  //Configure the directed graph. Note when explicitly setting parameters such as roots2items, 
+  //undefined behavior may occur when not set for every rank. Also note that roots2items is an
+  //offset array.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({1, 2}));
     dist.set_roots2items(LOs({0, 2}));
@@ -145,26 +180,35 @@ static void test_fan_reduce(CommPtr comm){
     dist.set_roots2items(LOs({0}));
   }
 
-  int width = 1;
+  //Allocate Starting Partition
   Reals a;
-
   if(comm->rank() == 0)
     a = Reals({1});
   else
     a = Reals({});
-		
+
+  //Perform Exchange Operation		
+  int width = 1;
   auto b = dist.exch(a, width);	
-		
-  HostRead<Real> host_b(b);
-  std::cout << "Fan_Reduce Rank: " << comm->rank() << " - size: "<< host_b.size() << " - data[0]: "  
-            << host_b[0] << std::endl;
-		
+
+  //Check End Partition is what we expected
+  if(comm->rank() == 0)
+    OMEGA_H_CHECK(b == Reals({}));
+  else
+    OMEGA_H_CHECK(b == Reals({1}));
+
+  //Invert Dist and Perform Exchange Reduce Operation
+  //Note: The Dist Class stores 2 copies of roots2items, one forward and one reverse. It is critical
+  //that roots2items is set to an array of non-zero length before the inversion. Failure to do so will 
+  //result in undefined behavior
   Dist invDist = dist.invert();
   auto c = invDist.exch_reduce(b, width, OMEGA_H_SUM);
 
-  HostRead<Real> host_c(c);
-  std::cout << "Fan_Reduce Rank: " << comm->rank() << " - size: "<< host_c.size() << " - data[0]: "  
-            << host_c[0] << std::endl;
+  //Check Inverted Partition is what we expect
+  if(comm->rank() == 0)
+    OMEGA_H_CHECK(c == Reals({2}));
+  else
+    OMEGA_H_CHECK(c == Reals({}));
 }
 
 int main(int argc, char** argv) {
