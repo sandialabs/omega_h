@@ -142,6 +142,7 @@ static void test_fan_reduce(CommPtr comm){
     }
   else{
     dist.set_dest_ranks(Read<I32>({}));
+    dist.set_roots2items(LOs({0}));
   }
 
   int width = 1;
@@ -159,9 +160,6 @@ static void test_fan_reduce(CommPtr comm){
             << host_b[0] << std::endl;
 		
   Dist invDist = dist.invert();
-  if(comm->rank() != 0)
-    invDist.set_roots2items({0,1});
-
   auto c = invDist.exch_reduce(b, width, OMEGA_H_SUM);
 
   HostRead<Real> host_c(c);
