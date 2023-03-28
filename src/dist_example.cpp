@@ -9,7 +9,7 @@ static void test_three_ranks(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-/*
+/* MPI Rank          :  0       1       2 
  * Starting Partition: {0, 1}  {2, 3}  {4, 5}
  * Reversal to       : {5, 4}  {3, 2}  {1, 0}
 */
@@ -39,7 +39,7 @@ static void test_packet_fanout(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-/*
+/* MPI Rank          :  0       1       2 
  * Starting Partition: {1, 2}  {0, 0}  {0, 0}
  * End Partition:      {}      {1, 1}  {2, 2}
 */
@@ -71,19 +71,17 @@ static void test_packet_fanout(CommPtr comm){
   //Check our that our end partition is what we expected
   if(comm->rank() == 0)
     OMEGA_H_CHECK(b == Reals({}));
-  else if(comm->rank() == 1){
+  else if(comm->rank() == 1)
     OMEGA_H_CHECK(b == Reals({1, 1}));
-  }
-  else{
+  else
     OMEGA_H_CHECK(b == Reals({2, 2}));
-  }
 }
 
 static void test_rank_fanout(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-/*
+/* MPI Rank          :  0       1      2 
  * Starting Partition: {1, 2}  {0, 0}  {0, 0}
  * End Partition:      {}      {1, 2}  {1, 2}
 */
@@ -115,18 +113,17 @@ static void test_rank_fanout(CommPtr comm){
   //Check End Partition is what we expected
   if(comm->rank() == 0)
     OMEGA_H_CHECK(b == Reals({}));
-  else{
+  else
     OMEGA_H_CHECK(b == Reals({1, 2}));
-  }
 }
 
 static void test_exchange_reduce(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-/*
- * Starting Partition: {}   {1}  {1}
- * End Partition:      {2}  {}   {}
+/* MPI Rank          :  0    1    2
+ * Starting Partition: { }  {1}  {1}
+ * End Partition:      {2}  { }  { }
 */
   
   //Configure the directed graph. Note that dest_idxs must be set for all destination ranks, 
@@ -162,10 +159,10 @@ static void test_fan_reduce(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
   dist.set_parent_comm(comm);
-/*
- * Starting Partition: {1}  {}   {}
+/* MPI Rank          :  0    1    2
+ * Starting Partition: {1}  { }  { }
  * End Partition:      {}   {1}  {1}
- * Inverted Partition: {2}  {}   {}
+ * Inverted Partition: {2}  { }  { }
 */
 
   //Configure the directed graph. Note when explicitly setting parameters such as roots2items, 
