@@ -35,6 +35,7 @@ static void test_three_ranks(CommPtr comm){
   OMEGA_H_CHECK(b == Reals({2.0 * reverse_root + 1, 2.0 * reverse_root}));
 }
 
+//send two copies of the first(second) packet/value from rank 0 to rank 1(2)
 static void test_packet_fanout(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
@@ -44,11 +45,15 @@ static void test_packet_fanout(CommPtr comm){
  * End Partition:      {}      {1, 1}  {2, 2}
 */
 
-  //Configure the directed graph. Note when explicitly setting parameters such as roots2items, 
-  //undefined behavior may occur when not set for every rank. Also note that roots2items is an
-  //offset array.
+  //Configure the directed graph to send data from rank 0 to ranks 1 and 2 (fanout). 
+  //Note when explicitly setting parameters such as roots2items, undefined behavior 
+  //may occur when not set for every rank. Also note that roots2items is an offset array.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({1, 1, 2, 2}));
+    //The roots2items array is an offset array, where each value represents the boundary between 
+    //packets in the items array. The last value represents the size of the items array, which 
+    //is also the size of the destination ranks array. Packets are duplicated to fill each range 
+    //represented in the offset array.
     dist.set_roots2items(LOs({0, 2, 4}));
   }
   else{
@@ -64,7 +69,7 @@ static void test_packet_fanout(CommPtr comm){
   else
     a = Reals({});
   
-  //Perform Exchange Operation
+  //Perform fanout sends and recieves via 'exch(...)'
   int width = 1;
   auto b = dist.exch(a, width);
   
@@ -77,6 +82,7 @@ static void test_packet_fanout(CommPtr comm){
     OMEGA_H_CHECK(b == Reals({2, 2}));
 }
 
+//Send all data from rank 0 to rank 1 and 2
 static void test_rank_fanout(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
@@ -106,7 +112,7 @@ static void test_rank_fanout(CommPtr comm){
   else
     a = Reals({});
 
-  //Perform Exchange Operation
+  //Perform fanout sends and recieves using 'exch(...)'
   int width = 1;
   auto b = dist.exch(a, width);
 
@@ -117,6 +123,7 @@ static void test_rank_fanout(CommPtr comm){
     OMEGA_H_CHECK(b == Reals({1, 2}));
 }
 
+//send values from rank 1 and 2 to rand 0 *and* sum the received values
 static void test_exchange_reduce(CommPtr comm){
   OMEGA_H_CHECK(comm->size() == 3);
   Dist dist;
@@ -130,21 +137,24 @@ static void test_exchange_reduce(CommPtr comm){
   //as well as the number of destination roots on this rank.
   if(comm->rank() == 0){
     dist.set_dest_ranks(Read<I32>({}));
-    dist.set_dest_idxs(LOs({}), 1);
+    //Destination indicies requires an array representing the destination indicies on the 
+    //reverse root for each item, and integer representing the number of reverse roots(receivers)
+    //on this rank. If there are no destination ranks, an empty array must be provided.
+    dist.set_dest_idxs(LOs({}), 1); //no destinations, and one reverse root(receiver) on this rank.
   }
   else{
     dist.set_dest_ranks(Read<I32>({0}));
-    dist.set_dest_idxs(LOs({0}), 0);
+    dist.set_dest_idxs(LOs({0}), 0); //one destination, and no reverse roots(receivers) on this rank.
   }
 
-  //Allocate Starting Position
+  //Allocate Starting Partition
   Reals a;
   if(comm->rank() == 0)
     a = Reals({});
   else
     a = Reals({1});
  
-  //Perform Exchange Operation
+  //Perform send/recieves and sum the received values
   int width = 1;
   auto b = dist.exch_reduce(a, width, OMEGA_H_SUM);	
 
@@ -174,7 +184,7 @@ static void test_fan_reduce(CommPtr comm){
     }
   else{
     dist.set_dest_ranks(Read<I32>({}));
-    dist.set_roots2items(LOs({0}));
+    dist.set_roots2items(LOs({0})); //must not be empty!
   }
 
   //Allocate Starting Partition
