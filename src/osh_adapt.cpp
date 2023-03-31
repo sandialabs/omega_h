@@ -50,7 +50,19 @@ int main(int argc, char** argv) {
   Omega_h::filesystem::path metric_in =
       cmdline.get<std::string>("--metric-in", metric_doc);
   std::cout << "Loading mesh from " << mesh_in << "\n";
-  auto mesh = Omega_h::gmsh::read(mesh_in, comm);
+  auto const mesh_in_ext = mesh_in.extension().string();
+  Omega_h::Mesh mesh(&lib);
+  if (mesh_in_ext == ".msh")
+    mesh = Omega_h::gmsh::read(mesh_in, comm);
+  else
+#ifdef OMEGA_H_USE_LIBMESHB
+      if (mesh_in_ext == ".mesh" || mesh_in_ext == ".meshb") {
+    Omega_h::meshb::read(&mesh, mesh_in.c_str());
+  } else
+#endif
+  {
+    Omega_h_fail("unknown extension for \"%s\"\n", metric_in.c_str());
+  }
   Omega_h::Reals target_metric;
   std::cout << "Loading target metric from " << metric_in << "\n";
   auto const dim = mesh.dim();
@@ -73,7 +85,19 @@ int main(int argc, char** argv) {
   auto opts = Omega_h::AdaptOpts(&mesh);
   Omega_h::grade_fix_adapt(&mesh, opts, target_metric, /*verbose=*/true);
   std::cout << "Storing mesh in " << mesh_out << '\n';
-  Omega_h::gmsh::write(mesh_out, &mesh);
+  auto const mesh_out_ext = mesh_out.extension().string();
+  if (mesh_out_ext == ".msh")
+    Omega_h::gmsh::write(mesh_out, &mesh);
+  else
+#ifdef OMEGA_H_USE_LIBMESHB
+      if (mesh_out_ext == ".mesh" || mesh_out_ext == ".meshb") {
+    Omega_h::meshb::write(&mesh, mesh_out.c_str());
+  } else
+#endif
+  {
+    Omega_h_fail("unknown extension for \"%s\"\n", mesh_out.c_str());
+  }
+
   if (cmdline.parsed("--metric-out")) {
     Omega_h::filesystem::path metric_out =
         cmdline.get<std::string>("--metric-out", metric_doc);
