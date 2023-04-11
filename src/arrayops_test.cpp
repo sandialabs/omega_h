@@ -55,6 +55,16 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == 4.1);
   }
   {
+    const int n = 1000;
+    Write<LO> a(n);
+    parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
+    auto const res = get_sum(read(a));
+    const int expected = (n-1)*(n)/2;
+    if( expected != res )
+      fprintf(stderr, "expected %d res %d\n", expected, res);
+    OMEGA_H_CHECK(res == expected);
+  }
+  {
     LOs a = {1,5,1,2};
     LOs b = {1,5,1,2};
     LOs c = {1,5,2,2};

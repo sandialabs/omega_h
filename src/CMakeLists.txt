@@ -343,6 +343,8 @@ if(BUILD_TESTING)
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_basefunc(run_unit_array_algs 1 ./unit_array_algs)
+  set(TEST_EXES ${TEST_EXES} unit_array_algs)
+  test_basefunc(run_arrayops 1 ./arrayops_test)
 
   osh_add_exe(unit_mesh)
   set(TEST_EXES ${TEST_EXES} unit_mesh)

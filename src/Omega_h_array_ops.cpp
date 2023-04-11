@@ -67,7 +67,7 @@ promoted_t<T> get_sum(Read<T> a) {
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
-      update = transform(i);
+      update += transform(i);
     }, sum);
   return sum;
 #else
