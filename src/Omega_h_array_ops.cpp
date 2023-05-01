@@ -85,17 +85,18 @@ promoted_t<T> get_sum(CommPtr comm, Read<T> a) {
 
 template <typename T>
 T get_min(Read<T> a) {
-  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
-    return promoted_t<T>(a[i]);
-  };
 #if defined(OMEGA_H_USE_KOKKOS)
   auto r = promoted_t<T>(ArithTraits<T>::max());
+  auto const op = minimum<promoted_t<T>>();
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
-      update = transform(i);
+      update = op(update, a[i]);
     }, Kokkos::Min< Omega_h::promoted_t<T> >(r) );
 #else
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::max());
