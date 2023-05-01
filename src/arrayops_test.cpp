@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     Write<Real> a(n);
     parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
     a.set(42,0.1);
-    auto const res = get_min(a);
+    auto const res = get_min(read(a));
     OMEGA_H_CHECK(res == 0.1);
   }
   {
