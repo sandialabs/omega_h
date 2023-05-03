@@ -1046,6 +1046,7 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 
 template <typename T>
 Read<T> Mesh::sync_array_matched(Int ent_dim, Read<T> a, Int width) {
+  OMEGA_H_CHECK(ent_dim >= 0 && ent_dim <= dim_);
   if (!could_be_shared(ent_dim)) return a;
   swap_root_owner(ent_dim);
   return ask_dist(ent_dim).invert().exch(a, width);
@@ -1053,6 +1054,7 @@ Read<T> Mesh::sync_array_matched(Int ent_dim, Read<T> a, Int width) {
 
 template <typename T>
 Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width) {
+  OMEGA_H_CHECK(ent_dim >= 0 && ent_dim <= dim_);
   if (!could_be_shared(ent_dim)) {
     return Future<T>(a);
   }
@@ -1062,6 +1064,7 @@ Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width) {
 template <typename T>
 Read<T> Mesh::sync_subset_array(
     Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width) {
+  OMEGA_H_CHECK(ent_dim >= 0 && ent_dim <= dim_);
   if (!could_be_shared(ent_dim)) return a_data;
   auto e_data = map_onto(a_data, a2e, nents(ent_dim), default_val, width);
   e_data = sync_array(ent_dim, e_data, width);
