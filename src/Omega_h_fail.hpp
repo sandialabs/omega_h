@@ -38,7 +38,13 @@ void fail(char const* format, ...);
 
 #define Omega_h_fail Omega_h::fail
 
-#if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
+#if defined(OMEGA_H_USE_KOKKOS)
+#  if defined(NDEBUG)
+#    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
+#  else
+#    define OMEGA_H_CHECK(cond) assert(cond)
+#  endif
+#elif defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
 #  if defined(NDEBUG)
 #    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
 #  else

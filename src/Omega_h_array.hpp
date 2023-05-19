@@ -23,7 +23,7 @@ class HostWrite;
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<T*> view_;
+  Kokkos::View<T*> view_; //is compatible with subview?
 #else
   SharedAlloc shared_alloc_;
 #endif

@@ -11,8 +11,7 @@
 #include <algorithm>
 #include <vector>
 
-
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 #if defined(__clang__)
 template <class... Args>
@@ -49,12 +48,12 @@ namespace Omega_h {
 template <typename T, typename Comp>
 static void parallel_sort(T* b, T* e, Comp c) {
   begin_code("parallel_sort");
-#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA) and !defined(OMEGA_H_USE_OPENMP) and !defined(OMEGA_H_USE_HIP)
   auto space = Kokkos::Experimental::SYCL();
   const auto q = *space.impl_internal_space_instance()->m_queue;
   auto policy = ::oneapi::dpl::execution::make_device_policy(q);
   oneapi::dpl::sort(policy,b,e,c);
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
   thrust::stable_sort(bptr, eptr, c);

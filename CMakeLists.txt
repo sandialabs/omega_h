@@ -89,6 +89,9 @@ if(Omega_h_USE_Kokkos)
   if ("SYCL" IN_LIST Kokkos_DEVICES)
       bob_option(Omega_h_USE_SYCL "Whether to use SYCL" "ON")
   endif()
+  if ("HIP" IN_LIST Kokkos_DEVICES)
+    bob_option(Omega_h_USE_HIP "Whether to use HIP" "ON")
+  endif()
   if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
     message(FATAL_ERROR
             "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
@@ -120,6 +123,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_OpenMP
     Omega_h_USE_CUDA
     Omega_h_USE_SYCL
+    Omega_h_USE_HIP
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
