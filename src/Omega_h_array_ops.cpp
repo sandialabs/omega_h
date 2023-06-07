@@ -108,21 +108,21 @@ T get_min(Read<T> a) {
 
 template <typename T>
 T get_max(Read<T> a) {
-  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
-    return promoted_t<T>(a[i]);
-  };
+  auto const op = maximum<promoted_t<T>>();
 #if defined(OMEGA_H_USE_KOKKOS)
   auto r = promoted_t<T>(ArithTraits<T>::min());
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
-      update = transform(i);
+      update = op(update,a[i]);
     }, Kokkos::Max< Omega_h::promoted_t<T> >(r) );
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::min());
-  auto const op = maximum<promoted_t<T>>();
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
 #endif
   return static_cast<T>(r);  // see StandinTraits

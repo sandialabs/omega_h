@@ -45,6 +45,15 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == 2);
   }
   {
+    const int n = 1000000;
+    Write<LO> a(n);
+    parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
+    a.set(42,n);
+    auto const res = get_max(read(a));
+    if(res != n) fprintf(stderr, "res %d != n %d\n", res, n);
+    OMEGA_H_CHECK(res == n);
+  }
+  {
     Reals a = {1,0.1,1,2};
     auto const res = get_min(a);
     OMEGA_H_CHECK(res == 0.1);
