@@ -4,7 +4,9 @@ install_manifest.txt
 Makefile
 cmake_install.cmake
 /build*
+/cmake-build-*
 /.vs
+/.idea
 /out/build/x64-Debug
 /CMakeSettings.json
 /out/build/x64-Release
