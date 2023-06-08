@@ -613,18 +613,18 @@ int max_exponent(Reals a) {
     std::frexp(a[i], &expo);
     return expo;
   };
+  auto const op = maximum<int>();
 #if defined(OMEGA_H_USE_KOKKOS)
   Int res;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
-      update = transform(i);
+      update = op(update,transform(i));
     }, Kokkos::Max< Omega_h::Int >(res) );
   return res;
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
-  auto const op = maximum<int>();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }
