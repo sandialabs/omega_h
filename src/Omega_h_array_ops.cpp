@@ -495,25 +495,26 @@ void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
 
 template <typename T>
 LO find_last(Read<T> array, T value) {
+  auto const op = maximum<LO>();
   auto transform = OMEGA_H_LAMBDA(LO i)->LO {
-    if (array[i] == value)
+    if (array[i] == value) {
       return i;
-    else
+    } else {
       return -1;
+    }
   };
 #if defined(OMEGA_H_USE_KOKKOS)
-  LO res = -1;;
+  LO res = -1;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, array.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
-      update = transform(i);
+      update = op(update,transform(i));
     }, Kokkos::Max< Omega_h::LO >(res) );
   return res;
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(array.size());
   auto const init = -1;
-  auto const op = maximum<LO>();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }

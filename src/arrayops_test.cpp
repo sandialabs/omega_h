@@ -14,7 +14,6 @@ int main(int argc, char** argv) {
   }
   {
     const int n = 1'000'000;
-    const double val = 45.2;
     Write<LO> a(n);
     parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
     bool res = is_sorted(read(a));
@@ -27,6 +26,16 @@ int main(int argc, char** argv) {
     Reals a = {1,0,1,2};
     LO res = find_last(a,1.0);
     OMEGA_H_CHECK(res == 2);
+  }
+  {
+    const int n = 1'000'000;
+    const int val = 42;
+    Write<LO> a(n,val);
+    auto res = find_last(read(a),val);
+    OMEGA_H_CHECK(res == n-1);
+    a.set(42,1337);
+    res = find_last(read(a),1337);
+    OMEGA_H_CHECK(res == 42);
   }
   {
     Reals a = {1,0.0,1,2};
