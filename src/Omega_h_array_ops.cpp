@@ -177,7 +177,7 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
-      update = (LO)transform(i);
+      update += (LO)transform(i);
     }, Kokkos::Sum< Omega_h::LO >(sum) );
   return (sum==a.size());
 #else

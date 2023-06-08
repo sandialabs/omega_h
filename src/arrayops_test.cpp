@@ -27,6 +27,17 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == true);
   }
   {
+    const int n = 1'000'000;
+    const double val = 45.2;
+    Reals a(n,val);
+    Write<Real> b(n,val);
+    bool res = are_close_abs(a,read(b),1e-3);
+    OMEGA_H_CHECK(res == true);
+    b.set(42,0.0);
+    res = are_close_abs(a,read(b),1e-3);
+    OMEGA_H_CHECK(res == false);
+  }
+  {
     const auto tol = 1e-3;
     const auto floor = 1e-9;
     Reals a = {1,0.0,1,2};
