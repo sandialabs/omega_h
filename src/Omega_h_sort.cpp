@@ -113,18 +113,18 @@ T next_smallest_value(Read<T> const a, T const value) {
   auto transform = OMEGA_H_LAMBDA(LO i)->T {
     return (a[i] > value) ? a[i] : init;
   };
+  auto const op = minimum<T>();
 #if defined(OMEGA_H_USE_KOKKOS)
   auto res = init;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, T& update) {
-      update = transform(i);
+      update = op(update,transform(i));
     }, Kokkos::Min<T>(res) );
   return res;
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
-  auto const op = minimum<T>();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }

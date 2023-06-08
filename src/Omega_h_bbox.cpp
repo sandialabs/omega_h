@@ -82,12 +82,13 @@ BBox<dim> find_bounding_box(Reals coords) {
 #if defined(OMEGA_H_USE_KOKKOS)
   bboxWrap<dim> res;
   const auto transform = GetBBoxOp<dim>(coords);
+  const auto op = UniteOp<dim>();
 
   if (npts > 0) {
     Kokkos::parallel_reduce(
       Kokkos::RangePolicy<>(0, npts),
       KOKKOS_LAMBDA(int i, Omega_h::bboxWrap<dim>& update) {
-        update.box = transform(i);
+        update.box = op(update.box,transform(i));
       }, Kokkos::Sum< Omega_h::bboxWrap<dim> >(res) );
   }
   return res.box;
