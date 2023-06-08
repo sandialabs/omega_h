@@ -164,6 +164,12 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
+if(Omega_h_USE_Kokkos)
+  list(APPEND Omega_h_SOURCES Omega_h_array_kokkos.hpp)
+else()
+  list(APPEND Omega_h_SOURCES Omega_h_array_default.hpp)
+endif()
+
 if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
