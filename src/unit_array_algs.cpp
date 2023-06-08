@@ -157,7 +157,11 @@ static void test_invert_map() {
   {
     auto l2hl = invert_map_by_atomics(LOs({0,1,2,2,3,0}),4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs({0, 2, 3, 5, 6}));
-    OMEGA_H_CHECK(l2hl.ab2b == LOs({0, 5, 1, 2, 3, 4}));
+    //the inversion uses atomics and is non-deterministic
+    OMEGA_H_CHECK(l2hl.ab2b == LOs({0, 5, 1, 2, 3, 4}) ||
+                  l2hl.ab2b == LOs({0, 5, 1, 3, 2, 4}) ||
+                  l2hl.ab2b == LOs({5, 0, 1, 2, 3, 4}) ||
+                  l2hl.ab2b == LOs({5, 0, 1, 3, 2, 4})   );
   }
   {
     LOs hl2l({}, "hl2l");
