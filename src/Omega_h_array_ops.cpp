@@ -153,7 +153,7 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
-      update = (LO)transform(i);
+      update += (LO)transform(i);
     }, Kokkos::Sum< Omega_h::LO >(sum) );
   return (sum==a.size());
 #else
