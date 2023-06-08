@@ -640,19 +640,19 @@ Int128 int128_sum(Reals const a, double const unit) {
   auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
+  auto const op = Int128Plus();
 #if defined(OMEGA_H_USE_KOKKOS)
   Omega_h::Int128Wrap res;
   Kokkos::parallel_reduce(
     Kokkos::RangePolicy<>(0, a.size() ),
     KOKKOS_LAMBDA(int i, Omega_h::Int128Wrap& update) {
-      update.i128 = transform(i);
+      update.i128 = op(update.i128,transform(i));
     }, Kokkos::Sum< Omega_h::Int128Wrap >(res) );
   return res.i128;
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = Int128(0);
-  auto const op = Int128Plus();
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }
