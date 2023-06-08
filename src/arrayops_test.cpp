@@ -13,6 +13,17 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == false);
   }
   {
+    const int n = 1'000'000;
+    const double val = 45.2;
+    Write<LO> a(n);
+    parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
+    bool res = is_sorted(read(a));
+    OMEGA_H_CHECK(res == true);
+    a.set(42,0);
+    res = is_sorted(read(a));
+    OMEGA_H_CHECK(res == false);
+  }
+  {
     Reals a = {1,0,1,2};
     LO res = find_last(a,1.0);
     OMEGA_H_CHECK(res == 2);

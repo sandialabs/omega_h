@@ -6,6 +6,7 @@
 #include "Omega_h_dbg.hpp"
 
 #if defined(OMEGA_H_USE_KOKKOS)
+#include "Kokkos_StdAlgorithms.hpp" //is_sorted
 namespace Omega_h {
 struct Int128Wrap {
   Int128 i128;
@@ -520,21 +521,14 @@ LO find_last(Read<T> array, T value) {
 template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
-  auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
 #if defined(OMEGA_H_USE_KOKKOS)
-  //TODO use Kokkos::Experimental::is_sorted
-  Int res;
-  Kokkos::parallel_reduce(
-    Kokkos::RangePolicy<>(0, a.size()-1),
-    KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
-      update = (int)transform(i);
-    }, Kokkos::Min< Omega_h::Int >(res) );
-  return (res==1);
+  return Kokkos::Experimental::is_sorted("kokkos_array_is_sorted",ExecSpace(), a.view());
 #else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size() - 1);
   auto const init = true;
   auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
   return transform_reduce(first, last, init, op, std::move(transform));
 #endif
 }
