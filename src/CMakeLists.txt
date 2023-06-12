@@ -351,6 +351,8 @@ if(BUILD_TESTING)
   test_basefunc(run_unit_array_algs 1 ./unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_basefunc(run_arrayops 1 ./arrayops_test)
+  set(TEST_EXES ${TEST_EXES} reprosum_test)
+  test_basefunc(run_reprosum 1 ./reprosum_test)
 
   osh_add_exe(unit_mesh)
   set(TEST_EXES ${TEST_EXES} unit_mesh)

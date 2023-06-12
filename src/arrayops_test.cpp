@@ -13,9 +13,29 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == false);
   }
   {
+    const int n = 1'000'000;
+    Write<LO> a(n);
+    parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
+    bool res = is_sorted(read(a));
+    OMEGA_H_CHECK(res == true);
+    a.set(42,0);
+    res = is_sorted(read(a));
+    OMEGA_H_CHECK(res == false);
+  }
+  {
     Reals a = {1,0,1,2};
     LO res = find_last(a,1.0);
     OMEGA_H_CHECK(res == 2);
+  }
+  {
+    const int n = 1'000'000;
+    const int val = 42;
+    Write<LO> a(n,val);
+    auto res = find_last(read(a),val);
+    OMEGA_H_CHECK(res == n-1);
+    a.set(42,1337);
+    res = find_last(read(a),1337);
+    OMEGA_H_CHECK(res == 42);
   }
   {
     Reals a = {1,0.0,1,2};
@@ -25,6 +45,17 @@ int main(int argc, char** argv) {
     Reals c = {1,0.000001,1,2};
     res = are_close_abs(a,c,1e-3);
     OMEGA_H_CHECK(res == true);
+  }
+  {
+    const int n = 1'000'000;
+    const double val = 45.2;
+    Reals a(n,val);
+    Write<Real> b(n,val);
+    bool res = are_close_abs(a,read(b),1e-3);
+    OMEGA_H_CHECK(res == true);
+    b.set(42,0.0);
+    res = are_close_abs(a,read(b),1e-3);
+    OMEGA_H_CHECK(res == false);
   }
   {
     const auto tol = 1e-3;
@@ -40,9 +71,31 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == expected);
   }
   {
+    const auto tol = 1e-3;
+    const auto floor = 1e-3;
+    const int n = 1'000'000;
+    const double val = 45.2;
+    Reals a(n,val);
+    Write<Real> b(n,val);
+    bool res = are_close(a,read(b),tol,floor);
+    OMEGA_H_CHECK(res == true);
+    b.set(42,0.0);
+    res = are_close(a,read(b),tol,floor);
+    OMEGA_H_CHECK(res == false);
+  }
+  {
     Reals a = {1,0.1,1,2};
     auto const res = get_max(a);
     OMEGA_H_CHECK(res == 2);
+  }
+  {
+    const int n = 1'000'000;
+    Write<LO> a(n);
+    parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i; }, "setVals");
+    a.set(42,n);
+    auto const res = get_max(read(a));
+    if(res != n) fprintf(stderr, "res %d != n %d\n", res, n);
+    OMEGA_H_CHECK(res == n);
   }
   {
     Reals a = {1,0.1,1,2};
@@ -50,7 +103,7 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(res == 0.1);
   }
   {
-    const int n = 100000;
+    const int n = 100'000;
     Write<Real> a(n);
     parallel_for(n, OMEGA_H_LAMBDA(int i) { a[i] = i+1; }, "setVals");
     a.set(42,0.1);
