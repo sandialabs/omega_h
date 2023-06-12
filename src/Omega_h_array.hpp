@@ -7,6 +7,7 @@
 #include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_pool_kokkos.hpp>
 #else
 #include <Omega_h_shared_alloc.hpp>
 #include <string>
@@ -20,10 +21,25 @@ T* nonnull(T* p);
 template <typename T>
 class HostWrite;
 
+#ifdef OMEGA_H_USE_KOKKOS
+template <typename T>
+class KokkosViewManager {
+ public:
+  KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {}
+  ~KokkosViewManager() {
+    if (view_.size() > 0) KokkosPool::getGlobalPool().deallocateView<T>(view_);
+  }
+
+ private:
+  Kokkos::View<T*> view_;
+};
+#endif
+
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
+  std::shared_ptr<KokkosViewManager<T>> manager_; // reference counting
 #else
   SharedAlloc shared_alloc_;
 #endif

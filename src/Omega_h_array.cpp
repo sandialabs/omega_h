@@ -35,8 +35,8 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   begin_code("Write allocation");
   OMEGA_H_CHECK(size_in >= 0);
 #ifdef OMEGA_H_USE_KOKKOS
-  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
-      static_cast<std::size_t>(size_in));
+  view_ = KokkosPool::getGlobalPool().allocateView<T>(size_in);
+  manager_ = std::make_shared<KokkosViewManager<T>>(view_);
 #else
   shared_alloc_ = decltype(shared_alloc_)(
       sizeof(T) * static_cast<std::size_t>(size_in), name_in);

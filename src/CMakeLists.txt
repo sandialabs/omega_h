@@ -166,6 +166,8 @@ endif()
 
 if(Omega_h_USE_Kokkos)
   list(APPEND Omega_h_SOURCES Omega_h_array_kokkos.hpp)
+  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.hpp)
+  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.cpp)
 else()
   list(APPEND Omega_h_SOURCES Omega_h_array_default.hpp)
 endif()
