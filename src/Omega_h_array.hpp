@@ -7,6 +7,7 @@
 #include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_malloc.hpp>
 #include <Omega_h_pool_kokkos.hpp>
 #else
 #include <Omega_h_shared_alloc.hpp>
@@ -40,6 +41,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
   std::shared_ptr<KokkosViewManager<T>> manager_; // reference counting
+  std::string label_;
 #else
   SharedAlloc shared_alloc_;
 #endif
