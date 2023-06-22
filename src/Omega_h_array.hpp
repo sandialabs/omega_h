@@ -4,6 +4,7 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
 #include <initializer_list>
+#include <map>
 #include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
@@ -26,21 +27,71 @@ class HostWrite;
 template <typename T>
 class KokkosViewManager {
  public:
-  KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {}
+  KokkosViewManager() : view_() {}
+
+  KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {
+#ifndef __HIP__
+    if (view_.size() > 0) {
+      KokkosViewManager<T>::refCount[view_.data()]++;
+    }
+#endif
+  }
+
+  KokkosViewManager(const KokkosViewManager& other) : view_(other.view_) {
+#ifndef __HIP__
+    if (isReferenceCounted()) {
+      KokkosViewManager<T>::refCount.at(view_.data())++;
+    }
+#endif
+  }
+
+  KokkosViewManager& operator=(const KokkosViewManager& other) {
+    view_ = other.view_;
+#ifndef __HIP__
+    if (isReferenceCounted()) {
+      KokkosViewManager<T>::refCount.at(view_.data())++;
+    }
+#endif
+    return *this;
+  }
+
+  long use_count() const {
+#ifndef __HIP__
+    if (isReferenceCounted()) {
+      return KokkosViewManager<T>::refCount.at(view_.data());
+    }
+#endif
+  }
+
   ~KokkosViewManager() {
-    if (view_.size() > 0) KokkosPool::getGlobalPool().deallocateView<T>(view_);
+#ifndef __HIP__
+    if (isReferenceCounted()  && (view_.size() > 0)) {
+      KokkosViewManager<T>::refCount.at(view_.data())--;
+      if (KokkosViewManager<T>::refCount.at(view_.data()) == 0) {
+        KokkosPool::getGlobalPool().deallocateView<T>(view_);
+        KokkosViewManager<T>::refCount.erase(view_.data());
+      }
+    }
+#endif
   }
 
  private:
+  [[nodiscard]] auto isReferenceCounted() const -> bool { return (KokkosViewManager<T>::refCount.find(view_.data()) !=
+                                           KokkosViewManager<T>::refCount.end()); }
+
   Kokkos::View<T*> view_;
+  static std::map<T*, unsigned> refCount;
 };
+
+template <typename T>
+std::map<T*, unsigned> KokkosViewManager<T>::refCount;
 #endif
 
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
-  std::shared_ptr<KokkosViewManager<T>> manager_; // reference counting
+  KokkosViewManager<T> manager_; // reference counting
   std::string label_;
 #else
   SharedAlloc shared_alloc_;

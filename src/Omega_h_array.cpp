@@ -38,7 +38,7 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
 #ifdef OMEGA_H_USE_KOKKOS
   if (is_pooling_enabled()) {
     view_ = KokkosPool::getGlobalPool().allocateView<T>(size_in);
-    manager_ = std::make_shared<KokkosViewManager<T>>(view_);
+    manager_ = KokkosViewManager<T>(view_);
     label_ = name_in;
   } else {
     view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
