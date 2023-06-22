@@ -94,7 +94,9 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
   KokkosViewManager<T> manager_; // reference counting
+#ifndef __HIP__
   std::string label_;
+#endif
 #else
   SharedAlloc shared_alloc_;
 #endif
