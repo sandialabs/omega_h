@@ -8,10 +8,10 @@
 namespace Omega_h {
 
 template <typename T>
-Write<T>::Write() : view_() {}
+OMEGA_H_INLINE Write<T>::Write() : view_() {}
 
 template <typename T>
-LO Write<T>::size() const OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE LO Write<T>::size() const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
   OMEGA_H_CHECK(exists());
 #endif
