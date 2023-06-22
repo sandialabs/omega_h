@@ -27,9 +27,9 @@ class HostWrite;
 template <typename T>
 class KokkosViewManager {
  public:
-  KokkosViewManager() : view_() {}
+  OMEGA_H_INLINE KokkosViewManager() : view_() {}
 
-  KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {
+  OMEGA_H_INLINE KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {
 #ifndef __HIP__
     if (view_.size() > 0) {
       KokkosViewManager<T>::refCount[view_.data()]++;
@@ -37,7 +37,7 @@ class KokkosViewManager {
 #endif
   }
 
-  KokkosViewManager(const KokkosViewManager& other) : view_(other.view_) {
+  OMEGA_H_INLINE KokkosViewManager(const KokkosViewManager& other) : view_(other.view_) {
 #ifndef __HIP__
     if (isReferenceCounted()) {
       KokkosViewManager<T>::refCount.at(view_.data())++;
@@ -45,7 +45,7 @@ class KokkosViewManager {
 #endif
   }
 
-  KokkosViewManager& operator=(const KokkosViewManager& other) {
+  OMEGA_H_INLINE KokkosViewManager& operator=(const KokkosViewManager& other) {
     view_ = other.view_;
 #ifndef __HIP__
     if (isReferenceCounted()) {
@@ -55,15 +55,17 @@ class KokkosViewManager {
     return *this;
   }
 
-  long use_count() const {
+  OMEGA_H_INLINE long use_count() const {
 #ifndef __HIP__
     if (isReferenceCounted()) {
       return KokkosViewManager<T>::refCount.at(view_.data());
     }
 #endif
+
+    return 0;
   }
 
-  ~KokkosViewManager() {
+  OMEGA_H_INLINE ~KokkosViewManager() {
 #ifndef __HIP__
     if (isReferenceCounted()  && (view_.size() > 0)) {
       KokkosViewManager<T>::refCount.at(view_.data())--;
@@ -76,7 +78,7 @@ class KokkosViewManager {
   }
 
  private:
-  [[nodiscard]] auto isReferenceCounted() const -> bool { return (KokkosViewManager<T>::refCount.find(view_.data()) !=
+  [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool { return (KokkosViewManager<T>::refCount.find(view_.data()) !=
                                            KokkosViewManager<T>::refCount.end()); }
 
   Kokkos::View<T*> view_;
