@@ -166,21 +166,11 @@ auto StaticKokkosPool::getRequiredChunks(size_t n, size_t bytesPerChunk)
 }
 
 void StaticKokkosPool::printDebugInfo() const {
-  std::vector<bool> allocatedChunks(getNumChunks(), false);
-
-  for (const auto& [ptr, indices] : allocations) {
-    for (size_t i = indices.first; i < indices.second; ++i) {
-      allocatedChunks[i] = true;
-    }
-  }
-
-  std::cout << "Allocated Chunks: ";
-
-  for (size_t i = 0; i < allocatedChunks.size(); ++i) {
-    std::cout << (allocatedChunks[i] ? "O" : "-");
-  }
-
-  std::cout << " Available Chunks: " << getNumFreeChunks() << std::endl;
+  std::cout
+    << "Available Chunks: " << getNumFreeChunks()
+    << " Available Fragments: " << getNumFreeFragments()
+    << " Allocated Chunks: " << getNumAllocatedChunks()
+    << " Allocated Fragments: " << getNumAllocations() << std::endl;
 }
 
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
@@ -235,6 +225,7 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     }
 
     std::cout << "Requested " << StaticKokkosPool::getRequiredChunks(n, chunkSize) << " chunks" << std::endl;
+    std::cout << e.what() << std::endl;
     return nullptr;
   }
 
