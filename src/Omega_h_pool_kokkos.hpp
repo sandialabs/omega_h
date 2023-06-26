@@ -53,6 +53,8 @@ class StaticKokkosPool {
 
   static auto getRequiredChunks(size_t n, size_t bytesPerChunk) -> size_t;
 
+  void printDebugInfo() const;
+
  private:
   auto insertIntoSets(IndexPair indices)
       -> std::pair<MultiSetBySizeT::iterator, SetByIndexT::iterator>;

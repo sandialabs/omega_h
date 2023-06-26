@@ -10,6 +10,7 @@
 #include <cmath>
 #include <iterator>
 #include <optional>
+#include <vector>
 
 namespace {
 std::optional<Omega_h::KokkosPool> s_pool;
@@ -164,6 +165,24 @@ auto StaticKokkosPool::getRequiredChunks(size_t n, size_t bytesPerChunk)
   return (n / bytesPerChunk) + (n % bytesPerChunk ? 1 : 0);
 }
 
+void StaticKokkosPool::printDebugInfo() const {
+  std::vector<bool> allocatedChunks(getNumChunks(), false);
+
+  for (const auto& [ptr, indices] : allocations) {
+    for (size_t i = indices.first; i < indices.second; ++i) {
+      allocatedChunks[i] = true;
+    }
+  }
+
+  std::cout << "Allocated Chunks: ";
+
+  for (size_t i = 0; i < allocatedChunks.size(); ++i) {
+    std::cout << (allocatedChunks[i] ? "O" : "-");
+  }
+
+  std::cout << " Available Chunks: " << getNumFreeChunks() << std::endl;
+}
+
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
 
 auto KokkosPool::getNumFreeFragments() const -> unsigned {
@@ -205,8 +224,20 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     current++;
   }
 
-  pools.emplace_back(std::max(mostAmountOfChunks * 2, StaticKokkosPool::getRequiredChunks(n, chunkSize)),
-      chunkSize);
+  try {
+    pools.emplace_back(std::max(mostAmountOfChunks * 2,
+                           StaticKokkosPool::getRequiredChunks(n, chunkSize)),
+        chunkSize);
+  } catch (const std::runtime_error& e) {
+
+    for (const auto& pool : pools) {
+      pool.printDebugInfo();
+    }
+
+    std::cout << "Requested " << StaticKokkosPool::getRequiredChunks(n, chunkSize) << " chunks" << std::endl;
+    return nullptr;
+  }
+
   uint8_t* ptr = pools.back().allocate(n);
   allocations[ptr] = --pools.end();
 
