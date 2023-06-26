@@ -215,19 +215,25 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     current++;
   }
 
+  size_t requestedChunks = StaticKokkosPool::getRequiredChunks(n, chunkSize);
+  size_t amortizedChunkSize = std::max(mostAmountOfChunks * 2, requestedChunks);
+
   try {
-    pools.emplace_back(std::max(mostAmountOfChunks * 2,
-                           StaticKokkosPool::getRequiredChunks(n, chunkSize)),
-        chunkSize);
+    pools.emplace_back(amortizedChunkSize, chunkSize);
   } catch (const std::runtime_error& e) {
 
-    for (const auto& pool : pools) {
-      pool.printDebugInfo();
+//    for (const auto& pool : pools) {
+//      pool.printDebugInfo();
+//    }
+
+    std::cout << "Amortization with " << amortizedChunkSize << " chunks failed." << std::endl;
+    std::cout << e.what() << std::endl;
+
+    if (amortizedChunkSize <= requestedChunks) {
+      throw;
     }
 
-    std::cout << "Requested " << StaticKokkosPool::getRequiredChunks(n, chunkSize) << " chunks" << std::endl;
-    std::cout << e.what() << std::endl;
-    return nullptr;
+    pools.emplace_back(requestedChunks, chunkSize);
   }
 
   uint8_t* ptr = pools.back().allocate(n);
