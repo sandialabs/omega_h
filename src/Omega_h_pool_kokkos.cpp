@@ -84,7 +84,7 @@ auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
 
   removeFromSets(*freeSetItr);
 
-  if (endIndex - beginIndex != requestedChunks) {
+  if ((endIndex - beginIndex != requestedChunks) && (endIndex != getNumChunks())) {
     insertIntoSets({beginIndex + requestedChunks, endIndex});
   }
 
@@ -135,7 +135,7 @@ auto StaticKokkosPool::getNumAllocations() const -> unsigned {
 auto StaticKokkosPool::getNumFreeChunks() const -> unsigned {
   unsigned numFreeChunks = 0;
 
-  for (const auto& [beginIndex, endIndex] : freeSetBySize) {
+  for (const auto& [beginIndex, endIndex] : freeSetByIndex) {
     numFreeChunks += endIndex - beginIndex;
   }
 
@@ -170,7 +170,8 @@ void StaticKokkosPool::printDebugInfo() const {
     << "Available Chunks: " << getNumFreeChunks()
     << " Available Fragments: " << getNumFreeFragments()
     << " Allocated Chunks: " << getNumAllocatedChunks()
-    << " Allocated Fragments: " << getNumAllocations() << std::endl;
+    << " Allocated Fragments: " << getNumAllocations() << std::endl
+    << "Total Chunks: " << getNumChunks() << std::endl;
 }
 
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
