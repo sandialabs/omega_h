@@ -49,7 +49,7 @@ StaticKokkosPool::StaticKokkosPool(size_t numChunks, size_t bytesPerChunks)
 
 StaticKokkosPool::StaticKokkosPool(StaticKokkosPool const& other)
     : chunkSize(other.chunkSize), pool("Memory Pool", other.pool.size()) {
-  insertIntoSets({0, other.getNumChunks() / chunkSize});
+  insertIntoSets({0, other.getNumChunks()});
 }
 
 auto StaticKokkosPool::insertIntoSets(IndexPair indices)
@@ -69,7 +69,7 @@ void StaticKokkosPool::removeFromSets(IndexPair indices) {
 
 auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
   if (freeSetBySize.empty()) {
-    return {};
+    return nullptr;
   }
 
   // Find the smallest sequence of chunks that can hold numElements
@@ -84,7 +84,7 @@ auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
 
   removeFromSets(*freeSetItr);
 
-  if ((endIndex - beginIndex != requestedChunks) && (endIndex != getNumChunks())) {
+  if ((endIndex - beginIndex != requestedChunks)) {
     insertIntoSets({beginIndex + requestedChunks, endIndex});
   }
 
@@ -170,7 +170,7 @@ void StaticKokkosPool::printDebugInfo() const {
     << "Available Chunks: " << getNumFreeChunks()
     << " Available Fragments: " << getNumFreeFragments()
     << " Allocated Chunks: " << getNumAllocatedChunks()
-    << " Allocated Fragments: " << getNumAllocations() << std::endl
+    << " Allocated Fragments: " << getNumAllocations()
     << "Total Chunks: " << getNumChunks() << std::endl;
 }
 
