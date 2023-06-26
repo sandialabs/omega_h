@@ -7,6 +7,7 @@
 #include "Omega_h_pool_kokkos.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <iterator>
 #include <optional>
 
@@ -188,7 +189,7 @@ KokkosPool::KokkosPool(const KokkosPool& other) : chunkSize(other.chunkSize) {
 
 auto KokkosPool::allocate(size_t n) -> uint8_t* {
   auto current = pools.begin();
-  unsigned mostAmountOfChunks = 0;
+  size_t mostAmountOfChunks = 0;
 
   while (current != pools.end()) {
     uint8_t* ptr = current->allocate(n);
@@ -204,8 +205,7 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     current++;
   }
 
-  pools.emplace_back((mostAmountOfChunks * 2) +
-                         StaticKokkosPool::getRequiredChunks(n, chunkSize),
+  pools.emplace_back(std::max(mostAmountOfChunks * 2, StaticKokkosPool::getRequiredChunks(n, chunkSize)),
       chunkSize);
   uint8_t* ptr = pools.back().allocate(n);
   allocations[ptr] = --pools.end();
