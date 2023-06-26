@@ -171,7 +171,7 @@ void StaticKokkosPool::printDebugInfo() const {
     << " Available Fragments: " << getNumFreeFragments()
     << " Allocated Chunks: " << getNumAllocatedChunks()
     << " Allocated Fragments: " << getNumAllocations()
-    << "Total Chunks: " << getNumChunks() << std::endl;
+    << " Total Chunks: " << getNumChunks() << std::endl;
 }
 
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
@@ -286,7 +286,7 @@ KokkosPool& KokkosPool::operator=(const KokkosPool& other) {
 
 auto KokkosPool::getGlobalPool() -> KokkosPool& {
   if (!s_pool) {
-    s_pool = std::make_optional<KokkosPool>(1000, 1000);
+    s_pool = std::make_optional<KokkosPool>(4000, 1'000'000);
   }
 
   return *s_pool;
