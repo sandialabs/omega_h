@@ -292,7 +292,7 @@ KokkosPool& KokkosPool::operator=(const KokkosPool& other) {
 
 auto KokkosPool::getGlobalPool() -> KokkosPool& {
   if (!s_pool) {
-    s_pool = std::make_optional<KokkosPool>(4000, 1'000'000);
+    s_pool = std::make_optional<KokkosPool>(600'000, 1000);
   }
 
   return *s_pool;

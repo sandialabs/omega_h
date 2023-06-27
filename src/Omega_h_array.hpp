@@ -79,7 +79,7 @@ class KokkosViewManager {
 
  private:
   [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool { return (KokkosViewManager<T>::refCount.find(view_.data()) !=
-                                           KokkosViewManager<T>::refCount.end()); }
+                                           KokkosViewManager<T>::refCount.end()) && view_.size() > 0; }
 
   Kokkos::View<T*> view_;
   static std::map<T*, unsigned> refCount;
