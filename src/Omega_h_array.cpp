@@ -39,7 +39,7 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   if (is_pooling_enabled()) {
     view_ = KokkosPool::getGlobalPool().allocateView<T>(size_in);
     manager_ = KokkosViewManager<T>(view_);
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     label_ = name_in;
 #endif
   } else {
@@ -89,7 +89,7 @@ Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 std::string Write<T>::name() const {
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
   return is_pooling_enabled() ? label_ : view_.label();
 #endif
 }
