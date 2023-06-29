@@ -30,7 +30,7 @@ class KokkosViewManager {
   OMEGA_H_INLINE KokkosViewManager() : view_() {}
 
   OMEGA_H_INLINE KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (view_.size() > 0) {
       KokkosViewManager<T>::refCount[view_.data()]++;
     }
@@ -38,7 +38,7 @@ class KokkosViewManager {
   }
 
   OMEGA_H_INLINE KokkosViewManager(const KokkosViewManager& other) : view_(other.view_) {
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       KokkosViewManager<T>::refCount.at(view_.data())++;
     }
@@ -47,7 +47,7 @@ class KokkosViewManager {
 
   OMEGA_H_INLINE KokkosViewManager& operator=(const KokkosViewManager& other) {
     view_ = other.view_;
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       KokkosViewManager<T>::refCount.at(view_.data())++;
     }
@@ -56,7 +56,7 @@ class KokkosViewManager {
   }
 
   OMEGA_H_INLINE long use_count() const {
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       return KokkosViewManager<T>::refCount.at(view_.data());
     }
@@ -66,7 +66,7 @@ class KokkosViewManager {
   }
 
   OMEGA_H_INLINE ~KokkosViewManager() {
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()  && (view_.size() > 0)) {
       KokkosViewManager<T>::refCount.at(view_.data())--;
       if (KokkosViewManager<T>::refCount.at(view_.data()) == 0) {
@@ -94,7 +94,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
   KokkosViewManager<T> manager_; // reference counting
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
   std::string label_;
 #endif
 #else
