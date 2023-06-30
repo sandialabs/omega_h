@@ -43,7 +43,9 @@ auto CompareFreeIndices::operator()(size_t lhs, IndexPair rhs) const -> bool {
 }
 
 StaticKokkosPool::StaticKokkosPool(size_t numChunks, size_t bytesPerChunks)
-    : chunkSize(bytesPerChunks), pool("Memory Pool", numChunks * chunkSize) {
+    : chunkSize(bytesPerChunks), pool(Kokkos::ViewAllocateWithoutInitializing(
+                                     "StaticKokkosPool"),
+                                     numChunks * bytesPerChunks) {
   insertIntoSets({0, numChunks});
 }
 
@@ -224,6 +226,7 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
   }
 
   uint8_t* ptr = pools.back().allocate(n);
+  assert(ptr != nullptr);
   allocations[ptr] = std::prev(pools.end());
 
   return ptr;
@@ -282,7 +285,9 @@ auto KokkosPool::getGlobalPool() -> KokkosPool& {
 }
 
 auto KokkosPool::destroyGlobalPool() -> void {
-  assert(s_pool.getNumAllocations() == 0 && "Global pool is not empty.");
+  if (s_pool.getNumAllocations() != 0) {
+    std::cout << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " allocations." << std::endl;
+  }
   s_pool.pools.clear();
 }
 
