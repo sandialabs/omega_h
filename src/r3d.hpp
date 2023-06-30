@@ -970,9 +970,6 @@ R3D_INLINE void init_poly(Polytope<3>& poly, Vector<3>* vertices, Int numverts,
     // we need to create duplicate, degenerate vertices to account for more than
     // three edges per vertex. This is complicated.
 
-    Int tface = 0;
-    for (v = 0; v < numverts; ++v) tface += eperv[v];
-
     // need more variables
     Int v0, v1, v00, v11, numunclipped;
 

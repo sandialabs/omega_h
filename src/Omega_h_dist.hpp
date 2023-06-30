@@ -87,7 +87,34 @@ namespace Omega_h {
    Due to the symmetry, we use the terms "forward" and "reverse"
    to refer to roots, items, content, and communicators for the
    sent and received data, respectively.
- */
+
+   Glossary:
+   - Forward: Describes data that resides in a source rank's memory 
+           during an exchange operation(eg Packets, Items, and Contents). 
+   - Reverse: Describes data that resides in a destination rank's memory
+           during an exchange operation(eg Packets, Items, and Contents). 
+   - Graph Node: A discrete unit(eg. graph edges or vertices) 
+           that will communicate using the dist. A graph node can 
+           belong to only one rank, but ranks can contain 
+           multiple graph nodes.
+   - Roots: All graph nodes on a given MPI rank. Forward Roots are 
+           all graph nodes on the current rank.
+   - Packet: A tuple of n values of type T. A packet may have multiple 
+           destination roots, but only one source/forward root. The dist 
+           assumes the number of packets per root(both forward and reverse)
+           is bound by a small constant.
+   - Items: An intermediate data structure formed when a forward root's 
+           array of packets is expanded. Packets are duplicated such 
+           that there is one packet per source graph node(forward root). 
+   - Contents: An intermediate data structure derived by sorting the Items 
+           array by destination/reverse root such that packets destined for
+           the same root are stored contiguously.
+   
+   An in depth overview of the dist is provided in Section 4.5(Page 105) of 
+   Dr.Daniel Ibanez's Dissertation. 
+   A copy can be found at https://scorec.rpi.edu/REPORTS/2016-25.pdf 
+   For a depiction of the process, consult Figure 4.3(Page 106)
+*/
 
 class Dist {
   CommPtr parent_comm_;

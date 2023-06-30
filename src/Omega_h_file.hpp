@@ -29,6 +29,32 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 }  // namespace meshb
 #endif
 
+#ifdef OMEGA_H_USE_SIMMODSUITE
+namespace meshsim {
+/**
+ * Convert a serial Simmetrix sms mesh classified on the specified model to an
+ * Omega_h mesh instance.
+ * @param[in] mesh path to Simmetrix .sms mesh file
+ * @param[in] model path to Simmetrix GeomSim .smd model file
+ * @param[in] comm path to Omega_h communicator instance
+ */
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+          CommPtr comm);
+/**
+ * Convert a serial Simmetrix sms mesh classified on the specified model to an
+ * Omega_h mesh instance and attach a Simmetrix MeshNex vertex numbering.
+ * @param[in] mesh path to Simmetrix .sms mesh file
+ * @param[in] model path to Simmetrix GeomSim .smd model file
+ * @param[in] numbering path to Simmetrix MeshNex .nex numbering file
+ * @param[in] comm path to Omega_h communicator instance
+ */
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+          filesystem::path const& numbering, CommPtr comm);
+void matchRead(filesystem::path const& mesh_fname, filesystem::path const& model,
+               CommPtr comm, Mesh *mesh, I8 is_in);
+}  // namespace meshsim
+#endif
+
 #ifdef OMEGA_H_USE_SEACASEXODUS
 namespace exodus {
 enum ClassifyWith {
@@ -89,6 +115,7 @@ static constexpr bool dont_compress = false;
 #define OMEGA_H_DEFAULT_COMPRESS false
 #endif
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
+TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
@@ -97,6 +124,10 @@ void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
+
+void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
+
 void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
@@ -151,7 +182,7 @@ I32 read_version(filesystem::path const& path, CommPtr comm);
 void read_in_comm(
     filesystem::path const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 9;
+constexpr I32 latest_version = 10;
 
 template <typename T>
 void swap_bytes(T&);

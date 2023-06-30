@@ -29,7 +29,7 @@ class Write {
 #endif
 
  public:
-  typedef T value_type;
+  using value_type = T;
   OMEGA_H_INLINE Write()
       :
 #ifdef OMEGA_H_USE_KOKKOS
@@ -112,7 +112,7 @@ class Read {
   Write<T> write_;
 
  public:
-  typedef T value_type;
+  using value_type = T;
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value, std::string const& name = "");
@@ -153,17 +153,16 @@ using LOs = Read<LO>;
 using GOs = Read<GO>;
 using Reals = Read<Real>;
 
-
 template <typename T>
 class HostRead {
   Read<T> read_;
 #if defined(OMEGA_H_USE_KOKKOS)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::shared_ptr<T[]> mirror_;
+  std::shared_ptr<T> mirror_;
 #endif
  public:
-  typedef T value_type;
+  using value_type = T;
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
@@ -176,7 +175,7 @@ class HostRead {
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-    return mirror_[i];
+    return mirror_.get()[i];
 #else
     return read_[i];
 #endif
@@ -193,10 +192,10 @@ class HostWrite {
 #ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::shared_ptr<T[]> mirror_;
+  std::shared_ptr<T> mirror_;
 #endif
  public:
-  typedef T value_type;
+  using value_type = T;
   HostWrite() = default;
   HostWrite(LO size_in, std::string const& name = "");
   HostWrite(LO size_in, T offset, T stride, std::string const& name = "");
@@ -213,7 +212,7 @@ class HostWrite {
     return mirror_(i);
 #else
 #ifdef OMEGA_H_USE_CUDA
-    return mirror_[i];
+    return mirror_.get()[i];
 #else
     return write_[i];
 #endif

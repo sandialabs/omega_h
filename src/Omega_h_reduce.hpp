@@ -15,6 +15,7 @@
 #endif
 #include <thrust/functional.h>
 #include <thrust/transform_reduce.h>
+#include <thrust/execution_policy.h>
 #include <cuda_runtime_api.h>
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

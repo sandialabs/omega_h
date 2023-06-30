@@ -208,7 +208,7 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
 #endif
 {
 #if (!defined(OMEGA_H_USE_KOKKOS)) && defined(OMEGA_H_USE_CUDA)
-  mirror_.reset(new T[std::size_t(write_.size())]);
+  mirror_.reset(new T[std::size_t(write_.size())], std::default_delete<T[]>());
 #endif
 }
 
@@ -228,7 +228,7 @@ HostWrite<T>::HostWrite(Write<T> write_in)
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(mirror_, write_.view());
 #elif defined(OMEGA_H_USE_CUDA)
-  mirror_.reset(new T[std::size_t(write_.size())]);
+  mirror_.reset(new T[std::size_t(write_.size())], std::default_delete<T[]>());
   auto const err = cudaMemcpy(mirror_.get(), write_.data(),
       std::size_t(write_.size()) * sizeof(T), cudaMemcpyDeviceToHost);
   OMEGA_H_CHECK(err == cudaSuccess);
@@ -281,7 +281,7 @@ void HostWrite<T>::set(LO i, T value) {
 #ifdef OMEGA_H_USE_KOKKOS
   mirror_[i] = value;
 #elif defined(OMEGA_H_USE_CUDA)
-  mirror_[std::size_t(i)] = value;
+  mirror_.get()[std::size_t(i)] = value;
 #else
   write_[i] = value;
 #endif
@@ -292,7 +292,7 @@ T HostWrite<T>::get(LO i) const {
 #ifdef OMEGA_H_USE_KOKKOS
   return mirror_[i];
 #elif defined(OMEGA_H_USE_CUDA)
-  return mirror_[std::size_t(i)];
+  return mirror_.get()[std::size_t(i)];
 #else
   return write_[i];
 #endif
@@ -307,7 +307,7 @@ HostRead<T>::HostRead(Read<T> read) : read_(read) {
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
   mirror_ = h_view;
 #elif defined(OMEGA_H_USE_CUDA)
-  mirror_.reset(new T[std::size_t(read_.size())]);
+  mirror_.reset(new T[std::size_t(read_.size())], std::default_delete<T[]>());
   auto const err = cudaMemcpy(mirror_.get(), read_.data(),
       std::size_t(size()) * sizeof(T), cudaMemcpyDeviceToHost);
   OMEGA_H_CHECK(err == cudaSuccess);

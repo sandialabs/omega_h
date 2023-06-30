@@ -11,21 +11,23 @@ namespace Omega_h {
 
 void unmap_tags(
     Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents) {
+  ScopedChangeRCFieldsToMesh rc_to_mesh(*old_mesh);
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
-    if (is<I8>(tag)) {
-      new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, as<I8>(tag)->array(), tag->ncomps()));
-    } else if (is<I32>(tag)) {
-      new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, as<I32>(tag)->array(), tag->ncomps()));
-    } else if (is<I64>(tag)) {
-      new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, as<I64>(tag)->array(), tag->ncomps()));
-    } else if (is<Real>(tag)) {
-      new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, as<Real>(tag)->array(), tag->ncomps()));
-    }
+    const auto name = tag->name();
+    const auto ncomps = tag->ncomps();
+    const auto class_ids = tag->class_ids();
+    apply_to_omega_h_types(tag->type(), [&](auto t){ 
+        using T = decltype(t);
+        Read<T> array = unmap(new_ents2old_ents, as<T>(tag)->array(), ncomps);
+        if(is_rc_tag(name) && rc_to_mesh.did_conversion() ) {
+          new_mesh->set_rc_from_mesh_array(ent_dim,ncomps,class_ids,name,array);
+        }
+        else {
+        // FIXME missing class_ids from rc tag
+        new_mesh->add_tag<T>(ent_dim, name, ncomps, array);
+        }
+    });
   }
 }
 

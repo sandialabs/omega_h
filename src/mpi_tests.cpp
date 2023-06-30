@@ -59,25 +59,56 @@ static void test_two_ranks_dist(CommPtr comm) {
   /* partition is {0,1,2}{3,4},
      global reversal to
                   {4,3,2}{1,0} */
+  //Configure the directed graph that the dist will use in the exchange
+  //Note: The graph below each function represents the Dist graph after that call
   if (comm->rank() == 0) {
     dist.set_dest_ranks(Read<I32>({1, 1, 0}));
+    /*Forward Roots: {0, 1, 2}
+     *                │  │╔═╝
+     *                ╰──┴╫──╮
+     *               ╔════╝  │
+     *Destination: Rank 0  Rank 1
+     */
     dist.set_dest_idxs(LOs({1, 0, 2}), 3);
+    /*Forward Roots:      {0, 1, 2}
+     *                     │╔═╪══╝
+     *                     ╰╫─╂─────╮
+     *                      ║ ┗━━┓  │
+     *Reverse Roots: {_, _, _}  {_, _}
+     */ 
   } else {
     dist.set_dest_ranks(Read<I32>({0, 0}));
+    /*Forward Roots:   {3, 4}
+     *                  ├──╯
+     *                  │
+     *               ╭──╯
+     *Destination: Rank 0  Rank 1
+     */ 
     dist.set_dest_idxs(LOs({1, 0}), 2);
+    /*Forward Roots:       {3, 4}
+     *                   ╭──╯  ║
+     *                ╔══╪═════╝
+     *Reverse Roots: {_, _, _}  {_, _}
+     */ 
   }
   Reals a;
+  //Populate the packets for this rank
   if (comm->rank() == 0) {
     a = Reals({0., 1., 2.});
   } else {
     a = Reals({3., 4.});
   }
+  //Exchange data using the dist, and check that a global reversal occured
   auto b = dist.exch(a, 1);
   if (comm->rank() == 0) {
     OMEGA_H_CHECK(b == Reals({4., 3., 2.}));
   } else {
     OMEGA_H_CHECK(b == Reals({1., 0.}));
   }
+  /* Invert the Dist graph, swapping the forward and reverse relationship of
+   * graph nodes. Then perform an exchange, effectively reversing the earlier
+   * exchange operation
+   */
   auto c = dist.invert().exch(b, 1);
   OMEGA_H_CHECK(c == a);
 }

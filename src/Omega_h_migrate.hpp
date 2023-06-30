@@ -11,6 +11,8 @@ class Mesh;
 /* create arrays mapping uses of (low_dim) entities by
    (high_dim) entities to their (low_dim) owners */
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
+/* When mesh has matched owners, use this to get topological owners */
+Remotes form_down_use_owners_matched(Mesh* mesh, Int high_dim, Int low_dim);
 
 /* Given a parallel map (Dist) from
    (new local copies of uses of low entities by high entities)
@@ -42,11 +44,14 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents, Adj& new_ents2new_lows,
     Dist& old_low_owners2new_lows);
 
-void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
+void push_tags(Mesh *old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents);
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode);
+
+void migrate_matches(Mesh * mesh, Mesh* new_mesh, Int const d,
+    Dist const* old_owners2new_ents);
 
 void migrate_mesh(
     Mesh* mesh, Dist new_elems2old_owners, Omega_h_Parting mode, bool verbose);

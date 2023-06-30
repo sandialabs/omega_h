@@ -53,6 +53,41 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   opts.egads_model = geom;
 #endif
+
+  auto vtx_rc = mesh.ask_revClass(0);
+  auto vert_rc_ids = (mesh.ask_revClass(0)).ab2b;
+  auto nbvert = vert_rc_ids.size();
+  OMEGA_H_CHECK (nbvert < mesh.nverts());
+  auto edge_rc_ids = (mesh.ask_revClass(1)).ab2b;
+  auto nbedge = edge_rc_ids.size();
+  auto face_rc = mesh.ask_revClass(2);
+  auto face_a2abSize = face_rc.a2ab.size();
+  OMEGA_H_CHECK(face_a2abSize);
+  auto face_rc_ids = (mesh.ask_revClass(2)).ab2b;
+  auto nbface = face_rc_ids.size();
+  auto reg_rc_ids = (mesh.ask_revClass(3)).ab2b;
+  auto nbreg = reg_rc_ids.size();
+
+  mesh.add_rcField<Omega_h::LO>(0, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsr_v(nbvert, 100);
+  mesh.set_rcField_array(0, "field", Omega_h::Read<Omega_h::LO>(valsr_v));
+  Omega_h::Write<Omega_h::Real> vals_real(nbvert, 50.2523232);
+  mesh.add_rcField<Omega_h::Real>(0, "field1", 1, Omega_h::Read<Omega_h::Real>(vals_real));
+  mesh.add_rcField<Omega_h::LO>(1, "field", 1);
+  Omega_h::Write<Omega_h::LO> vals(nbedge, 100);
+  Omega_h::Read<Omega_h::LO> vals_r(vals);
+  mesh.set_rcField_array(1, "field", vals_r);
+  mesh.add_rcField<Omega_h::LO>(2, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsf(nbface, 12);
+  mesh.set_rcField_array(2, "field", Omega_h::Read<Omega_h::LO>(valsf));
+  mesh.add_rcField<Omega_h::LO>(3, "field", 1);
+  Omega_h::Write<Omega_h::LO> valsr(nbreg, 100);
+  Omega_h::Read<Omega_h::LO> valsr_r(valsr);
+  mesh.set_rcField_array(3, "field", valsr_r);
+
+  add_rcField_transferMap(&opts, "field", OMEGA_H_INHERIT);
+  add_rcField_transferMap(&opts, "field1", OMEGA_H_LINEAR_INTERP);
+
   opts.verbosity = Omega_h::EXTRA_STATS;
   while (Omega_h::approach_metric(&mesh, opts)) {
     Omega_h::adapt(&mesh, opts);

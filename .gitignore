@@ -8,3 +8,6 @@ cmake_install.cmake
 /out/build/x64-Debug
 /CMakeSettings.json
 /out/build/x64-Release
+*cache*
+*orig*
+compile_commands.json
