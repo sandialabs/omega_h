@@ -40,7 +40,6 @@ using SetByIndexT = std::set<IndexPair>;
 class StaticKokkosPool {
  public:
   StaticKokkosPool(size_t numChunks, size_t bytesPerChunk);
-  StaticKokkosPool(StaticKokkosPool const& other);
 
   auto allocate(size_t n) -> uint8_t*;
   void deallocate(uint8_t* data);
@@ -75,8 +74,7 @@ class StaticKokkosPool {
  */
 class KokkosPool {
  public:
-  explicit KokkosPool(size_t initialChunks, size_t bytesPerChunks);
-  explicit KokkosPool(const KokkosPool& other);
+  explicit KokkosPool(size_t bytesPerChunks);
 
   auto allocate(size_t n) -> uint8_t*;
   void deallocate(uint8_t* data);
@@ -98,8 +96,6 @@ class KokkosPool {
   auto getNumChunks() const -> unsigned;
   auto getNumFreeFragments() const -> unsigned;
   auto getChunkSize() const -> size_t;
-
-  KokkosPool& operator=(const KokkosPool& other);
 
   static auto getGlobalPool() -> KokkosPool&;
   static auto destroyGlobalPool() -> void;

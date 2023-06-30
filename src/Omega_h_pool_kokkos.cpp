@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace {
-std::optional<Omega_h::KokkosPool> s_pool;
+Omega_h::KokkosPool s_pool { 1000 };
 }
 
 namespace Omega_h {
@@ -45,11 +45,6 @@ auto CompareFreeIndices::operator()(size_t lhs, IndexPair rhs) const -> bool {
 StaticKokkosPool::StaticKokkosPool(size_t numChunks, size_t bytesPerChunks)
     : chunkSize(bytesPerChunks), pool("Memory Pool", numChunks * chunkSize) {
   insertIntoSets({0, numChunks});
-}
-
-StaticKokkosPool::StaticKokkosPool(StaticKokkosPool const& other)
-    : chunkSize(other.chunkSize), pool("Memory Pool", other.pool.size()) {
-  insertIntoSets({0, other.getNumChunks()});
 }
 
 auto StaticKokkosPool::insertIntoSets(IndexPair indices)
@@ -187,16 +182,7 @@ auto KokkosPool::getNumFreeFragments() const -> unsigned {
   return numFreeFragments;
 }
 
-KokkosPool::KokkosPool(size_t initialChunks, size_t bytesPerChunk)
-    : chunkSize(bytesPerChunk) {
-  pools.emplace_back(initialChunks, chunkSize);
-}
-
-KokkosPool::KokkosPool(const KokkosPool& other) : chunkSize(other.chunkSize) {
-  for (const auto& pool : other.pools) {
-    pools.emplace_back(pool);
-  }
-}
+KokkosPool::KokkosPool(size_t bytesPerChunks) : chunkSize(bytesPerChunks) {}
 
 auto KokkosPool::allocate(size_t n) -> uint8_t* {
   auto current = pools.begin();
@@ -287,22 +273,17 @@ auto KokkosPool::getNumChunks() const -> unsigned {
   return numChunks;
 }
 
-KokkosPool& KokkosPool::operator=(const KokkosPool& other) {
-  chunkSize = other.chunkSize;
-  pools.clear();
-  for (const auto& pool : other.pools) {
-    pools.emplace_back(pool);
-  }
-  return *this;
-}
-
 auto KokkosPool::getGlobalPool() -> KokkosPool& {
-  if (!s_pool) {
-    s_pool = std::make_optional<KokkosPool>(600'000, 1000);
+  if (s_pool.getNumChunks() == 0) {
+    s_pool.pools.emplace_back(700'000, s_pool.chunkSize);
   }
 
-  return *s_pool;
+  return s_pool;
 }
-auto KokkosPool::destroyGlobalPool() -> void { s_pool.reset(); }
+
+auto KokkosPool::destroyGlobalPool() -> void {
+  assert(s_pool.getNumAllocations() == 0 && "Global pool is not empty.");
+  s_pool.pools.clear();
+}
 
 }  // namespace Omega_h

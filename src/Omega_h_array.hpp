@@ -31,16 +31,17 @@ class KokkosViewManager {
 
   OMEGA_H_INLINE KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    if (view_.size() > 0 || view_.data() != nullptr) {
-      KokkosViewManager<T>::refCount[view_.data()]++;
-    }
+//    if (view_.size() > 0 || view_.data() != nullptr) {
+      assert(KokkosViewManager<T>::refCount.find(view_.data()) == KokkosViewManager<T>::refCount.end());
+      KokkosViewManager<T>::refCount[view_.data()] = 1;
+//    }
 #endif
   }
 
   OMEGA_H_INLINE KokkosViewManager(const Kokkos::View<T*>& view) : view_(view) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
-      KokkosViewManager<T>::refCount[view_.data()]++;
+      KokkosViewManager<T>::refCount.at(view_.data())++;
     }
 #endif
   }
@@ -77,7 +78,8 @@ class KokkosViewManager {
 
   OMEGA_H_INLINE ~KokkosViewManager() {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    if (isReferenceCounted()) {
+    if (isReferenceCounted() && view_.data() != nullptr) {
+      assert(KokkosViewManager<T>::refCount.at(view_.data()) > 0);
       KokkosViewManager<T>::refCount.at(view_.data())--;
       if (KokkosViewManager<T>::refCount.at(view_.data()) == 0) {
         KokkosPool::getGlobalPool().deallocateView<T>(view_);
@@ -89,8 +91,8 @@ class KokkosViewManager {
 
  private:
   [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
-    return (KokkosViewManager<T>::refCount.find(view_.data()) !=KokkosViewManager<T>::refCount.end()) &&
-           (view_.size() > 0 || view_.data() != nullptr);
+    return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()); // &&
+//           (view_.size() > 0 || view_.data() != nullptr);
   }
 
   Kokkos::View<T*> view_;
