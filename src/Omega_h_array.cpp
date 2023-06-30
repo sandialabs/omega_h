@@ -28,7 +28,11 @@ T* nonnull(T* p) {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
+Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {
+  if (is_pooling_enabled()) {
+    manager_ = KokkosViewManager<T>(view_);
+  }
+}
 #endif
 
 template <typename T>
@@ -37,8 +41,8 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   OMEGA_H_CHECK(size_in >= 0);
 #ifdef OMEGA_H_USE_KOKKOS
   if (is_pooling_enabled()) {
-    view_ = KokkosPool::getGlobalPool().allocateView<T>(size_in);
-    manager_ = KokkosViewManager<T>(view_);
+    manager_ = KokkosViewManager<T>(size_in);
+    view_ = manager_.getView();
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     label_ = name_in;
 #endif

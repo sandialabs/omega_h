@@ -74,6 +74,7 @@ auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
 
   // Find the smallest sequence of chunks that can hold numElements
   size_t requestedChunks = getRequiredChunks(n, chunkSize);
+  requestedChunks = std::max(requestedChunks, static_cast<size_t>(1));
 
   auto freeSetItr = freeSetBySize.lower_bound(requestedChunks);
   if (freeSetItr == freeSetBySize.end()) {
@@ -237,13 +238,18 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
   }
 
   uint8_t* ptr = pools.back().allocate(n);
-  allocations[ptr] = --pools.end();
+  allocations[ptr] = std::prev(pools.end());
 
   return ptr;
 }
 
 void KokkosPool::deallocate(uint8_t* data) {
-  allocations.at(data)->deallocate(data);
+  try {
+    allocations.at(data)->deallocate(data);
+  } catch (const std::out_of_range& e) {
+    std::cout << "Attempted to deallocate data that was not allocated by this pool." << std::endl;
+    throw;
+  }
   allocations.erase(data);
 }
 
