@@ -1,0 +1,39 @@
+name: CMake test matrix
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  build:
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE
+           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+           -DCMAKE_VERBOSE_MAKEFILE=on
+           -DOmega_h_USE_MPI=off
+           -DOmega_h_USE_CUDA=off
+           -DBUILD_TESTING=ON
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build .
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest

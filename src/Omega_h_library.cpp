@@ -67,7 +67,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     std::string msg_str = msg.str();
     Omega_h::fail("%s\n", msg_str.c_str());
   }
-  if (argc && argv) {
+  if(argc) {
     for (int ic = 0; ic < *argc; ic++) {
       argv_.push_back((*argv)[ic]);
     }
@@ -141,9 +141,12 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   silent_ = cmdline.parsed("--osh-silent");
 #ifdef OMEGA_H_USE_KOKKOS
   if (!Kokkos::is_initialized()) {
-    OMEGA_H_CHECK(argc != nullptr);
-    OMEGA_H_CHECK(argv != nullptr);
-    Kokkos::initialize(*argc, *argv);
+    if(argv != nullptr && argc != nullptr) {
+      Kokkos::initialize(*argc, *argv);
+    }
+    else {
+      Kokkos::initialize();
+    }
     we_called_kokkos_init = true;
   } else {
     we_called_kokkos_init = false;

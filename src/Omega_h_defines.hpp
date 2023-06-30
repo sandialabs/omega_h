@@ -1,9 +1,10 @@
 #ifndef OMEGA_H_DEFINES_HPP
 #define OMEGA_H_DEFINES_HPP
 
-#include <cstdint>
-
 #include <Omega_h_macros.h>
+
+#include <cstdint>
+#include <type_traits>
 
 enum Omega_h_Type {
   OMEGA_H_I8 = 0,
@@ -66,7 +67,7 @@ enum Omega_h_Scales {
   OMEGA_H_SCALES,
 };
 
-enum Omega_h_Family { OMEGA_H_SIMPLEX, OMEGA_H_HYPERCUBE };
+enum Omega_h_Family { OMEGA_H_SIMPLEX, OMEGA_H_HYPERCUBE, OMEGA_H_MIXED };
 
 namespace Omega_h {
 
@@ -80,6 +81,32 @@ typedef I32 LO;
 typedef I32 ClassId;
 typedef I64 GO;
 typedef double Real;
+
+template <typename F>
+auto apply_to_omega_h_types(Omega_h_Type type, const F&& f) {
+  switch (type) {
+    case OMEGA_H_I8: {
+      return f(I8{});
+      break;
+    }
+    case OMEGA_H_I32: {
+      return f(I32{});
+      break;
+    }
+    case OMEGA_H_I64: {
+      return f(I64{});
+      break;
+    }
+    case OMEGA_H_F64: {
+      return f(Real{});
+      break;
+    }
+  }
+  // if the lambda f returns something return a dummy type to
+  // quash the compiler warning
+  using dummy_type = typename std::result_of_t<decltype(f)(I8)>;
+  return static_cast<dummy_type>(nullptr);
+}
 
 static constexpr Real PI = OMEGA_H_PI;
 static constexpr Real EPSILON = OMEGA_H_EPSILON;
@@ -96,6 +123,21 @@ enum : Int {
   REGION = OMEGA_H_REGION
 };
 
+enum { OMEGA_H_INTERIOR_VAL = 127 };
+
+enum { TOPO_TYPES = 8 };
+
 }  // end namespace Omega_h
+
+enum class Topo_type : int {
+  vertex,
+  edge,
+  triangle,
+  quadrilateral,
+  tetrahedron,
+  hexahedron,
+  wedge,
+  pyramid
+};
 
 #endif

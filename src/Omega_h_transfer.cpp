@@ -9,6 +9,7 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 
+#include <iostream>
 namespace Omega_h {
 
 bool is_transfer_required(
@@ -338,8 +339,8 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
-    if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL &&
-        tagbase->ncomps() == 1) {
+    if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL
+         && tagbase->ncomps() == 1) {
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);

@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     classify_with = Omega_h::exodus::NODE_SETS | Omega_h::exodus::SIDE_SETS;
   }
   Omega_h::Mesh mesh(&lib);
+  mesh.set_comm(comm);
   if (comm->size() == 1) {
     auto exodus_file = Omega_h::exodus::open(inpath, verbose);
     Omega_h::exodus::read_mesh(exodus_file, &mesh, verbose, classify_with);

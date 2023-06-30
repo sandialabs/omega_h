@@ -861,18 +861,18 @@ ExprOp::~ExprOp() {}
 struct ConstOp final : public ExprOp {
   double value;
   OpPtr rhs;
-  virtual ~ConstOp() override final = default;
+  virtual ~ConstOp() override = default;
   ConstOp(double value_in) : value(value_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override ;
 };
 any ConstOp::eval(ExprEnv&) { return value; }
 
 struct SemicolonOp final : public ExprOp {
   OpPtr lhs;
   OpPtr rhs;
-  virtual ~SemicolonOp() override final = default;
+  virtual ~SemicolonOp() override = default;
   SemicolonOp(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any SemicolonOp::eval(ExprEnv& env) {
   lhs->eval(env);  // LHS result ignored
@@ -882,10 +882,10 @@ any SemicolonOp::eval(ExprEnv& env) {
 struct AssignOp final : public ExprOp {
   std::string name;
   OpPtr rhs;
-  virtual ~AssignOp() override final = default;
+  virtual ~AssignOp() override = default;
   AssignOp(std::string const& name_in, OpPtr rhs_in)
       : name(name_in), rhs(rhs_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any AssignOp::eval(ExprEnv& env) {
   env.variables[name] = rhs->eval(env);
@@ -894,9 +894,9 @@ any AssignOp::eval(ExprEnv& env) {
 
 struct VarOp final : public ExprOp {
   std::string name;
-  virtual ~VarOp() override final = default;
+  virtual ~VarOp() override = default;
   VarOp(std::string const& name_in) : name(name_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any VarOp::eval(ExprEnv& env) {
   auto it = env.variables.find(name);
@@ -910,9 +910,9 @@ any VarOp::eval(ExprEnv& env) {
 
 struct NegOp final : public ExprOp {
   OpPtr rhs;
-  virtual ~NegOp() override final = default;
+  virtual ~NegOp() override = default;
   NegOp(OpPtr rhs_in) : rhs(rhs_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any NegOp::eval(ExprEnv& env) { return neg(env.dim, rhs->eval(env)); }
 
@@ -920,10 +920,10 @@ struct TernaryOp final : public ExprOp {
   OpPtr cond;
   OpPtr lhs;
   OpPtr rhs;
-  virtual ~TernaryOp() override final = default;
+  virtual ~TernaryOp() override = default;
   TernaryOp(OpPtr cond_in, OpPtr lhs_in, OpPtr rhs_in)
       : cond(cond_in), lhs(lhs_in), rhs(rhs_in) {}
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any TernaryOp::eval(ExprEnv& env) {
   auto lhs_val = lhs->eval(env);
@@ -936,7 +936,7 @@ struct CallOp final : public ExprOp {
   std::string name;
   std::vector<OpPtr> rhs;
   ExprEnv::Args args;
-  virtual ~CallOp() override final = default;
+  virtual ~CallOp() override = default;
   CallOp(std::string const& name_in, ExprEnv::Args const& args_in)
       : name(name_in) {
     for (auto& arg : args_in) {
@@ -945,7 +945,7 @@ struct CallOp final : public ExprOp {
     }
     args.reserve(rhs.size());
   }
-  virtual any eval(ExprEnv& env) override final;
+  virtual any eval(ExprEnv& env) override;
 };
 any CallOp::eval(ExprEnv& env) {
   args.resize(rhs.size());
@@ -977,9 +977,9 @@ any CallOp::eval(ExprEnv& env) {
   struct ClassName final : public ExprOp {                                     \
     OpPtr lhs;                                                                 \
     OpPtr rhs;                                                                 \
-    virtual ~ClassName() override final = default;                             \
+    virtual ~ClassName() override = default;                             \
     ClassName(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}        \
-    virtual any eval(ExprEnv& env) override final;                             \
+    virtual any eval(ExprEnv& env) override;                             \
   };                                                                           \
   any ClassName::eval(ExprEnv& env) {                                          \
     auto lhs_val = lhs->eval(env);                                             \

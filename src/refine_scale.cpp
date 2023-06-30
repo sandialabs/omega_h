@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
   Omega_h::CmdLine cmdline;
   cmdline.add_arg<std::string>("input.osh");
   cmdline.add_arg<double>("desired-num-elements");
-  cmdline.add_arg<std::string>("output.osh");
+  cmdline.add_arg<std::string>("output.vtk");
   auto const world = lib.world();
   if (!cmdline.parse_final(world, &argc, argv)) {
     return -1;
@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
   auto const world_rank = world->rank();
   auto const inpath = cmdline.get<std::string>("input.osh");
   auto const desired_nelems = cmdline.get<double>("desired-num-elements");
-  auto const outpath = cmdline.get<std::string>("output.osh");
+  auto const outpath = cmdline.get<std::string>("output.vtk");
   auto const desired_nelems_per_rank = desired_nelems / world_size;
   Omega_h::Mesh mesh(&lib);
   for (int shift = 0; (1 << shift) <= world_size; ++shift) {
@@ -51,6 +51,26 @@ int main(int argc, char** argv) {
           std::cout << "element count " << nelems << " >= target "
                     << desired_group_nelems << ", will not adapt\n";
       }
+
+      auto vert_rc_ids = (mesh.ask_revClass(0)).ab2b;
+      auto nbvert = vert_rc_ids.size();
+      auto edge_rc_ids = (mesh.ask_revClass(1)).ab2b;
+      auto nbedge = edge_rc_ids.size();
+      auto face_rc_ids = (mesh.ask_revClass(2)).ab2b;
+      auto nbface = face_rc_ids.size();
+      auto reg_rc_ids = (mesh.ask_revClass(3)).ab2b;
+      auto nbreg = reg_rc_ids.size();
+
+      Omega_h::Write<Omega_h::Real> vals_v (nbvert, 100);
+      Omega_h::Write<Omega_h::Real> vals_e (nbedge, 100);
+      Omega_h::Write<Omega_h::Real> vals_f (nbface, 100);
+      Omega_h::Write<Omega_h::Real> vals_r (nbreg, 100);
+      mesh.add_rcField<Omega_h::Real> (0, "field", 1, Omega_h::Reals(vals_v));
+      mesh.add_rcField<Omega_h::Real> (1, "field", 1, Omega_h::Reals(vals_e));
+      mesh.add_rcField<Omega_h::Real> (2, "field", 1, Omega_h::Reals(vals_f));
+      mesh.add_rcField<Omega_h::Real> (3, "field", 1, Omega_h::Reals(vals_r));
+      add_rcField_transferMap (&opts, "field", OMEGA_H_INHERIT);
+
       while (double(nelems) < desired_group_nelems) {
         if (world_rank == 0)
           std::cout << "element count " << nelems << " < target "
@@ -79,5 +99,8 @@ int main(int argc, char** argv) {
     }
     world->barrier();
   }
+  Omega_h::vtk::FullWriter writer;
+  writer = Omega_h::vtk::FullWriter(outpath, &mesh);
+  writer.write();
   return 0;
 }

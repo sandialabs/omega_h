@@ -62,6 +62,7 @@ set(Omega_h_SOURCES
   Omega_h_math_lang.cpp
   Omega_h_matrix.cpp
   Omega_h_mesh.cpp
+  Omega_h_rcFields.cpp
   Omega_h_metric.cpp
   Omega_h_metric_input.cpp
   Omega_h_migrate.cpp
@@ -152,6 +153,21 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
+  #Is there a better way? I assume CMAKE_MODULE_PATH was purposely not set in
+  # the top level CMakeLists.txt
+  set(OLD_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+  find_package(SimModSuite MODULE REQUIRED)
+  set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_matchMeshsim.cpp)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Omega_h_simConfig.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_simConfig.h")
+endif()
+
 if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
@@ -194,18 +210,18 @@ if(Omega_h_USE_EGADS)
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  target_include_directories(omega_h PUBLIC "${SIMMODSUITE_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${SIMMODSUITE_LIBS}")
+endif()
+
+
 bob_link_dependency(omega_h PUBLIC SEACASExodus)
 
 bob_link_dependency(omega_h PUBLIC ZLIB)
 
 if (Omega_h_USE_MPI)
   target_link_libraries(omega_h PUBLIC MPI::MPI_CXX)
-# # FIXME for Windows
-# target_link_libraries(omega_h 
-#   PUBLIC 
-#     MPI::MPI_CXX 
-#     $<$<NOT:$<PLATFORM_ID:Windows>>:${CMAKE_DL_LIBS}>
-#  )
 endif()
 
 if (Omega_h_USE_dwarf)
@@ -278,6 +294,10 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(osh2exo)
   osh_add_util(osh_class_morph)
 endif()
+if(Omega_h_USE_SimModSuite)
+  osh_add_util(meshsim2osh)
+  osh_add_util(matchMeshsim2osh)
+endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
 osh_add_util(ascii_vtk2osh)
@@ -342,14 +362,61 @@ if(BUILD_TESTING)
   endif()
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_basefunc(run_unit_math 1 ./unit_math)
-  osh_add_exe(unit_array_algs)
-  set(TEST_EXES ${TEST_EXES} unit_array_algs)
-  test_basefunc(run_unit_array_algs 1 ./unit_array_algs)
-  set(TEST_EXES ${TEST_EXES} unit_array_algs)
+
+  if(Omega_h_USE_SimModSuite)
+    set(d3dMesh ${CMAKE_SOURCE_DIR}/meshes/d3d)
+    test_func(run_tri_convert 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh.osh)
+    #osh_diff requires a 'global' tag, the osh_reorder utility creates the tag
+    # and was used to generate the tag on the known-to-be-correct ('gold') mesh
+    #see #40 for additional discussion
+    test_func(run_tri_convert_reorder 1 ./osh_reorder
+      ${d3dMesh}/d3d-coreMesh.osh
+      ${d3dMesh}/d3d-coreMesh-reordered.osh)
+    test_func(diff_tri_convert 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-gold.osh
+      ${d3dMesh}/d3d-coreMesh-reordered.osh)
+    test_func(run_tri_convert_numbering 1 ./meshsim2osh
+      ${d3dMesh}/d3d-coreMesh.sms
+      ${d3dMesh}/d3d.smd
+      ${d3dMesh}/d3d-coreMesh-numbered.osh
+      -numbering ${d3dMesh}/d3d-coreMesh.nex)
+    test_func(run_tri_convert_numbering_reorder 1 ./osh_reorder
+      ${d3dMesh}/d3d-coreMesh-numbered.osh
+      ${d3dMesh}/d3d-coreMesh-numbered-reordered.osh)
+    test_func(diff_tri_convert_numbering 1 ./oshdiff
+      ${d3dMesh}/d3d-coreMesh-numbered-gold.osh
+      ${d3dMesh}/d3d-coreMesh-numbered-reordered.osh)
+
+    osh_add_exe(mixed_writeMesh)
+    set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
+    test_func(run_mixed_writeMesh 1 ./mixed_writeMesh
+              ${CMAKE_SOURCE_DIR}/meshes)
+
+    osh_add_exe(mixed_test)
+    set(TEST_EXES ${TEST_EXES} mixed_test)
+    test_func(run_mixed_test 1 ./mixed_test
+      ${CMAKE_SOURCE_DIR}/meshes)
+
+    osh_add_exe(periodic_test)
+    set(TEST_EXES ${TEST_EXES} periodic_test)
+    test_func(periodic_test 2 ./periodic_test 
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem.sms
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_match.smd
+      ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem_sync_2.osh 2)
+  endif()
+
   test_basefunc(run_arrayops 1 ./arrayops_test)
   set(TEST_EXES ${TEST_EXES} reprosum_test)
   test_basefunc(run_reprosum 1 ./reprosum_test)
-
+  osh_add_exe(unit_array_algs)
+  set(TEST_EXES ${TEST_EXES} unit_array_algs)
+  test_basefunc(run_unit_array_algs 1 ./unit_array_algs)
+  osh_add_exe(migrate_test)
+  set(TEST_EXES ${TEST_EXES} migrate_test)
+  test_func(run_migrate_test 2 ./migrate_test)
   osh_add_exe(unit_mesh)
   set(TEST_EXES ${TEST_EXES} unit_mesh)
   test_func(run_unit_mesh 1 ./unit_mesh)
@@ -464,7 +531,33 @@ if(BUILD_TESTING)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
-
+  osh_add_exe(reverse_class_test)
+  test_func(reverse_class_test 1 ./reverse_class_test 
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
+  osh_add_exe(rc_field_test)
+  set(TEST_EXES ${TEST_EXES} rc_field_test)
+  test_func(rc_field_test 1 ./rc_field_test
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh
+    ${CMAKE_SOURCE_DIR}/meshes/box3d_adapt.vtk
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.vtu
+    ${CMAKE_SOURCE_DIR}/meshes/plate_6elem_bField.osh)
+  if(Omega_h_USE_MPI)
+    osh_add_exe(reverse_class_testp)
+    set(TEST_EXES ${TEST_EXES} reverse_class_testp)
+    test_func(reverse_class_testp 2 ./reverse_class_testp 
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
+    osh_add_exe(rc_field_testp)
+    set(TEST_EXES ${TEST_EXES} rc_field_testp)
+    test_func(rc_field_testp 2 ./rc_field_testp
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_sync.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p_reduce.vtk
+      ${CMAKE_SOURCE_DIR}/meshes/box3d_2p_adapt.vtk)
+  endif()
   osh_add_exe(shape_test)
   test_basefunc(run_shape_test 1 ./shape_test)
 endif()
@@ -481,6 +574,7 @@ set(Omega_h_HEADERS
   Omega_h_array.hpp
   Omega_h_array_ops.hpp
   Omega_h_assoc.hpp
+  Omega_h_atomics.hpp
   Omega_h_base64.hpp
   Omega_h_bbox.hpp
   Omega_h_box.hpp

@@ -16,6 +16,7 @@
 #error "included fail but check not defined"
 #endif
 
+
 namespace Omega_h {
 
 static_assert(sizeof(int) == 4, "Omega_h::Comm assumes 32-bit int");

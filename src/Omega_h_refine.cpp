@@ -76,12 +76,14 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
     transfer_refine(mesh, opts.xfer_opts, &new_mesh, keys2edges, keys2midverts,
         ent_dim, keys2prods, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
+
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
 }
 
 static bool refine(Mesh* mesh, AdaptOpts const& opts) {
+
   mesh->set_parting(OMEGA_H_GHOSTED);
   if (!refine_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);

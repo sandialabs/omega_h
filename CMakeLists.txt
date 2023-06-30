@@ -1,7 +1,6 @@
-cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
+cmake_minimum_required(VERSION 3.18.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.34.13 LANGUAGES CXX)
-
+project(Omega_h VERSION 10.5.0 LANGUAGES CXX)
 set(Omega_h_USE_STK_DEFAULT OFF)
 option(Omega_h_USE_STK "Whether to build the STK interface" ${Omega_h_USE_STK_DEFAULT})
 
@@ -15,9 +14,13 @@ endif()
 include(cmake/bob.cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+set(CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH}
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 bob_begin_package()
 
-bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
+bob_option(Omega_h_CHECK_BOUNDS "Check array bounds when running on host (makes code slow too)" OFF)
 bob_option(Omega_h_THROW "Errors throw exceptions instead of abort" ${USE_XSDK_DEFAULTS})
 bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
@@ -25,6 +28,7 @@ bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
 bob_option(Omega_h_USE_Kokkos "Use Kokkos as a backend" OFF)
 bob_input(Kokkos_PREFIX "" PATH "Path to Kokkos install")
 bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
+bob_option(Omega_h_USE_SimModSuite "Enable reading Simmetrix MeshSim meshes" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
@@ -54,6 +58,9 @@ bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
 set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
 bob_add_dependency(PUBLIC NAME Kokkos TARGETS Kokkos::kokkos)
+if (Omega_h_USE_Kokkos)
+  set_target_properties(Kokkos::kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+endif()
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
@@ -74,6 +81,7 @@ set(Omega_h_USE_Gmodel_DEFAULT OFF)
 bob_add_dependency(PRIVATE NAME Gmodel TARGETS gmodel)
 
 set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
+set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_add_dependency(PUBLIC NAME SEACASExodus TARGETS SEACASExodus::all_libs)
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
@@ -99,6 +107,11 @@ if(Omega_h_USE_Kokkos)
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
+  message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
+endif()
+bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
+bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
 if (Omega_h_USE_CUDA)
   enable_language(CUDA)
@@ -107,6 +120,11 @@ if (Omega_h_USE_CUDA)
       AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.3)
     message(FATAL_ERROR "CUDA 11.2 does not support Omega_h, "
       "use an older or newer version")
+  endif()
+  #check for bad combos
+  if(Omega_h_CHECK_BOUNDS)
+    message(FATAL_ERROR "Bounds checking is only supported on the host, "
+      "disable CUDA/Kokkos+CUDA or bounds checking")
   endif()
 endif()
 
@@ -128,6 +146,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
+    Omega_h_USE_SimModSuite
     Omega_h_USE_DOLFIN
     Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS
