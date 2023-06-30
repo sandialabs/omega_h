@@ -8,7 +8,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_profile.hpp"
 
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
 #include "Omega_h_for.hpp"
 #include "Omega_h_library.hpp"
 #endif
@@ -397,7 +397,7 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #endif
 }
 
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
 
 template <typename T>
 Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
@@ -482,7 +482,7 @@ Future<T> Comm::ialltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
   ScopedTimer timer("Comm::ialltoallv");
 #ifdef OMEGA_H_USE_MPI
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
       &sdispls_dev, &rdispls_dev, width, library_->self_send_threshold());
 #endif
@@ -490,7 +490,7 @@ Future<T> Comm::ialltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   HostRead<LO> rdispls(rdispls_dev);
   OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last() * width);
   int nrecvd = rdispls.last() * width;
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
   HostWrite<T> recvbuf(nrecvd);
   HostRead<T> sendbuf(sendbuf_dev);
   OMEGA_H_CHECK(recvbuf.size() == rdispls.last() * width);
@@ -504,7 +504,7 @@ Future<T> Comm::ialltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     return recvbuf_dev;
   };
   return {sendbuf, recvbuf, std::move(reqs), callback};
-#else   // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#else
   Write<T> recvbuf_dev_w(nrecvd);
   OMEGA_H_CHECK(recvbuf_dev_w.size() == rdispls.last() * width);
   auto reqs = Neighbor_ialltoallv(host_srcs_, host_dsts_, width,
@@ -513,7 +513,7 @@ Future<T> Comm::ialltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
       nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_,
       sendbuf_dev.size(), recvbuf_dev_w.size());
   return {sendbuf_dev, recvbuf_dev_w, std::move(reqs)};
-#endif  // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#endif
 #else   // !defined(OMEGA_H_USE_MPI)
   (void)sdispls_dev;
   (void)rdispls_dev;
@@ -527,7 +527,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
   ScopedTimer timer("Comm::alltoallv");
 #ifdef OMEGA_H_USE_MPI
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
       &sdispls_dev, &rdispls_dev, width, library_->self_send_threshold());
 #endif
@@ -535,7 +535,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   HostRead<LO> rdispls(rdispls_dev);
   OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last() * width);
   int nrecvd = rdispls.last() * width;
-#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#if OMEGA_H_MPI_NEEDS_HOST_COPY
   HostWrite<T> recvbuf(nrecvd);
   HostRead<T> sendbuf(sendbuf_dev);
   OMEGA_H_CHECK(recvbuf.size() == rdispls.last() * width);
@@ -546,7 +546,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   CALL(MPI_Waitall(reqs.size(), reqs.data(), MPI_STATUSES_IGNORE));
   auto recvbuf_dev = Read<T>(recvbuf.write());
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev, width);
-#else   // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#else
   Write<T> recvbuf_dev_w(nrecvd);
   OMEGA_H_CHECK(recvbuf_dev_w.size() == rdispls.last() * width);
   auto reqs = Neighbor_ialltoallv(host_srcs_, host_dsts_, width,
@@ -556,7 +556,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
       sendbuf_dev.size(), recvbuf_dev_w.size());
   CALL(MPI_Waitall(static_cast<int>(reqs.size()), reqs.data(), MPI_STATUSES_IGNORE));
   Read<T> recvbuf_dev = recvbuf_dev_w;
-#endif  // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#endif
 #else   // !defined(OMEGA_H_USE_MPI)
   (void)sdispls_dev;
   (void)rdispls_dev;
