@@ -38,40 +38,54 @@ class KokkosViewManager {
 
   OMEGA_H_INLINE KokkosViewManager(const KokkosViewManager& other) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+      decrementRefCount();
+
       if (other.isReferenceCounted()) {
         view_ = other.view_;
-        KokkosViewManager<T>::refCount.at(other.view_.data())++;
+        KokkosViewManager<T>::refCount.at(view_.data())++;
+      } else {
+        view_ = Kokkos::View<T*>();
       }
 #endif
   }
 
-  OMEGA_H_INLINE KokkosViewManager(KokkosViewManager&& other) {
+  OMEGA_H_INLINE KokkosViewManager(KokkosViewManager&& other)  noexcept {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+      decrementRefCount();
+
       if (other.isReferenceCounted()) {
         view_ = other.view_;
+        KokkosViewManager<T>::refCount.at(view_.data())++;
+      } else {
+        view_ = Kokkos::View<T*>();
       }
-
-      other.view_ = Kokkos::View<T*>();
 #endif
   }
 
-  OMEGA_H_INLINE KokkosViewManager& operator=(const KokkosViewManager& other) {
+  OMEGA_H_INLINE auto operator=(const KokkosViewManager& other) -> KokkosViewManager& {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    decrementRefCount();
+
     if (other.isReferenceCounted()) {
         view_ = other.view_;
-        KokkosViewManager<T>::refCount.at(other.view_.data())++;
+        KokkosViewManager<T>::refCount.at(view_.data())++;
+    } else {
+        view_ = Kokkos::View<T*>();
     }
 #endif
     return *this;
   }
 
-  OMEGA_H_INLINE KokkosViewManager& operator=(KokkosViewManager&& other) {
+  OMEGA_H_INLINE auto operator=(KokkosViewManager&& other)  noexcept -> KokkosViewManager& {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    decrementRefCount();
+
     if (other.isReferenceCounted()) {
         view_ = other.view_;
+        KokkosViewManager<T>::refCount.at(view_.data())++;
+    } else {
+        view_ = Kokkos::View<T*>();
     }
-
-    other.view_ = Kokkos::View<T*>();
 #endif
     return *this;
   }
@@ -89,8 +103,18 @@ class KokkosViewManager {
   const Kokkos::View<T*>& getView() const { return view_; }
 
   OMEGA_H_INLINE ~KokkosViewManager() {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    decrementRefCount();
+  }
 
+ private:
+  [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
+    return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()) &&
+           (KokkosViewManager<T>::refCount.at(view_.data()) > 0) &&
+           (view_.data() != nullptr);
+  }
+
+  void decrementRefCount() {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (!isReferenceCounted()) return ;
 
     KokkosViewManager<T>::refCount.at(view_.data())--;
@@ -99,13 +123,6 @@ class KokkosViewManager {
     KokkosPool::getGlobalPool().deallocateView<T>(view_);
     KokkosViewManager<T>::refCount.erase(view_.data());
 #endif
-  }
-
- private:
-  [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
-    return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()) &&
-//           (KokkosViewManager<T>::refCount.at(view_.data()) > 0) &&
-           (view_.data() != nullptr);
   }
 
   Kokkos::View<T*> view_;
