@@ -29,7 +29,7 @@ class KokkosViewManager {
  public:
   OMEGA_H_INLINE KokkosViewManager() = default;
 
-  OMEGA_H_INLINE KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
+  OMEGA_H_INLINE explicit KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       assert(!isReferenceCounted());
       KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
@@ -90,7 +90,7 @@ class KokkosViewManager {
     return *this;
   }
 
-  OMEGA_H_INLINE long use_count() const {
+  OMEGA_H_INLINE auto use_count() const -> long {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       return KokkosViewManager<T>::refCount.at(view_.data());
@@ -100,7 +100,7 @@ class KokkosViewManager {
     return 0;
   }
 
-  const Kokkos::View<T*>& getView() const { return view_; }
+  [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& { return view_; }
 
   OMEGA_H_INLINE ~KokkosViewManager() {
     decrementRefCount();
