@@ -40,11 +40,10 @@ class KokkosViewManager {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       decrementRefCount();
 
+      view_ = other.view_;
+
       if (other.isReferenceCounted()) {
-        view_ = other.view_;
         KokkosViewManager<T>::refCount.at(view_.data())++;
-      } else {
-        view_ = Kokkos::View<T*>();
       }
 #endif
   }
@@ -53,11 +52,10 @@ class KokkosViewManager {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       decrementRefCount();
 
+      view_ = other.view_;
+
       if (other.isReferenceCounted()) {
-        view_ = other.view_;
         KokkosViewManager<T>::refCount.at(view_.data())++;
-      } else {
-        view_ = Kokkos::View<T*>();
       }
 #endif
   }
@@ -66,11 +64,10 @@ class KokkosViewManager {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     decrementRefCount();
 
+    view_ = other.view_;
+
     if (other.isReferenceCounted()) {
-        view_ = other.view_;
         KokkosViewManager<T>::refCount.at(view_.data())++;
-    } else {
-        view_ = Kokkos::View<T*>();
     }
 #endif
     return *this;
@@ -80,11 +77,10 @@ class KokkosViewManager {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     decrementRefCount();
 
+    view_ = other.view_;
+
     if (other.isReferenceCounted()) {
-        view_ = other.view_;
         KokkosViewManager<T>::refCount.at(view_.data())++;
-    } else {
-        view_ = Kokkos::View<T*>();
     }
 #endif
     return *this;
