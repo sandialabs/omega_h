@@ -8,7 +8,6 @@
 #include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
-#include <Omega_h_malloc.hpp>
 #include <Omega_h_pool_kokkos.hpp>
 #else
 #include <Omega_h_shared_alloc.hpp>
@@ -27,9 +26,11 @@ class HostWrite;
 template <typename T>
 class KokkosViewManager {
  public:
-  KokkosViewManager() = default;
+  OMEGA_H_INLINE KokkosViewManager() = default;
 
-  explicit KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
+  explicit OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
+      : view_(KokkosPool::getGlobalPool().allocateView<T>(n))
+      , label_(name_in) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       assert(!isReferenceCounted());
       KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
@@ -41,6 +42,7 @@ class KokkosViewManager {
       decrementRefCount();
 
       view_ = other.view_;
+      label_ = other.label_;
 
       if (other.isReferenceCounted()) {
         KokkosViewManager<T>::refCount.at(view_.data())++;
@@ -53,6 +55,7 @@ class KokkosViewManager {
       decrementRefCount();
 
       view_ = other.view_;
+      label_ = other.label_;
 
       if (other.isReferenceCounted()) {
         KokkosViewManager<T>::refCount.at(view_.data())++;
@@ -65,6 +68,7 @@ class KokkosViewManager {
     decrementRefCount();
 
     view_ = other.view_;
+    label_ = other.label_;
 
     if (other.isReferenceCounted()) {
         KokkosViewManager<T>::refCount.at(view_.data())++;
@@ -78,6 +82,7 @@ class KokkosViewManager {
     decrementRefCount();
 
     view_ = other.view_;
+    label_ = other.label_;
 
     if (other.isReferenceCounted()) {
         KokkosViewManager<T>::refCount.at(view_.data())++;
@@ -86,30 +91,37 @@ class KokkosViewManager {
     return *this;
   }
 
-  auto use_count() const -> long {
+  [[nodiscard]] auto use_count() const -> long {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       return KokkosViewManager<T>::refCount.at(view_.data());
     }
 #endif
-
     return 0;
+  }
+
+  auto label() const -> std::string {
+    return label_;
   }
 
   [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& { return view_; }
 
-  ~KokkosViewManager() {
+  OMEGA_H_INLINE ~KokkosViewManager() {
     decrementRefCount();
   }
 
- private:
   [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()) &&
            (KokkosViewManager<T>::refCount.at(view_.data()) > 0) &&
            (view_.data() != nullptr);
+#else
+    return false;
+#endif
   }
+private:
 
-  void decrementRefCount() {
+  OMEGA_H_INLINE void decrementRefCount() {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (!isReferenceCounted()) return ;
 
@@ -122,6 +134,7 @@ class KokkosViewManager {
   }
 
   Kokkos::View<T*> view_;
+  std::string label_;
   static std::map<T*, unsigned> refCount;
 };
 
@@ -133,10 +146,7 @@ template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
   KokkosViewManager<T> manager_; // reference counting
-  std::string label_;
-#endif
 #else
   SharedAlloc shared_alloc_;
 #endif
