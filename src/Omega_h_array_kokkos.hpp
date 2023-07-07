@@ -34,8 +34,10 @@ OMEGA_H_INLINE T* Write<T>::data() const noexcept {
 
 template <typename T>
 OMEGA_H_INLINE long Write<T>::use_count() const {
-#if !defined(__HIP__)
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     return is_pooling_enabled() ? manager_.use_count() : view_.use_count();
+#else
+    return  view_.use_count();
 #endif
 }
 

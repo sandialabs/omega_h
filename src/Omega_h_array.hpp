@@ -27,16 +27,16 @@ class HostWrite;
 template <typename T>
 class KokkosViewManager {
  public:
-  OMEGA_H_INLINE KokkosViewManager() = default;
+  KokkosViewManager() = default;
 
-  OMEGA_H_INLINE explicit KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
+  explicit KokkosViewManager(size_t n) : view_(KokkosPool::getGlobalPool().allocateView<T>(n)) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       assert(!isReferenceCounted());
       KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
 #endif
   }
 
-  OMEGA_H_INLINE KokkosViewManager(const KokkosViewManager& other) {
+  KokkosViewManager(const KokkosViewManager& other) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       decrementRefCount();
 
@@ -48,7 +48,7 @@ class KokkosViewManager {
 #endif
   }
 
-  OMEGA_H_INLINE KokkosViewManager(KokkosViewManager&& other)  noexcept {
+  KokkosViewManager(KokkosViewManager&& other)  noexcept {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       decrementRefCount();
 
@@ -60,7 +60,7 @@ class KokkosViewManager {
 #endif
   }
 
-  OMEGA_H_INLINE auto operator=(const KokkosViewManager& other) -> KokkosViewManager& {
+  auto operator=(const KokkosViewManager& other) -> KokkosViewManager& {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     decrementRefCount();
 
@@ -73,7 +73,7 @@ class KokkosViewManager {
     return *this;
   }
 
-  OMEGA_H_INLINE auto operator=(KokkosViewManager&& other)  noexcept -> KokkosViewManager& {
+  auto operator=(KokkosViewManager&& other)  noexcept -> KokkosViewManager& {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     decrementRefCount();
 
@@ -86,7 +86,7 @@ class KokkosViewManager {
     return *this;
   }
 
-  OMEGA_H_INLINE auto use_count() const -> long {
+  auto use_count() const -> long {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     if (isReferenceCounted()) {
       return KokkosViewManager<T>::refCount.at(view_.data());
@@ -98,7 +98,7 @@ class KokkosViewManager {
 
   [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& { return view_; }
 
-  OMEGA_H_INLINE ~KokkosViewManager() {
+  ~KokkosViewManager() {
     decrementRefCount();
   }
 
@@ -133,8 +133,8 @@ template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
-  KokkosViewManager<T> manager_; // reference counting
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+  KokkosViewManager<T> manager_; // reference counting
   std::string label_;
 #endif
 #else
