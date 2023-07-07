@@ -28,15 +28,15 @@ class KokkosViewManager {
  public:
   OMEGA_H_INLINE KokkosViewManager() = default;
 
-  explicit OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
+  OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
       : view_(KokkosPool::getGlobalPool().allocateView<T>(n))
       , label_(name_in) {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-      assert(!isReferenceCounted());
-      KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
-#endif
+// #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+//      assert(!isReferenceCounted());
+//      KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
+// #endif
   }
-
+/*
   KokkosViewManager(const KokkosViewManager& other) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
       decrementRefCount();
@@ -99,7 +99,7 @@ class KokkosViewManager {
 #endif
     return 0;
   }
-
+*/
   auto label() const -> std::string {
     return label_;
   }
@@ -107,9 +107,10 @@ class KokkosViewManager {
   [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& { return view_; }
 
   OMEGA_H_INLINE ~KokkosViewManager() {
-    decrementRefCount();
+//    decrementRefCount();
+    KokkosPool::getGlobalPool().deallocateView<T>(view_);
   }
-
+/*
   [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
     return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()) &&
@@ -133,20 +134,21 @@ private:
 #endif
   }
 
+  */
   Kokkos::View<T*> view_;
   std::string label_;
-  static std::map<T*, unsigned> refCount;
+  // static std::map<T*, unsigned> refCount;
 };
 
-template <typename T>
-std::map<T*, unsigned> KokkosViewManager<T>::refCount;
+// template <typename T>
+// std::map<T*, unsigned> KokkosViewManager<T>::refCount;
 #endif
 
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_; //is compatible with subview?
-  KokkosViewManager<T> manager_; // reference counting
+  std::shared_ptr<KokkosViewManager<T>> manager_; // reference counting
 #else
   SharedAlloc shared_alloc_;
 #endif

@@ -42,8 +42,8 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
 #ifdef OMEGA_H_USE_KOKKOS
   if (is_pooling_enabled()) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    manager_ = KokkosViewManager<T>(size_in, name_in);
-    view_ = manager_.getView();
+    manager_ = std::make_shared<KokkosViewManager<T>>(size_in, name_in);
+    view_ = manager_->getView();
 #endif
   } else {
     view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
@@ -92,9 +92,11 @@ Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 std::string Write<T>::name() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-  return manager_.isReferenceCounted() ? manager_.label() : view_.label();
-#endif
+// #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+  return manager_ ? manager_->label() : view_.label();
+//#else
+//  return view_.label();
+// #endif
 }
 #else
 template <typename T>
