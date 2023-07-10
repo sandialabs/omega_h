@@ -34,7 +34,7 @@ OMEGA_H_INLINE T* Write<T>::data() const noexcept {
 
 template <typename T>
 OMEGA_H_INLINE long Write<T>::use_count() const {
-// #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+// #if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return manager_ ? manager_.use_count() : view_.use_count();
 // #else
 //    return  view_.use_count();

@@ -30,7 +30,7 @@ class SharedRef {
 
   template <typename... Args>
   explicit OMEGA_H_INLINE SharedRef(Args&&... args)
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
       : ptr_(new T(std::forward<Args>(args)...)) {
     auto [itr, inserted] = refCount_.insert(std::make_pair(ptr_, 1));
     assert(inserted);
@@ -40,7 +40,7 @@ class SharedRef {
 #endif
 
   OMEGA_H_INLINE SharedRef(const SharedRef& other) {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (*this) {
       decrementRefCount();
     }
@@ -58,7 +58,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE SharedRef(SharedRef&& other) noexcept {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (*this) {
       decrementRefCount();
     }
@@ -76,7 +76,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE SharedRef& operator=(const SharedRef& other) {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (*this) {
       decrementRefCount();
     }
@@ -96,7 +96,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE SharedRef& operator=(SharedRef&& other) noexcept {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (*this) {
       decrementRefCount();
     }
@@ -116,7 +116,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE T* get() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return ptr_;
 #else
     return nullptr;
@@ -124,7 +124,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE T* operator->() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return ptr_;
 #else
     return nullptr;
@@ -132,7 +132,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE T& operator*() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return *ptr_;
 #else
     return nullptr;
@@ -140,7 +140,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE ~SharedRef() {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (*this) {
       decrementRefCount();
     }
@@ -148,7 +148,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE explicit operator bool() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return ptr_ != nullptr && (refCount_.find(ptr_) != refCount_.end());
 #else
     return false;
@@ -156,7 +156,7 @@ class SharedRef {
   }
 
   OMEGA_H_INLINE int use_count() const {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     return *this ? refCount_.find(ptr_)->second : 0;
 #else
     return 0;
@@ -165,7 +165,7 @@ class SharedRef {
 
  private:
   void decrementRefCount() {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     if (!*this) {
       return;
     }

@@ -41,7 +41,7 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   OMEGA_H_CHECK(size_in >= 0);
 #ifdef OMEGA_H_USE_KOKKOS
   if (is_pooling_enabled()) {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     manager_ = SharedRef<KokkosViewManager<T>>(size_in, name_in);
     view_ = manager_->getView();
 #endif
