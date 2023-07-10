@@ -36,7 +36,7 @@ class SharedRef {
     assert(inserted);
   }
 #else
-      = default;
+  {}
 #endif
 
   OMEGA_H_INLINE SharedRef(const SharedRef& other) {
