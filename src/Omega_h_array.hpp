@@ -24,133 +24,202 @@ class HostWrite;
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-class KokkosViewManager {
+class SharedRef {
  public:
-  OMEGA_H_INLINE KokkosViewManager() = default;
+  SharedRef() = default;
 
-  OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
-      : view_(KokkosPool::getGlobalPool().allocateView<T>(n))
-      , label_(name_in) {
-// #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-//      assert(!isReferenceCounted());
-//      KokkosViewManager<T>::refCount.insert(std::make_pair(view_.data(), 1));
-// #endif
-  }
-/*
-  KokkosViewManager(const KokkosViewManager& other) {
+  template <typename... Args>
+  explicit OMEGA_H_INLINE SharedRef(Args&&... args)
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-      decrementRefCount();
-
-      view_ = other.view_;
-      label_ = other.label_;
-
-      if (other.isReferenceCounted()) {
-        KokkosViewManager<T>::refCount.at(view_.data())++;
-      }
+      : ptr_(new T(std::forward<Args>(args)...)) {
+    auto [itr, inserted] = refCount_.insert(std::make_pair(ptr_, 1));
+    assert(inserted);
+  }
+#else
+      = default;
 #endif
-  }
 
-  KokkosViewManager(KokkosViewManager&& other)  noexcept {
+  OMEGA_H_INLINE SharedRef(const SharedRef& other) {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    if (*this) {
       decrementRefCount();
-
-      view_ = other.view_;
-      label_ = other.label_;
-
-      if (other.isReferenceCounted()) {
-        KokkosViewManager<T>::refCount.at(view_.data())++;
-      }
-#endif
-  }
-
-  auto operator=(const KokkosViewManager& other) -> KokkosViewManager& {
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    decrementRefCount();
-
-    view_ = other.view_;
-    label_ = other.label_;
-
-    if (other.isReferenceCounted()) {
-        KokkosViewManager<T>::refCount.at(view_.data())++;
     }
+
+    if (!other) {
+      ptr_ = nullptr;
+      return;
+    }
+
+    ptr_ = other.ptr_;
+    auto itr = refCount_.find(ptr_);
+    assert(itr != refCount_.end());
+    itr->second++;
+#endif
+  }
+
+  OMEGA_H_INLINE SharedRef(SharedRef&& other) noexcept {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    if (*this) {
+      decrementRefCount();
+    }
+
+    if (!other) {
+      ptr_ = nullptr;
+      return;
+    }
+
+    ptr_ = other.ptr_;
+    auto itr = refCount_.find(ptr_);
+    assert(itr != refCount_.end());
+    itr->second++;
+#endif
+  }
+
+  OMEGA_H_INLINE SharedRef& operator=(const SharedRef& other) {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    if (*this) {
+      decrementRefCount();
+    }
+
+    if (!other) {
+      ptr_ = nullptr;
+      return *this;
+    }
+
+    ptr_ = other.ptr_;
+    auto itr = refCount_.find(ptr_);
+    assert(itr != refCount_.end());
+    itr->second++;
+
 #endif
     return *this;
   }
 
-  auto operator=(KokkosViewManager&& other)  noexcept -> KokkosViewManager& {
+  OMEGA_H_INLINE SharedRef& operator=(SharedRef&& other) noexcept {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    decrementRefCount();
-
-    view_ = other.view_;
-    label_ = other.label_;
-
-    if (other.isReferenceCounted()) {
-        KokkosViewManager<T>::refCount.at(view_.data())++;
+    if (*this) {
+      decrementRefCount();
     }
+
+    if (!other) {
+      ptr_ = nullptr;
+      return *this;
+    }
+
+    ptr_ = other.ptr_;
+    auto itr = refCount_.find(ptr_);
+    assert(itr != refCount_.end());
+    itr->second++;
+
 #endif
     return *this;
   }
 
-  [[nodiscard]] auto use_count() const -> long {
+  OMEGA_H_INLINE T* get() const {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    if (isReferenceCounted()) {
-      return KokkosViewManager<T>::refCount.at(view_.data());
+    return ptr_;
+#else
+    return nullptr;
+#endif
+  }
+
+  OMEGA_H_INLINE T* operator->() const {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    return ptr_;
+#else
+    return nullptr;
+#endif
+  }
+
+  OMEGA_H_INLINE T& operator*() const {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    return *ptr_;
+#else
+    return nullptr;
+#endif
+  }
+
+  OMEGA_H_INLINE ~SharedRef() {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    if (*this) {
+      decrementRefCount();
     }
 #endif
-    return 0;
-  }
-*/
-  auto label() const -> std::string {
-    return label_;
   }
 
-  [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& { return view_; }
-
-  OMEGA_H_INLINE ~KokkosViewManager() {
-//    decrementRefCount();
-    KokkosPool::getGlobalPool().deallocateView<T>(view_);
-  }
-/*
-  [[nodiscard]] OMEGA_H_INLINE auto isReferenceCounted() const -> bool {
+  OMEGA_H_INLINE explicit operator bool() const {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    return (KokkosViewManager<T>::refCount.find(view_.data()) != KokkosViewManager<T>::refCount.end()) &&
-           (KokkosViewManager<T>::refCount.at(view_.data()) > 0) &&
-           (view_.data() != nullptr);
+    return ptr_ != nullptr && (refCount_.find(ptr_) != refCount_.end());
 #else
     return false;
 #endif
   }
-private:
 
-  OMEGA_H_INLINE void decrementRefCount() {
+  OMEGA_H_INLINE int use_count() const {
 #if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-    if (!isReferenceCounted()) return ;
-
-    KokkosViewManager<T>::refCount.at(view_.data())--;
-    if (KokkosViewManager<T>::refCount.at(view_.data()) > 0) return ;
-
-    KokkosPool::getGlobalPool().deallocateView<T>(view_);
-    KokkosViewManager<T>::refCount.erase(view_.data());
+    return *this ? refCount_.find(ptr_)->second : 0;
+#else
+    return 0;
 #endif
   }
 
-  */
-  Kokkos::View<T*> view_;
-  std::string label_;
-  // static std::map<T*, unsigned> refCount;
+ private:
+  void decrementRefCount() {
+#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
+    if (!*this) {
+      return;
+    }
+
+    auto itr = refCount_.find(ptr_);
+    assert(itr != refCount_.end());
+    itr->second--;
+    if (itr->second == 0) {
+      refCount_.erase(itr);
+      delete ptr_;
+    }
+#endif
+  }
+
+  T* ptr_ = nullptr;
+
+  static std::map<T*, int> refCount_;
 };
 
-// template <typename T>
-// std::map<T*, unsigned> KokkosViewManager<T>::refCount;
+template <typename T>
+std::map<T*, int> SharedRef<T>::refCount_;
+
+template <typename T>
+class KokkosViewManager {
+ public:
+  OMEGA_H_INLINE KokkosViewManager() = delete;
+
+  OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
+      : view_(KokkosPool::getGlobalPool().allocateView<T>(n)),
+        label_(name_in) {}
+
+  [[nodiscard]] auto label() const -> std::string { return label_; }
+
+  [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& {
+    return view_;
+  }
+
+  OMEGA_H_INLINE ~KokkosViewManager() {
+    KokkosPool::getGlobalPool().deallocateView<T>(view_);
+  }
+
+  Kokkos::View<T*> view_;
+  std::string label_;
+};
+
 #endif
 
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<T*> view_; //is compatible with subview?
-  std::shared_ptr<KokkosViewManager<T>> manager_; // reference counting
+  Kokkos::View<T*> view_;                    // is compatible with subview?
+  SharedRef<KokkosViewManager<T>> manager_;  // reference counting
 #else
-  SharedAlloc shared_alloc_;
+      SharedAlloc shared_alloc_;
 #endif
 
  public:
@@ -177,7 +246,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   std::string name() const;
 #else
-  std::string const& name() const;
+      std::string const& name() const;
 #endif
   OMEGA_H_INLINE T* begin() const noexcept { return data(); }
   OMEGA_H_INLINE T* end() const OMEGA_H_NOEXCEPT { return data() + size(); }
@@ -229,14 +298,13 @@ using LOs = Read<LO>;
 using GOs = Read<GO>;
 using Reals = Read<Real>;
 
-
 template <typename T>
 class HostRead {
   Read<T> read_;
 #if defined(OMEGA_H_USE_KOKKOS)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::shared_ptr<T[]> mirror_;
+      std::shared_ptr<T[]> mirror_;
 #endif
  public:
   typedef T value_type;
@@ -255,7 +323,7 @@ class HostWrite {
 #ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::shared_ptr<T[]> mirror_;
+      std::shared_ptr<T[]> mirror_;
 #endif
  public:
   typedef T value_type;
