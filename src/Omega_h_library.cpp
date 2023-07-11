@@ -210,6 +210,7 @@ Library::~Library() {
   disable_pooling();
 #ifdef OMEGA_H_USE_KOKKOS
   if (we_called_kokkos_init) {
+    KokkosPool::destroyGlobalPool();
     Kokkos::finalize();
     we_called_kokkos_init = false;
   }
