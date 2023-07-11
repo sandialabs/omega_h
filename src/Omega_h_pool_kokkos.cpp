@@ -196,7 +196,7 @@ auto KokkosPool::allocate(size_t n) -> void* {
   }
 
   size_t requestedChunks = StaticKokkosPool::getRequiredChunks(n, chunkSize);
-  size_t amortizedChunkSize = std::max(mostAmountOfChunks * 2, requestedChunks);
+  size_t amortizedChunkSize = std::max(mostAmountOfChunks * DEFAULT_GROWTH_CONSTANT, requestedChunks);
 
   try {
     pools.emplace_back(amortizedChunkSize, chunkSize);
@@ -264,10 +264,10 @@ auto KokkosPool::getNumChunks() const -> unsigned {
 }
 
 auto KokkosPool::getGlobalPool() -> KokkosPool& {
-  static Omega_h::KokkosPool s_pool { 1000 };
+  static Omega_h::KokkosPool s_pool { DEFAULT_BYTES_PER_CHUNK };
 
   if (s_pool.getNumChunks() == 0) {
-    s_pool.pools.emplace_back(700'000, s_pool.chunkSize);
+    s_pool.pools.emplace_back(DEFAULT_NUMBER_OF_CHUNKS, s_pool.chunkSize);
   }
 
   return s_pool;
@@ -277,7 +277,7 @@ auto KokkosPool::destroyGlobalPool() -> void {
   auto& s_pool = getGlobalPool();
 
   if (s_pool.getNumAllocations() != 0) {
-    std::cerr << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " allocations." << std::endl;
+    std::cerr << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " outstanding allocations." << std::endl;
   }
 
   s_pool.pools.clear();

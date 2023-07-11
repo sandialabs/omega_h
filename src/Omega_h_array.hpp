@@ -4,8 +4,6 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
 #include <initializer_list>
-#include <map>
-#include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_pool_kokkos.hpp>
@@ -50,7 +48,7 @@ class KokkosViewWrapper {
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<T*> view_;                    // is compatible with subview?
+  Kokkos::View<T*> view_;
   SharedRef<KokkosViewWrapper<T>> manager_;  // reference counting
 #else
       SharedAlloc shared_alloc_;

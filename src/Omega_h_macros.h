@@ -90,7 +90,7 @@
 #define OMEGA_H_DLL
 #endif
 
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__) && !defined(__SYCL_DEVICE_ONLY__)
 #define OMEGA_H_COMPILING_FOR_HOST
 #endif
 

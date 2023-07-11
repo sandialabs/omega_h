@@ -17,6 +17,14 @@
 
 namespace Omega_h {
 
+constexpr size_t DEFAULT_BYTES_PER_CHUNK = 1000;
+
+// Total initial size in bytes will subsequently be DEFAULT_NUMBER_OF_CHUNKS * DEFAULT_BYTES_PER_CHUNK
+constexpr size_t DEFAULT_NUMBER_OF_CHUNKS = 700'000;
+
+// If the largest StaticKokkosPool is 2Kb, then the next StaticKokkosPool will be at least 4kB resulting in a total pool size of 2Kb + 4Kb = 6Kb
+constexpr size_t DEFAULT_GROWTH_CONSTANT = 2;
+
 using IndexPair = std::pair<size_t, size_t>;
 
 class CompareFreeIndices {

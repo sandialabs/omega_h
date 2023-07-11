@@ -28,11 +28,7 @@ T* nonnull(T* p) {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {
-//  if (is_pooling_enabled()) {
-//    manager_ = KokkosViewWrapper<T>(view_);
-//  }
-}
+Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) { }
 #endif
 
 template <typename T>
