@@ -27,9 +27,7 @@ class HostWrite;
 template <typename T>
 class KokkosViewWrapper {
  public:
-  OMEGA_H_INLINE KokkosViewWrapper() = delete;
-
-  OMEGA_H_INLINE KokkosViewWrapper(size_t n, const std::string& name_in)
+  KokkosViewWrapper(size_t n, const std::string& name_in)
       : view_(KokkosPool::getGlobalPool().allocateView<T>(n)),
         label_(name_in) {}
 
@@ -39,7 +37,7 @@ class KokkosViewWrapper {
     return view_;
   }
 
-  OMEGA_H_INLINE ~KokkosViewWrapper() {
+  ~KokkosViewWrapper() {
     KokkosPool::getGlobalPool().deallocateView<T>(view_);
   }
 

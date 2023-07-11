@@ -11,7 +11,7 @@ class SharedRef {
   SharedRef() = default;
 
   template <typename... Args>
-  explicit OMEGA_H_INLINE SharedRef(Args&&... args)
+  explicit SharedRef(Args&&... args)
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
       : ptr_(new T(std::forward<Args>(args)...)) {
     auto [itr, inserted] = refCount_.insert(std::make_pair(ptr_, 1));
@@ -22,7 +22,7 @@ class SharedRef {
   }
 #endif
 
-  OMEGA_H_INLINE SharedRef(const SharedRef& other) {
+  SharedRef(const SharedRef& other) {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
@@ -40,7 +40,7 @@ class SharedRef {
 #endif
   }
 
-  OMEGA_H_INLINE SharedRef(SharedRef&& other) noexcept {
+  SharedRef(SharedRef&& other) noexcept {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
@@ -58,7 +58,7 @@ class SharedRef {
 #endif
   }
 
-  OMEGA_H_INLINE SharedRef& operator=(const SharedRef& other) {
+  SharedRef& operator=(const SharedRef& other) {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
@@ -78,7 +78,7 @@ class SharedRef {
     return *this;
   }
 
-  OMEGA_H_INLINE SharedRef& operator=(SharedRef&& other) noexcept {
+  SharedRef& operator=(SharedRef&& other) noexcept {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
@@ -122,7 +122,7 @@ class SharedRef {
 #endif
   }
 
-  OMEGA_H_INLINE ~SharedRef() {
+  ~SharedRef() {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
