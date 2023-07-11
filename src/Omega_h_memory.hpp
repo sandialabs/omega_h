@@ -22,7 +22,7 @@ class SharedRef {
   }
 #endif
 
-  SharedRef(const SharedRef& other) {
+  OMEGA_H_INLINE SharedRef(const SharedRef& other) {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
@@ -122,7 +122,7 @@ class SharedRef {
 #endif
   }
 
-  ~SharedRef() {
+  OMEGA_H_INLINE ~SharedRef() {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
