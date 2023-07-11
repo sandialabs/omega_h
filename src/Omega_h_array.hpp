@@ -9,6 +9,7 @@
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_pool_kokkos.hpp>
+#include <Omega_h_memory.hpp>
 #else
 #include <Omega_h_shared_alloc.hpp>
 #include <string>
@@ -24,176 +25,11 @@ class HostWrite;
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-class SharedRef {
+class KokkosViewWrapper {
  public:
-  SharedRef() = default;
+  OMEGA_H_INLINE KokkosViewWrapper() = delete;
 
-  template <typename... Args>
-  explicit OMEGA_H_INLINE SharedRef(Args&&... args)
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-      : ptr_(new T(std::forward<Args>(args)...)) {
-    auto [itr, inserted] = refCount_.insert(std::make_pair(ptr_, 1));
-    assert(inserted);
-  }
-#else
-  {}
-#endif
-
-  OMEGA_H_INLINE SharedRef(const SharedRef& other) {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (*this) {
-      decrementRefCount();
-    }
-
-    if (!other) {
-      ptr_ = nullptr;
-      return;
-    }
-
-    ptr_ = other.ptr_;
-    auto itr = refCount_.find(ptr_);
-    assert(itr != refCount_.end());
-    itr->second++;
-#endif
-  }
-
-  OMEGA_H_INLINE SharedRef(SharedRef&& other) noexcept {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (*this) {
-      decrementRefCount();
-    }
-
-    if (!other) {
-      ptr_ = nullptr;
-      return;
-    }
-
-    ptr_ = other.ptr_;
-    auto itr = refCount_.find(ptr_);
-    assert(itr != refCount_.end());
-    itr->second++;
-#endif
-  }
-
-  OMEGA_H_INLINE SharedRef& operator=(const SharedRef& other) {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (*this) {
-      decrementRefCount();
-    }
-
-    if (!other) {
-      ptr_ = nullptr;
-      return *this;
-    }
-
-    ptr_ = other.ptr_;
-    auto itr = refCount_.find(ptr_);
-    assert(itr != refCount_.end());
-    itr->second++;
-
-#endif
-    return *this;
-  }
-
-  OMEGA_H_INLINE SharedRef& operator=(SharedRef&& other) noexcept {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (*this) {
-      decrementRefCount();
-    }
-
-    if (!other) {
-      ptr_ = nullptr;
-      return *this;
-    }
-
-    ptr_ = other.ptr_;
-    auto itr = refCount_.find(ptr_);
-    assert(itr != refCount_.end());
-    itr->second++;
-
-#endif
-    return *this;
-  }
-
-  OMEGA_H_INLINE T* get() const {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    return ptr_;
-#else
-    return nullptr;
-#endif
-  }
-
-  OMEGA_H_INLINE T* operator->() const {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    return ptr_;
-#else
-    return nullptr;
-#endif
-  }
-
-  OMEGA_H_INLINE T& operator*() const {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    return *ptr_;
-#else
-    return nullptr;
-#endif
-  }
-
-  OMEGA_H_INLINE ~SharedRef() {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (*this) {
-      decrementRefCount();
-    }
-#endif
-  }
-
-  OMEGA_H_INLINE explicit operator bool() const {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    return ptr_ != nullptr && (refCount_.find(ptr_) != refCount_.end());
-#else
-    return false;
-#endif
-  }
-
-  OMEGA_H_INLINE int use_count() const {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    return *this ? refCount_.find(ptr_)->second : 0;
-#else
-    return 0;
-#endif
-  }
-
- private:
-  void decrementRefCount() {
-#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    if (!*this) {
-      return;
-    }
-
-    auto itr = refCount_.find(ptr_);
-    assert(itr != refCount_.end());
-    itr->second--;
-    if (itr->second == 0) {
-      refCount_.erase(itr);
-      delete ptr_;
-    }
-#endif
-  }
-
-  T* ptr_ = nullptr;
-
-  static std::map<T*, int> refCount_;
-};
-
-template <typename T>
-std::map<T*, int> SharedRef<T>::refCount_;
-
-template <typename T>
-class KokkosViewManager {
- public:
-  OMEGA_H_INLINE KokkosViewManager() = delete;
-
-  OMEGA_H_INLINE KokkosViewManager(size_t n, const std::string& name_in)
+  OMEGA_H_INLINE KokkosViewWrapper(size_t n, const std::string& name_in)
       : view_(KokkosPool::getGlobalPool().allocateView<T>(n)),
         label_(name_in) {}
 
@@ -203,7 +39,7 @@ class KokkosViewManager {
     return view_;
   }
 
-  OMEGA_H_INLINE ~KokkosViewManager() {
+  OMEGA_H_INLINE ~KokkosViewWrapper() {
     KokkosPool::getGlobalPool().deallocateView<T>(view_);
   }
 
@@ -217,7 +53,7 @@ template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_;                    // is compatible with subview?
-  SharedRef<KokkosViewManager<T>> manager_;  // reference counting
+  SharedRef<KokkosViewWrapper<T>> manager_;  // reference counting
 #else
       SharedAlloc shared_alloc_;
 #endif

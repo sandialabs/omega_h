@@ -163,15 +163,6 @@ auto StaticKokkosPool::getRequiredChunks(size_t n, size_t bytesPerChunk)
   return (n / bytesPerChunk) + (n % bytesPerChunk ? 1 : 0);
 }
 
-void StaticKokkosPool::printDebugInfo() const {
-  std::cout
-    << "Available Chunks: " << getNumFreeChunks()
-    << " Available Fragments: " << getNumFreeFragments()
-    << " Allocated Chunks: " << getNumAllocatedChunks()
-    << " Allocated Fragments: " << getNumAllocations()
-    << " Total Chunks: " << getNumChunks() << std::endl;
-}
-
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
 
 auto KokkosPool::getNumFreeFragments() const -> unsigned {
@@ -211,12 +202,8 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     pools.emplace_back(amortizedChunkSize, chunkSize);
   } catch (const std::runtime_error& e) {
 
-//    for (const auto& pool : pools) {
-//      pool.printDebugInfo();
-//    }
-
-    std::cout << "Amortization with " << amortizedChunkSize << " chunks failed." << std::endl;
-    std::cout << e.what() << std::endl;
+    std::cerr << "Amortization with " << amortizedChunkSize << " chunks failed." << std::endl;
+    std::cerr << e.what() << std::endl;
 
     if (amortizedChunkSize <= requestedChunks) {
       throw;
@@ -236,7 +223,7 @@ void KokkosPool::deallocate(uint8_t* data) {
   try {
     allocations.at(data)->deallocate(data);
   } catch (const std::out_of_range& e) {
-    std::cout << "Attempted to deallocate data that was not allocated by this pool." << std::endl;
+    std::cerr << "Attempted to deallocate data that was not allocated by this pool." << std::endl;
     throw;
   }
   allocations.erase(data);
@@ -286,7 +273,7 @@ auto KokkosPool::getGlobalPool() -> KokkosPool& {
 
 auto KokkosPool::destroyGlobalPool() -> void {
   if (s_pool.getNumAllocations() != 0) {
-    std::cout << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " allocations." << std::endl;
+    std::cerr << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " allocations." << std::endl;
   }
   s_pool.pools.clear();
 }
