@@ -40,7 +40,7 @@ class SharedRef {
 #endif
   }
 
-  SharedRef(SharedRef&& other) noexcept {
+  OMEGA_H_INLINE SharedRef(SharedRef&& other) noexcept {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (*this) {
       decrementRefCount();
