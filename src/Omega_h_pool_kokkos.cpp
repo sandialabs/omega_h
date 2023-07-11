@@ -12,10 +12,6 @@
 #include <optional>
 #include <vector>
 
-namespace {
-Omega_h::KokkosPool s_pool { 1000 };
-}
-
 namespace Omega_h {
 
 auto CompareFreeIndices::operator()(IndexPair lhs, IndexPair rhs) const
@@ -43,9 +39,9 @@ auto CompareFreeIndices::operator()(size_t lhs, IndexPair rhs) const -> bool {
 }
 
 StaticKokkosPool::StaticKokkosPool(size_t numChunks, size_t bytesPerChunks)
-    : chunkSize(bytesPerChunks), pool(Kokkos::ViewAllocateWithoutInitializing(
-                                     "StaticKokkosPool"),
-                                     numChunks * bytesPerChunks) {
+    : numberOfChunks(numChunks)
+    , chunkSize(bytesPerChunks)
+    , pool(Kokkos::kokkos_malloc(numChunks * bytesPerChunks)) {
   insertIntoSets({0, numChunks});
 }
 
@@ -64,7 +60,7 @@ void StaticKokkosPool::removeFromSets(IndexPair indices) {
   freeSetByIndex.erase(indices);
 }
 
-auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
+auto StaticKokkosPool::allocate(size_t n) -> void* {
   if (freeSetBySize.empty()) {
     return nullptr;
   }
@@ -86,13 +82,13 @@ auto StaticKokkosPool::allocate(size_t n) -> uint8_t* {
     insertIntoSets({beginIndex + requestedChunks, endIndex});
   }
 
-  uint8_t* ptr = pool.data() + (beginIndex * chunkSize);
+  void* ptr = static_cast<uint8_t*>(pool) + (beginIndex * chunkSize);
   allocations[ptr] = std::make_pair(beginIndex, beginIndex + requestedChunks);
 
   return ptr;
 }
 
-void StaticKokkosPool::deallocate(uint8_t* data) {
+void StaticKokkosPool::deallocate(void* data) {
   auto allocationsItr = allocations.find(data);
   assert(allocationsItr != allocations.end());
   auto [ptr, chunkIndices] = *allocationsItr;  // [begin, end)
@@ -151,7 +147,7 @@ auto StaticKokkosPool::getNumAllocatedChunks() const -> unsigned {
 }
 
 auto StaticKokkosPool::getNumChunks() const -> unsigned {
-  return pool.size() / chunkSize;
+  return numberOfChunks;
 }
 
 auto StaticKokkosPool::getNumFreeFragments() const -> unsigned {
@@ -161,6 +157,10 @@ auto StaticKokkosPool::getNumFreeFragments() const -> unsigned {
 auto StaticKokkosPool::getRequiredChunks(size_t n, size_t bytesPerChunk)
     -> size_t {
   return (n / bytesPerChunk) + (n % bytesPerChunk ? 1 : 0);
+}
+
+StaticKokkosPool::~StaticKokkosPool() {
+  Kokkos::kokkos_free(pool);
 }
 
 auto KokkosPool::getChunkSize() const -> size_t { return chunkSize; }
@@ -177,12 +177,12 @@ auto KokkosPool::getNumFreeFragments() const -> unsigned {
 
 KokkosPool::KokkosPool(size_t bytesPerChunks) : chunkSize(bytesPerChunks) {}
 
-auto KokkosPool::allocate(size_t n) -> uint8_t* {
+auto KokkosPool::allocate(size_t n) -> void* {
   auto current = pools.begin();
   size_t mostAmountOfChunks = 0;
 
   while (current != pools.end()) {
-    uint8_t* ptr = current->allocate(n);
+    void* ptr = current->allocate(n);
     if (ptr) {
       allocations[ptr] = current;
       return ptr;
@@ -212,14 +212,14 @@ auto KokkosPool::allocate(size_t n) -> uint8_t* {
     pools.emplace_back(requestedChunks, chunkSize);
   }
 
-  uint8_t* ptr = pools.back().allocate(n);
+  void* ptr = pools.back().allocate(n);
   assert(ptr != nullptr);
   allocations[ptr] = std::prev(pools.end());
 
   return ptr;
 }
 
-void KokkosPool::deallocate(uint8_t* data) {
+void KokkosPool::deallocate(void* data) {
   try {
     allocations.at(data)->deallocate(data);
   } catch (const std::out_of_range& e) {
@@ -264,6 +264,8 @@ auto KokkosPool::getNumChunks() const -> unsigned {
 }
 
 auto KokkosPool::getGlobalPool() -> KokkosPool& {
+  static Omega_h::KokkosPool s_pool { 1000 };
+
   if (s_pool.getNumChunks() == 0) {
     s_pool.pools.emplace_back(700'000, s_pool.chunkSize);
   }
@@ -272,9 +274,12 @@ auto KokkosPool::getGlobalPool() -> KokkosPool& {
 }
 
 auto KokkosPool::destroyGlobalPool() -> void {
+  auto& s_pool = getGlobalPool();
+
   if (s_pool.getNumAllocations() != 0) {
     std::cerr << "Warning: Destroying global pool with " << s_pool.getNumAllocations() << " allocations." << std::endl;
   }
+
   s_pool.pools.clear();
 }
 

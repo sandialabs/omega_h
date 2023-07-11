@@ -41,8 +41,8 @@ class StaticKokkosPool {
  public:
   StaticKokkosPool(size_t numChunks, size_t bytesPerChunk);
 
-  auto allocate(size_t n) -> uint8_t*;
-  void deallocate(uint8_t* data);
+  auto allocate(size_t n) -> void*;
+  void deallocate(void* data);
 
   auto getNumAllocations() const -> unsigned;
   auto getNumFreeChunks() const -> unsigned;
@@ -52,17 +52,20 @@ class StaticKokkosPool {
 
   static auto getRequiredChunks(size_t n, size_t bytesPerChunk) -> size_t;
 
+  ~StaticKokkosPool();
+
  private:
   auto insertIntoSets(IndexPair indices)
       -> std::pair<MultiSetBySizeT::iterator, SetByIndexT::iterator>;
   void removeFromSets(IndexPair indices);
 
+  const size_t numberOfChunks;
   const size_t chunkSize;
 
-  Kokkos::View<uint8_t*> pool;
+  void* pool;
   MultiSetBySizeT freeSetBySize;  // For finding free chunks logarithmically
   SetByIndexT freeSetByIndex;     // For merging adjacent free chunks
-  std::map<uint8_t*, IndexPair> allocations;
+  std::map<void*, IndexPair> allocations;
 };
 
 /**
@@ -74,8 +77,8 @@ class KokkosPool {
  public:
   explicit KokkosPool(size_t bytesPerChunks);
 
-  auto allocate(size_t n) -> uint8_t*;
-  void deallocate(uint8_t* data);
+  auto allocate(size_t n) -> void*;
+  void deallocate(void* data);
 
   template <typename DataType>
   auto allocateView(size_t n) -> Kokkos::View<DataType*> {
@@ -85,7 +88,7 @@ class KokkosPool {
 
   template <typename DataType>
   void deallocateView(Kokkos::View<DataType*> view) {
-    deallocate(reinterpret_cast<uint8_t*>(view.data()));
+    deallocate(reinterpret_cast<void*>(view.data()));
   }
 
   auto getNumAllocations() const -> unsigned;
@@ -103,7 +106,7 @@ class KokkosPool {
 
   size_t chunkSize;
   PoolListT pools;
-  std::map<uint8_t*, PoolListT::iterator> allocations;
+  std::map<void*, PoolListT::iterator> allocations;
 };
 
 }  // namespace Omega_h
