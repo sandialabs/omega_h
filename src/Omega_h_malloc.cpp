@@ -59,9 +59,12 @@ void host_free(void* ptr, std::size_t) {
 static Pool* device_pool = nullptr;
 static Pool* host_pool = nullptr;
 
+static bool pooling_enabled = false;
+
 void enable_pooling() {
   device_pool = new Pool(device_malloc, device_free);
   host_pool = new Pool(host_malloc, host_free);
+  pooling_enabled = true;
 }
 
 void disable_pooling() {
@@ -69,7 +72,10 @@ void disable_pooling() {
   delete host_pool;
   device_pool = nullptr;
   host_pool = nullptr;
+  pooling_enabled = false;
 }
+
+bool is_pooling_enabled() { return pooling_enabled; }
 
 void* maybe_pooled_device_malloc(std::size_t size) {
   if (device_pool) return allocate(*device_pool, size);

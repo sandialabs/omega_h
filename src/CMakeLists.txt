@@ -180,13 +180,21 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
+if(Omega_h_USE_Kokkos)
+  list(APPEND Omega_h_SOURCES Omega_h_array_kokkos.hpp)
+  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.hpp)
+  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.cpp)
+else()
+  list(APPEND Omega_h_SOURCES Omega_h_array_default.hpp)
+endif()
+
 if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
-set_property(TARGET omega_h PROPERTY CXX_STANDARD "14")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "17")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
@@ -250,7 +258,7 @@ function(osh_add_exe EXE_NAME)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
-  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "17")
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   set_property(TARGET ${EXE_NAME} PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
@@ -315,6 +323,11 @@ if(BUILD_TESTING)
   endif()
 
   function(test_func_impl TEST_NAME NUM_PROCS)
+
+    if (ENABLE_CTEST_MEMPOOL)
+      set(CTEST_MEMPOOL_ARG "--osh-pool")
+    endif()
+
     string(REPLACE " " ";" VALGRIND "${Omega_h_VALGRIND}")
     if(MPIEXEC_EXECUTABLE)
       set(TEST_STR ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${NUM_PROCS} ${VALGRIND} ${ARGN})
@@ -323,7 +336,7 @@ if(BUILD_TESTING)
         message(STATUS "test ${TEST_NAME} ignored because MPIEXEC_EXECUTABLE not found!")
         return()
       endif()
-      set(TEST_STR ${VALGRIND} ${ARGN})
+      set(TEST_STR ${VALGRIND} ${ARGN} ${CTEST_MEMPOOL_ARG})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -402,7 +415,7 @@ if(BUILD_TESTING)
 
     osh_add_exe(periodic_test)
     set(TEST_EXES ${TEST_EXES} periodic_test)
-    test_func(periodic_test 2 ./periodic_test 
+    test_func(periodic_test 2 ./periodic_test
       ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem.sms
       ${CMAKE_SOURCE_DIR}/meshes/wedge_match.smd
       ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem_sync_2.osh 2)
@@ -532,7 +545,7 @@ if(BUILD_TESTING)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
   osh_add_exe(reverse_class_test)
-  test_func(reverse_class_test 1 ./reverse_class_test 
+  test_func(reverse_class_test 1 ./reverse_class_test
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
   osh_add_exe(rc_field_test)
@@ -546,7 +559,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     osh_add_exe(reverse_class_testp)
     set(TEST_EXES ${TEST_EXES} reverse_class_testp)
-    test_func(reverse_class_testp 2 ./reverse_class_testp 
+    test_func(reverse_class_testp 2 ./reverse_class_testp
       ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
       ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
     osh_add_exe(rc_field_testp)
