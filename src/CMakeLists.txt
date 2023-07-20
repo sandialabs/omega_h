@@ -181,11 +181,7 @@ if(Omega_h_USE_DOLFIN)
 endif()
 
 if(Omega_h_USE_Kokkos)
-  list(APPEND Omega_h_SOURCES Omega_h_array_kokkos.hpp)
-  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.hpp)
   list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.cpp)
-else()
-  list(APPEND Omega_h_SOURCES Omega_h_array_default.hpp)
 endif()
 
 if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
@@ -677,6 +673,14 @@ endif()
 
 if(Omega_h_USE_STK)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
+endif()
+
+if(Omega_h_USE_Kokkos)
+  list(APPEND Omega_h_HEADERS Omega_h_memory.hpp)  
+  list(APPEND Omega_h_HEADERS Omega_h_pool_kokkos.hpp)
+  list(APPEND Omega_h_HEADERS Omega_h_array_kokkos.hpp)
+else()
+  list(APPEND Omega_h_HEADERS Omega_h_array_default.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
