@@ -97,14 +97,12 @@ void fail(char const* format, ...);
 #  define OMEGA_H_CHECK_OP(l,op,r) OMEGA_H_CHECK((l) op (r))
 #endif // NDEBUG
 
-#if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
-#define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
-#elif defined(OMEGA_H_USE_KOKKOS) && \
-      defined(SYCL_LANGUAGE_VERSION) && \
-      defined (__INTEL_LLVM_COMPILER)
-#define OMEGA_H_NORETURN(x) assert(false)
+#if defined(OMEGA_H_USE_KOKKOS) && \
+    defined(SYCL_LANGUAGE_VERSION) && \
+    defined (__INTEL_LLVM_COMPILER)
+#  define OMEGA_H_NORETURN(x) assert(false)
 #else
-#define OMEGA_H_NORETURN(x)                                                    \
+#  define OMEGA_H_NORETURN(x)                                                  \
   do {                                                                         \
     OMEGA_H_CHECK(false);                                                      \
     return x;                                                                  \
