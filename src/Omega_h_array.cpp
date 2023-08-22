@@ -28,7 +28,7 @@ T* nonnull(T* p) {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) { }
+Write<T>::Write(View<T*> view_in) : view_(view_in) { }
 #endif
 
 template <typename T>
@@ -150,8 +150,8 @@ Read<T>::Read(std::initializer_list<T> l, std::string const& name_in)
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Kokkos::View<const T*> Read<T>::view() const {
-  return Kokkos::View<const T*>(write_.view());
+View<const T*> Read<T>::view() const {
+  return View<const T*>(write_.view());
 }
 #endif
 
@@ -310,7 +310,7 @@ template <typename T>
 HostRead<T>::HostRead(Read<T> read) : read_(read) {
   ScopedTimer timer("array device to host");
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<const T*> dev_view = read.view();
+  View<const T*> dev_view = read.view();
   Kokkos::View<const T*, Kokkos::HostSpace> h_view =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
   mirror_ = h_view;

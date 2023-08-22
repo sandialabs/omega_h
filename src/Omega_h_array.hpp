@@ -31,7 +31,7 @@ class KokkosViewWrapper {
 
   [[nodiscard]] auto label() const -> std::string { return label_; }
 
-  [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& {
+  [[nodiscard]] auto getView() const -> const View<T*>& {
     return view_;
   }
 
@@ -39,7 +39,7 @@ class KokkosViewWrapper {
     KokkosPool::getGlobalPool().deallocateView<T>(view_);
   }
 
-  Kokkos::View<T*> view_;
+  View<T*> view_;
   std::string label_;
 };
 
@@ -48,7 +48,7 @@ class KokkosViewWrapper {
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<T*> view_;
+  View<T*> view_;
   SharedRef<KokkosViewWrapper<T>> manager_;  // reference counting
 #else
       SharedAlloc shared_alloc_;
@@ -58,7 +58,7 @@ class Write {
   using value_type = T;
   OMEGA_H_INLINE Write();
 #ifdef OMEGA_H_USE_KOKKOS
-  Write(Kokkos::View<T*> view_in);
+  Write(View<T*> view_in);
 #endif
   Write(LO size_in, std::string const& name = "");
   Write(LO size_in, T value, std::string const& name = "");
@@ -69,7 +69,7 @@ class Write {
   OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT;
   OMEGA_H_INLINE T* data() const noexcept;
 #ifdef OMEGA_H_USE_KOKKOS
-  OMEGA_H_INLINE Kokkos::View<T*> const& view() const { return view_; }
+  OMEGA_H_INLINE View<T*> const& view() const { return view_; }
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
@@ -107,7 +107,7 @@ class Read {
     return write_.data();
   }
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<const T*> view() const;
+  View<const T*> view() const;
 #endif
   T get(LO i) const;
   T first() const;
@@ -153,7 +153,7 @@ template <typename T>
 class HostWrite {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOS
-  typename Kokkos::View<T*>::HostMirror mirror_;
+  typename View<T*>::HostMirror mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
   std::shared_ptr<T> mirror_;
 #endif

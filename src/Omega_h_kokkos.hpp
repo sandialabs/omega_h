@@ -29,9 +29,12 @@ OMEGA_H_SYSTEM_HEADER
 #endif
 
 namespace Omega_h {
-using ExecSpace = Kokkos::DefaultExecutionSpace;
+using Space = Kokkos::CudaSpace;
+using ExecSpace = Kokkos::Cuda;
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
 using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
+
+template <class T> using View = Kokkos::View<T, Space>;
 
 inline Policy policy(LO n) { return Policy(0, n); }
 }  // namespace Omega_h
