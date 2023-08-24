@@ -29,8 +29,29 @@ OMEGA_H_SYSTEM_HEADER
 #endif
 
 namespace Omega_h {
-using Space = Kokkos::CudaSpace;
-using ExecSpace = Kokkos::Cuda;
+
+#if defined(Omega_h_USE_CUDA)
+  using ExecSpace = Kokkos::Cuda;
+#elif defined(Omega_h_USE_HIP)
+  using ExecSpace = Kokkos::HIP;
+#elif defined(Omega_h_USE_SYCL)
+  using ExecSpace = Kokkos::Experimental::SYCL;
+#elif defined(Omega_h_USE_OpenMP)
+  using ExecSpace = Kokkos::OpenMP;
+#else
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+#endif
+
+#if defined(Omega_h_MEM_SPACE_DEVICE)
+  #if defined(Omega_h_USE_CUDA)
+    using Space = Kokkos::CudaSpace;
+  #elif defined(Omega_h_USE_HIP)
+    using Space = Kokkos::HIPSpace;
+  #endif
+#else
+  using Space = ExecSpace::memory_space;
+#endif
+
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
 using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
 

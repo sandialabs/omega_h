@@ -89,21 +89,29 @@ bob_public_dep(pybind11)
 
 if(Omega_h_USE_Kokkos)
   if ("CUDA" IN_LIST Kokkos_DEVICES)
+      add_definitions(-DOmega_h_USE_CUDA)
       bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "ON")
   endif()
   if ("OPENMP" IN_LIST Kokkos_DEVICES)
+      add_definitions(-DOmega_h_USE_OpenMP)
       bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "ON")
   endif()
   if ("SYCL" IN_LIST Kokkos_DEVICES)
+      add_definitions(-DOmega_h_USE_SYCL)
       bob_option(Omega_h_USE_SYCL "Whether to use SYCL" "ON")
   endif()
   if ("HIP" IN_LIST Kokkos_DEVICES)
+    add_definitions(-DOmega_h_USE_HIP)
     bob_option(Omega_h_USE_HIP "Whether to use HIP" "ON")
-  endif()
+    endif()
   if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
     message(FATAL_ERROR
             "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
   endif()
+endif()
+
+if (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "DEVICE")
+  add_definitions(-DOmega_h_MEM_SPACE_DEVICE)
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
@@ -142,6 +150,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_CUDA
     Omega_h_USE_SYCL
     Omega_h_USE_HIP
+    Omega_h_MEM_SPACE_DEVICE
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
