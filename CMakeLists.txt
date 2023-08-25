@@ -103,7 +103,7 @@ if(Omega_h_USE_Kokkos)
   if ("HIP" IN_LIST Kokkos_DEVICES)
     add_definitions(-DOmega_h_USE_HIP)
     bob_option(Omega_h_USE_HIP "Whether to use HIP" "ON")
-    endif()
+  endif()
   if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
     message(FATAL_ERROR
             "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
