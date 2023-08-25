@@ -112,6 +112,10 @@ endif()
 
 if (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "DEVICE")
   add_definitions(-DOmega_h_MEM_SPACE_DEVICE)
+elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "SHARED")
+  add_definitions(-DOmega_h_MEM_SPACE_SHARED)
+elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "HOSTPINNED")
+  add_definitions(-DOmega_h_MEM_SPACE_HOSTPINNED)
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
@@ -150,7 +154,6 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_CUDA
     Omega_h_USE_SYCL
     Omega_h_USE_HIP
-    Omega_h_MEM_SPACE_DEVICE
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS

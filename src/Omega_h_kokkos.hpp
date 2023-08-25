@@ -47,15 +47,22 @@ namespace Omega_h {
     using Space = Kokkos::CudaSpace;
   #elif defined(Omega_h_USE_HIP)
     using Space = Kokkos::HIPSpace;
+  #elif defined(Omega_h_USE_SYCL)
+    using Space = Kokkos::Experimental::SYCLDeviceUSMSpace;
   #endif
+#elif defined(Omega_h_MEM_SPACE_SHARED)
+  using Space = Kokkos::SharedSpace;
+#elif defined(Omega_h_MEM_SPACE_HOSTPINNED)
+  using Space = Kokkos::SharedHostPinnedSpace;
 #else
   using Space = ExecSpace::memory_space;
 #endif
 
+using Device = Kokkos::Device<ExecSpace, Space>;
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
 using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
 
-template <class T> using View = Kokkos::View<T, Space>;
+template <class T> using View = Kokkos::View<T, Device>;
 
 inline Policy policy(LO n) { return Policy(0, n); }
 }  // namespace Omega_h
