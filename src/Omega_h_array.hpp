@@ -51,7 +51,7 @@ class Write {
   Kokkos::View<T*> view_;
   SharedRef<KokkosViewWrapper<T>> manager_;  // reference counting
 #else
-      SharedAlloc shared_alloc_;
+  SharedAlloc shared_alloc_;
 #endif
 
  public:
@@ -78,7 +78,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   std::string name() const;
 #else
-      std::string const& name() const;
+  std::string const& name() const;
 #endif
   OMEGA_H_INLINE T* begin() const noexcept { return data(); }
   OMEGA_H_INLINE T* end() const OMEGA_H_NOEXCEPT { return data() + size(); }
