@@ -30,29 +30,29 @@ OMEGA_H_SYSTEM_HEADER
 
 namespace Omega_h {
 
-#if defined(Omega_h_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA)
   using ExecSpace = Kokkos::Cuda;
-#elif defined(Omega_h_USE_HIP)
+#elif defined(OMEGA_H_USE_HIP)
   using ExecSpace = Kokkos::HIP;
-#elif defined(Omega_h_USE_SYCL)
+#elif defined(OMEGA_H_USE_SYCL)
   using ExecSpace = Kokkos::Experimental::SYCL;
-#elif defined(Omega_h_USE_OpenMP)
+#elif defined(OMEGA_H_USE_OpenMP)
   using ExecSpace = Kokkos::OpenMP;
 #else
   using ExecSpace = Kokkos::DefaultExecutionSpace;
 #endif
 
-#if defined(Omega_h_MEM_SPACE_DEVICE)
-  #if defined(Omega_h_USE_CUDA)
+#if defined(OMEGA_H_MEM_SPACE_DEVICE)
+  #if defined(OMEGA_H_USE_CUDA)
     using Space = Kokkos::CudaSpace;
-  #elif defined(Omega_h_USE_HIP)
+  #elif defined(OMEGA_H_USE_HIP)
     using Space = Kokkos::HIPSpace;
-  #elif defined(Omega_h_USE_SYCL)
+  #elif defined(OMEGA_H_USE_SYCL)
     using Space = Kokkos::Experimental::SYCLDeviceUSMSpace;
   #endif
-#elif defined(Omega_h_MEM_SPACE_SHARED)
+#elif defined(OMEGA_H_MEM_SPACE_SHARED)
   using Space = Kokkos::SharedSpace;
-#elif defined(Omega_h_MEM_SPACE_HOSTPINNED)
+#elif defined(OMEGA_H_MEM_SPACE_HOSTPINNED)
   using Space = Kokkos::SharedHostPinnedSpace;
 #else
   using Space = ExecSpace::memory_space;

@@ -89,19 +89,15 @@ bob_public_dep(pybind11)
 
 if(Omega_h_USE_Kokkos)
   if ("CUDA" IN_LIST Kokkos_DEVICES)
-      add_definitions(-DOmega_h_USE_CUDA)
       bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "ON")
   endif()
   if ("OPENMP" IN_LIST Kokkos_DEVICES)
-      add_definitions(-DOmega_h_USE_OpenMP)
       bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "ON")
   endif()
   if ("SYCL" IN_LIST Kokkos_DEVICES)
-      add_definitions(-DOmega_h_USE_SYCL)
       bob_option(Omega_h_USE_SYCL "Whether to use SYCL" "ON")
   endif()
   if ("HIP" IN_LIST Kokkos_DEVICES)
-    add_definitions(-DOmega_h_USE_HIP)
     bob_option(Omega_h_USE_HIP "Whether to use HIP" "ON")
   endif()
   if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
@@ -110,12 +106,13 @@ if(Omega_h_USE_Kokkos)
   endif()
 endif()
 
+string(TOUPPER "${Omega_h_USE_KOKKOS_MEM_SPACE}" Omega_h_USE_KOKKOS_MEM_SPACE)
 if (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "DEVICE")
-  add_definitions(-DOmega_h_MEM_SPACE_DEVICE)
+  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" "ON")
 elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "SHARED")
-  add_definitions(-DOmega_h_MEM_SPACE_SHARED)
+  bob_option(Omega_h_MEM_SPACE_SHARED "Whether to use shared memory space" "ON")
 elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "HOSTPINNED")
-  add_definitions(-DOmega_h_MEM_SPACE_HOSTPINNED)
+  bob_option(Omega_h_MEM_SPACE_HOSTPINNED "Whether to use host pinned memory space" "ON")
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
@@ -154,6 +151,9 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_CUDA
     Omega_h_USE_SYCL
     Omega_h_USE_HIP
+    Omega_h_MEM_SPACE_DEVICE
+    Omega_h_MEM_SPACE_SHARED
+    Omega_h_MEM_SPACE_HOSTPINNED
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
