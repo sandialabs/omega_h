@@ -106,13 +106,18 @@ if(Omega_h_USE_Kokkos)
   endif()
 endif()
 
-string(TOUPPER "${Omega_h_USE_KOKKOS_MEM_SPACE}" Omega_h_USE_KOKKOS_MEM_SPACE)
-if (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "DEVICE")
-  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" "ON")
-elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "SHARED")
-  bob_option(Omega_h_MEM_SPACE_SHARED "Whether to use shared memory space" "ON")
-elseif (Omega_h_USE_KOKKOS_MEM_SPACE STREQUAL "HOSTPINNED")
-  bob_option(Omega_h_MEM_SPACE_HOSTPINNED "Whether to use host pinned memory space" "ON")
+bob_option(Omega_h_MEM_SPACE_SHARED "Whether to use shared memory space" OFF)
+bob_option(Omega_h_MEM_SPACE_HOSTPINNED "Whether to use host pinned memory space" OFF)
+if ((Omega_h_USE_CUDA OR Omega_h_USE_HIP OR Omega_h_USE_SYCL) AND NOT (Omega_h_MEM_SPACE_SHARED OR Omega_h_MEM_SPACE_HOSTPINNED))
+  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" ON)
+else()
+  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" OFF)
+endif()
+
+if ((Omega_h_MEM_SPACE_DEVICE AND Omega_h_MEM_SPACE_HOSTPINNED) OR 
+    (Omega_h_MEM_SPACE_DEVICE AND Omega_h_MEM_SPACE_SHARED) OR 
+    (Omega_h_MEM_SPACE_SHARED AND Omega_h_MEM_SPACE_HOSTPINNED))
+  message(FATAL_ERROR "Only one memory space allowed from these options: [ Omega_h_MEM_SPACE_SHARED, Omega_h_MEM_SPACE_HOSTPINNED, Omega_h_MEM_SPACE_DEVICE ]")
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
