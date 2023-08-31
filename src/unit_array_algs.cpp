@@ -350,15 +350,15 @@ static void test_expr2() {
 
 static void test_array_from_kokkos() {
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<double**> managed(
+  View<double**> managed(
       Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
-  Kokkos::View<double*> unmanaged(managed.data(), managed.span());
+  View<double*> unmanaged(managed.data(), managed.span());
   Omega_h::Write<double> unmanaged_array(unmanaged);
   OMEGA_H_CHECK(unmanaged_array.exists());
-  Kokkos::View<double*> zero_span("zero_span", 0);
+  View<double*> zero_span("zero_span", 0);
   Omega_h::Write<double> zero_span_array(zero_span);
   OMEGA_H_CHECK(zero_span_array.exists());
-  Kokkos::View<double*> uninitialized;
+  View<double*> uninitialized;
   Omega_h::Write<double> uninitialized_array(uninitialized);
   OMEGA_H_CHECK(!uninitialized_array.exists());
 #endif

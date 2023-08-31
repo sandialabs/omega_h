@@ -51,8 +51,14 @@ namespace Omega_h {
     using Space = Kokkos::Experimental::SYCLDeviceUSMSpace;
   #endif
 #elif defined(OMEGA_H_MEM_SPACE_SHARED)
+  #if !defined(KOKKOS_HAS_SHARED_SPACE)
+    #error Shared memory space in unavailable
+  #endif
   using Space = Kokkos::SharedSpace;
 #elif defined(OMEGA_H_MEM_SPACE_HOSTPINNED)
+  #if !defined(KOKKOS_HAS_SHARED_HOST_PINNED_SPACE)
+    #error Host Pinned memory space in unavailable
+  #endif
   using Space = Kokkos::SharedHostPinnedSpace;
 #else
   using Space = ExecSpace::memory_space;
