@@ -306,6 +306,8 @@ osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
 osh_add_util(ascii_vtk2osh)
 
+set(ENABLE_CTEST_MEMPOOL OFF CACHE BOOL "Run tests with the Kokkos mempool enabled")
+
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     if(NOT MPIEXEC_EXECUTABLE)
