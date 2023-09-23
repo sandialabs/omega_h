@@ -7,7 +7,7 @@ namespace Omega_h {
 
 template <typename T>
 class SharedRef {
- public:
+public:
   SharedRef() = default;
 
   template <typename... Args>
@@ -146,7 +146,7 @@ class SharedRef {
 #endif
   }
 
- private:
+private:
   void decrementRefCount() {
 #if defined(OMEGA_H_COMPILING_FOR_HOST)
     if (!*this) {
