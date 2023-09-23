@@ -4,9 +4,10 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
 #include <initializer_list>
-#include <memory>
 #ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_pool_kokkos.hpp>
+#include <Omega_h_memory.hpp>
 #else
 #include <Omega_h_shared_alloc.hpp>
 #include <string>
@@ -20,25 +21,42 @@ T* nonnull(T* p);
 template <typename T>
 class HostWrite;
 
+#ifdef OMEGA_H_USE_KOKKOS
+template <typename T>
+class KokkosViewWrapper {
+ public:
+  KokkosViewWrapper(size_t n, const std::string& name_in)
+      : view_(KokkosPool::getGlobalPool().allocateView<T>(n)),
+        label_(name_in) {}
+
+  [[nodiscard]] auto label() const -> std::string { return label_; }
+
+  [[nodiscard]] auto getView() const -> const Kokkos::View<T*>& {
+    return view_;
+  }
+
+  ~KokkosViewWrapper() {
+    KokkosPool::getGlobalPool().deallocateView<T>(view_);
+  }
+
+  Kokkos::View<T*> view_;
+  std::string label_;
+};
+
+#endif
+
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_;
+  SharedRef<KokkosViewWrapper<T>> manager_;  // reference counting
 #else
   SharedAlloc shared_alloc_;
 #endif
 
  public:
   using value_type = T;
-  OMEGA_H_INLINE Write()
-      :
-#ifdef OMEGA_H_USE_KOKKOS
-        view_()
-#else
-        shared_alloc_()
-#endif
-  {
-  }
+  OMEGA_H_INLINE Write();
 #ifdef OMEGA_H_USE_KOKKOS
   Write(Kokkos::View<T*> view_in);
 #endif
@@ -47,57 +65,16 @@ class Write {
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(std::initializer_list<T> l, std::string const& name = "");
   Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK(exists());
-#endif
-#ifdef OMEGA_H_USE_KOKKOS
-    return static_cast<LO>(view_.size());
-#else
-    return static_cast<LO>(shared_alloc_.size() / sizeof(T));
-#endif
-  }
-  OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK_OP(0, <=, i);
-    OMEGA_H_CHECK_OP(i, <, size());
-#endif
-#ifdef OMEGA_H_USE_KOKKOS
-    return view_(i);
-#else
-    return data()[i];
-#endif
-  }
-  OMEGA_H_INLINE T* data() const noexcept {
-#ifdef OMEGA_H_USE_KOKKOS
-    return view_.data();
-#else
-    return static_cast<T*>(shared_alloc_.data());
-#endif
-  }
+  OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT;
+  OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT;
+  OMEGA_H_INLINE T* data() const noexcept;
 #ifdef OMEGA_H_USE_KOKKOS
   OMEGA_H_INLINE Kokkos::View<T*> const& view() const { return view_; }
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-#ifdef OMEGA_H_USE_KOKKOS
-  OMEGA_H_INLINE long use_count() const { return view_.use_count(); }
-#else
-  inline int use_count() const { return shared_alloc_.alloc->use_count; }
-#endif
-  OMEGA_H_INLINE bool exists() const noexcept {
-#if defined(OMEGA_H_USE_KOKKOS)
-    return view().data() != nullptr
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
-           /* deprecated Kokkos behavior: zero-span views have data()==nullptr
-            */
-           || view().use_count() != 0
-#endif
-        ;
-#else
-    return shared_alloc_.data() != nullptr;
-#endif
-  }
+  OMEGA_H_INLINE long use_count() const;
+  OMEGA_H_INLINE bool exists() const noexcept;
 #ifdef OMEGA_H_USE_KOKKOS
   std::string name() const;
 #else
@@ -166,21 +143,7 @@ class HostRead {
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
-  inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK_OP(0, <=, i);
-    OMEGA_H_CHECK_OP(i, <, size());
-#endif
-#ifdef OMEGA_H_USE_KOKKOS
-    return mirror_(i);
-#else
-#ifdef OMEGA_H_USE_CUDA
-    return mirror_.get()[i];
-#else
-    return read_[i];
-#endif
-#endif
-  }
+  inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT;
   T const* data() const;
   T get(LO i) const;
   T last() const;
@@ -203,21 +166,7 @@ class HostWrite {
   HostWrite(std::initializer_list<T> l, std::string const& name = "");
   Write<T> write() const;
   LO size() const OMEGA_H_NOEXCEPT;
-  inline T& operator[](LO i) const OMEGA_H_NOEXCEPT {
-#ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK_OP(0, <=, i);
-    OMEGA_H_CHECK_OP(i, <, size());
-#endif
-#ifdef OMEGA_H_USE_KOKKOS
-    return mirror_(i);
-#else
-#ifdef OMEGA_H_USE_CUDA
-    return mirror_.get()[i];
-#else
-    return write_[i];
-#endif
-#endif
-  }
+  inline T& operator[](LO i) const OMEGA_H_NOEXCEPT;
   T* data() const;
   OMEGA_H_INLINE bool exists() const OMEGA_H_NOEXCEPT {
     return write_.exists();
@@ -255,5 +204,11 @@ OMEGA_H_EXPL_INST_DECL(Real)
 /* end explicit instantiation declarations */
 
 }  // end namespace Omega_h
+
+#ifdef OMEGA_H_USE_KOKKOS
+#include "Omega_h_array_kokkos.hpp"
+#else
+#include "Omega_h_array_default.hpp"
+#endif
 
 #endif

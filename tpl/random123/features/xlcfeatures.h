@@ -81,7 +81,7 @@ so as not to confuse it with the version available from LANL.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) __builtin_expect(expr,likely)
+#define R123_BUILTIN_EXPECT(expr,likely) assert(false)
 #endif
 
 #ifndef R123_USE_AES_NI

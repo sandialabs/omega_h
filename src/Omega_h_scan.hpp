@@ -54,7 +54,25 @@ void parallel_scan(LO n, T f, char const* name = "") {
 #endif
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_KOKKOS)
+
+template <typename InputIterator, typename OutputIterator>
+OutputIterator inclusive_scan(
+    InputIterator first, InputIterator last, OutputIterator result) {
+  fprintf(stderr, "ERROR: kokkos without cuda or openmp inclusive scan is not implemented\n");
+  exit(EXIT_FAILURE);
+}
+
+template <typename InputIterator, typename OutputIterator, typename BinaryOp,
+    typename UnaryOp>
+OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result, BinaryOp op, UnaryOp&& transform) {
+  fprintf(stderr, "ERROR: kokkos without cuda or openmp transform inclusive scan is not implemented\n");
+  exit(EXIT_FAILURE);
+}
+
+
+#elif defined(OMEGA_H_USE_CUDA)
 
 template <typename InputIterator, typename OutputIterator>
 OutputIterator inclusive_scan(

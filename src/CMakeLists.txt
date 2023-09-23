@@ -180,13 +180,17 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
+if(Omega_h_USE_Kokkos)
+  list(APPEND Omega_h_SOURCES Omega_h_pool_kokkos.cpp)
+endif()
+
 if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
   set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
-set_property(TARGET omega_h PROPERTY CXX_STANDARD "14")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "17")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
@@ -250,11 +254,16 @@ function(osh_add_exe EXE_NAME)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
-  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "14")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "17")
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   set_property(TARGET ${EXE_NAME} PROPERTY CUDA_ARCHITECTURES ${Omega_h_CUDA_ARCH})
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
+  if (OMP_EXTRA_LIBS)
+    file(GLOB OMP_OBJS ${OMP_EXTRA_LIBS})
+    message(STATUS "adding OMP_EXTRA_LIBS ${OMP_OBJS} to omega_h")
+    target_link_libraries(${EXE_NAME} PRIVATE ${OMP_OBJS})
+  endif()
 endfunction(osh_add_exe)
 
 macro(osh_add_util EXE_NAME)
@@ -297,30 +306,43 @@ osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
 osh_add_util(ascii_vtk2osh)
 
+set(ENABLE_CTEST_MEMPOOL OFF CACHE BOOL "Run tests with the Kokkos mempool enabled")
+
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
-    get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} PATH)
-    find_program(MPIRUN mpirun PATHS ${COMPILER_DIR}
-        DOC "Location of the mpirun program")
-    if(NOT MPIRUN)
-      message(STATUS "USE_MPI and BUILD_TESTING but MPIRUN not found!")
+    if(NOT MPIEXEC_EXECUTABLE)
+      get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} PATH)
+      find_program(MPIEXEC_EXECUTABLE mpirun PATHS ${COMPILER_DIR}
+          DOC "Location of the mpirun program")
+      if(NOT MPIEXEC_EXECUTABLE)
+        message(STATUS "USE_MPI and BUILD_TESTING but MPIEXEC_EXECUTABLE not found!")
+      endif()
     endif()
   endif()
 
   function(test_func_impl TEST_NAME NUM_PROCS)
+
+    if (ENABLE_CTEST_MEMPOOL)
+      set(CTEST_MEMPOOL_ARG "--osh-pool")
+    endif()
+
     string(REPLACE " " ";" VALGRIND "${Omega_h_VALGRIND}")
-    if(MPIRUN)
-      set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${VALGRIND} ${ARGN})
+    if(MPIEXEC_EXECUTABLE)
+      set(TEST_STR ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${NUM_PROCS} ${VALGRIND} ${ARGN})
     else()
       if(NOT (${NUM_PROCS} EQUAL "1"))
-        message(STATUS "test ${TEST_NAME} ignored because MPIRUN not found!")
+        message(STATUS "test ${TEST_NAME} ignored because MPIEXEC_EXECUTABLE not found!")
         return()
       endif()
-      set(TEST_STR ${VALGRIND} ${ARGN})
+      set(TEST_STR ${VALGRIND} ${ARGN} ${CTEST_MEMPOOL_ARG})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
       set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}\\bin;$ENV{PATH}" )
+    endif()
+    if(Omega_h_GPU_CHECK)
+      add_test(NAME ${TEST_NAME}_gpuCleanup
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/gpuCleanup.cmake)
     endif()
   endfunction(test_func_impl)
 
@@ -339,7 +361,15 @@ if(BUILD_TESTING)
     endif()
   endfunction(test_func)
 
+  osh_add_exe(for_test)
+  osh_add_exe(reprosum_test)
+  osh_add_exe(arrayops_test)
+  osh_add_exe(sort_test)
   osh_add_exe(unit_math)
+  if (Omega_h_USE_KOKKOS)
+    osh_add_exe(bbox_reduce_test)
+    osh_add_exe(initKokkosAndLib)
+  endif()
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_basefunc(run_unit_math 1 ./unit_math)
 
@@ -382,12 +412,15 @@ if(BUILD_TESTING)
 
     osh_add_exe(periodic_test)
     set(TEST_EXES ${TEST_EXES} periodic_test)
-    test_func(periodic_test 2 ./periodic_test 
+    test_func(periodic_test 2 ./periodic_test
       ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem.sms
       ${CMAKE_SOURCE_DIR}/meshes/wedge_match.smd
       ${CMAKE_SOURCE_DIR}/meshes/wedge_matchZ_12elem_sync_2.osh 2)
   endif()
 
+  test_basefunc(run_arrayops 1 ./arrayops_test)
+  set(TEST_EXES ${TEST_EXES} reprosum_test)
+  test_basefunc(run_reprosum 1 ./reprosum_test)
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_basefunc(run_unit_array_algs 1 ./unit_array_algs)
@@ -509,7 +542,7 @@ if(BUILD_TESTING)
   osh_add_exe(refine_scale)
   osh_add_exe(amr_mpi_test)
   osh_add_exe(reverse_class_test)
-  test_func(reverse_class_test 1 ./reverse_class_test 
+  test_func(reverse_class_test 1 ./reverse_class_test
     ${CMAKE_SOURCE_DIR}/meshes/plate_6elem.osh
     ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k.osh)
   osh_add_exe(rc_field_test)
@@ -523,7 +556,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     osh_add_exe(reverse_class_testp)
     set(TEST_EXES ${TEST_EXES} reverse_class_testp)
-    test_func(reverse_class_testp 2 ./reverse_class_testp 
+    test_func(reverse_class_testp 2 ./reverse_class_testp
       ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh
       ${CMAKE_SOURCE_DIR}/meshes/unitbox_cutTriCube_1k_2p.osh)
     osh_add_exe(rc_field_testp)
@@ -641,6 +674,14 @@ endif()
 
 if(Omega_h_USE_STK)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_stk.hpp)
+endif()
+
+if(Omega_h_USE_Kokkos)
+  list(APPEND Omega_h_HEADERS Omega_h_memory.hpp)  
+  list(APPEND Omega_h_HEADERS Omega_h_pool_kokkos.hpp)
+  list(APPEND Omega_h_HEADERS Omega_h_array_kokkos.hpp)
+else()
+  list(APPEND Omega_h_HEADERS Omega_h_array_default.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

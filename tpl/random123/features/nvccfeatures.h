@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef R123_NVCC_FEATURES_H
 #define R123_NVCC_FEATURES_H
 
+#if __CUDA_ARCH__
 #if !defined(CUDART_VERSION)
 #error "why are we in nvccfeatures.h if CUDART_VERSION is not defined"
 #endif
@@ -49,6 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // please take extra care to be sure that you are getting correct
 // results.
 #endif
+#endif
 
 // nvcc falls through to gcc or msvc.  So first define
 // a couple of things and then include either gccfeatures.h
@@ -57,7 +59,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#ifdef  __CUDA_ARCH__ allows Philox32 and Philox64 to be compiled
 //for both device and host functions in CUDA by setting compiler flags
 //for the device function
-#ifdef  __CUDA_ARCH__
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 
 #include <cassert>
 
@@ -78,7 +80,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define R123_ASSERT(x) assert(x)
 #endif
 
-#else // ! __CUDA_ARCH__
+#else // !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
 // If we're using nvcc not compiling for the CUDA architecture,
 // then we must be compiling for the host.  In that case,
 // tell the philox code to use the mulhilo64 asm because
@@ -87,7 +89,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define R123_USE_MULHILO64_ASM 1
 #endif
 
-#endif // __CUDA_ARCH__
+#endif
 
 #ifndef R123_BUILTIN_EXPECT
 #define R123_BUILTIN_EXPECT(expr,likely) expr

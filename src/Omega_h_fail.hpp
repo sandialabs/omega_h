@@ -3,15 +3,17 @@
 
 #include <Omega_h_config.h>
 #ifdef OMEGA_H_ENABLE_DEMANGLED_STACKTRACE
-#include <Omega_h_stacktrace.hpp>
+#  include <Omega_h_stacktrace.hpp>
 #endif
 #include <cassert>
 #include <iostream>
 #include <cstdio>
+#include <csignal>
+#include <cstdarg>
 
 #ifdef OMEGA_H_THROW
-#include <exception>
-#include <string>
+#  include <exception>
+#  include <string>
 #endif
 
 namespace Omega_h {
@@ -36,18 +38,30 @@ void fail(char const* format, ...);
 
 #define Omega_h_fail Omega_h::fail
 
-#if defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
-#if defined(NDEBUG)
-#  define OMEGA_H_CHECK(cond) static_cast<void>(cond)
-#else
-#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
-#endif
+#if defined(OMEGA_H_USE_KOKKOS)
+#  if defined(NDEBUG)
+#    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
+#  else
+#    define OMEGA_H_CHECK(cond) assert(cond)
+#  endif
+#elif defined(OMEGA_H_USE_CUDA) && (defined(__clang__) || defined(_MSC_VER))
+#  if defined(NDEBUG)
+#    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
+#  else
+#    define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
+#  endif
 #elif defined(__CUDA_ARCH__)
-#if defined(NDEBUG)
-#  define OMEGA_H_CHECK(cond) static_cast<void>(cond)
-#else
-#  define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
-#endif
+#  if defined(NDEBUG)
+#    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
+#  else
+#    define OMEGA_H_CHECK(cond) assert(static_cast<int>(static_cast<bool>(cond)))
+#  endif
+#elif defined(OMEGA_H_USE_KOKKOS) && defined(SYCL_LANGUAGE_VERSION) && defined (__INTEL_LLVM_COMPILER)
+#  if defined(NDEBUG)
+#    define OMEGA_H_CHECK(cond) static_cast<void>(cond)
+#  else
+#    define OMEGA_H_CHECK(cond) assert(cond)
+#  endif
 #else
 #    define OMEGA_H_CHECK(cond)                                                    \
       ((cond) ? ((void)0)                                                          \
@@ -83,10 +97,12 @@ void fail(char const* format, ...);
 #  define OMEGA_H_CHECK_OP(l,op,r) OMEGA_H_CHECK((l) op (r))
 #endif // NDEBUG
 
-#if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
-#define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
+#if defined(OMEGA_H_USE_KOKKOS) && \
+    defined(SYCL_LANGUAGE_VERSION) && \
+    defined (__INTEL_LLVM_COMPILER)
+#  define OMEGA_H_NORETURN(x) assert(false)
 #else
-#define OMEGA_H_NORETURN(x)                                                    \
+#  define OMEGA_H_NORETURN(x)                                                  \
   do {                                                                         \
     OMEGA_H_CHECK(false);                                                      \
     return x;                                                                  \

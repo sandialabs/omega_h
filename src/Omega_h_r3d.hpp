@@ -3,7 +3,9 @@
 
 #include <Omega_h_vector.hpp>
 
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_KOKKOS)
+#define R3D_USE_KOKKOS
+#elif defined(OMEGA_H_USE_CUDA)
 #define R3D_USE_CUDA
 #endif
 

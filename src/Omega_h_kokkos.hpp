@@ -18,6 +18,7 @@ OMEGA_H_SYSTEM_HEADER
 #endif
 
 #include <Kokkos_Core.hpp>
+#include <Kokkos_StdAlgorithms.hpp>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

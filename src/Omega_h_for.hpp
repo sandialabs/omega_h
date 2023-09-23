@@ -13,7 +13,7 @@
 
 namespace Omega_h {
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_KOKKOS)
 
 namespace details {
 
@@ -57,7 +57,7 @@ void for_each(
     cuda_stream>>>(f2, first, last);
 }
 
-#else
+#else //end cuda without kokkos
 
 template <typename InputIterator, typename UnaryFunction>
 void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
@@ -65,7 +65,10 @@ void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
-#if defined(OMEGA_H_USE_OPENMP)
+#if defined(OMEGA_H_USE_KOKKOS)
+  LO const n = last - first;
+  if (n > 0) Kokkos::parallel_for(policy(n), f2);
+#elif defined(OMEGA_H_USE_OPENMP)
   LO const n = last - first;
 #pragma omp parallel for
   for (LO i = 0; i < n; ++i) {

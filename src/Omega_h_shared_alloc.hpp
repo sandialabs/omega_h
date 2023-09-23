@@ -114,7 +114,14 @@ struct SharedAlloc {
     move(std::move(other));
     return *this;
   }
+
+#ifdef OMPTARGET
+#pragma omp declare target
+#endif
   OMEGA_H_INLINE ~SharedAlloc() { clear(); }
+#ifdef OMPTARGET
+#pragma omp end declare target
+#endif
   OMEGA_H_INLINE void clear() {
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {

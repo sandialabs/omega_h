@@ -6,6 +6,8 @@
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_file.hpp"
+#include <fstream>
 
 namespace Omega_h {
 

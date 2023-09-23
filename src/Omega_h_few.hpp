@@ -122,7 +122,8 @@ OMEGA_H_INLINE T average(Few<T, n> x) OMEGA_H_NOEXCEPT {
 template <Int n, typename T, typename Op>
 OMEGA_H_INLINE T reduce(Few<T, n> x, Op op) OMEGA_H_NOEXCEPT {
   auto out = x[0];
-  for (Int i = 1; i < n; ++i) out = op(out, x[i]);
+  decltype(op) tmp_op; // workaround icpx
+  for (Int i = 1; i < n; ++i) out = tmp_op(out, x[i]);
   return out;
 }
 

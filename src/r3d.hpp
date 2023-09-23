@@ -34,7 +34,9 @@
 #include <new>
 #include <type_traits>
 
-#ifdef R3D_USE_CUDA
+#if defined(R3D_USE_KOKKOS)
+#define R3D_INLINE KOKKOS_INLINE_FUNCTION
+#elif defined(R3D_USE_CUDA)
 #define R3D_INLINE __device__ __host__ inline
 #else
 #define R3D_INLINE inline
@@ -114,9 +116,15 @@ class Few {
   R3D_INLINE Few() {
     for (Int i = 0; i < n; ++i) new (data() + i) T();
   }
+#ifdef OMPTARGET
+#pragma omp declare target
+#endif
   R3D_INLINE ~Few() {
     for (Int i = 0; i < n; ++i) (data()[i]).~T();
   }
+#ifdef OMPTARGET
+#pragma omp end declare target
+#endif
   R3D_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }

@@ -30,7 +30,7 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOS
   VT result;
   f.init(result);
-  if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
+  //if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
 #else
   (void)name;
   VT result;
@@ -40,7 +40,16 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   return result;
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_KOKKOS) and !defined(OMEGA_H_USE_CUDA)
+
+template <class Iterator, class Tranform, class Result, class Op>
+Result transform_reduce(
+    Iterator first, Iterator last, Result init, Op op, Tranform transform) {
+  fprintf(stderr, "transform_reduce wrapper.  We shouldn't be here... exiting\n");
+  OMEGA_H_CHECK(false);
+}
+
+#elif defined(OMEGA_H_USE_CUDA)
 
 template <class Op>
 Op native_op(Op const& op) {
@@ -161,7 +170,7 @@ Result transform_reduce(Iterator first, Iterator last, Result init,
   return init;
 }
 
-#else
+#else //end openmp
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
@@ -175,7 +184,7 @@ Result transform_reduce(
   return init;
 }
 
-#endif
+#endif //end serial
 
 }  // namespace Omega_h
 

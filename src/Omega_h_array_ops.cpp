@@ -1,29 +1,82 @@
 #include "Omega_h_array_ops.hpp"
-
 #include "Omega_h_for.hpp"
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_iterator.hpp"
 #include "Omega_h_reduce.hpp"
 #include "Omega_h_dbg.hpp"
 
+#if defined(OMEGA_H_USE_KOKKOS)
+#include "Kokkos_StdAlgorithms.hpp" //is_sorted
+namespace Omega_h {
+struct Int128Wrap {
+  Int128 i128;
+
+  KOKKOS_INLINE_FUNCTION   // Default constructor - Initialize to 0
+  Int128Wrap() {
+    i128 = Int128(0);
+  }
+  KOKKOS_INLINE_FUNCTION   // Copy Constructor
+  Int128Wrap(const Int128Wrap & rhs) {
+    i128 = rhs.i128;
+  }
+  KOKKOS_INLINE_FUNCTION   // add operator
+  Int128Wrap& operator += (const Int128Wrap& src) {
+    i128 = i128 + src.i128;
+    return *this;
+  }
+};
+}
+
+namespace Kokkos { //reduction identity must be defined in Kokkos namespace
+template<>
+struct reduction_identity< Omega_h::Int128Wrap > {
+   KOKKOS_FORCEINLINE_FUNCTION static Omega_h::Int128Wrap sum() {
+      return Omega_h::Int128Wrap();
+   }
+};
+}
+#endif
+
+
 namespace Omega_h {
 
 template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
+#if defined(OMEGA_H_USE_KOKKOS)
+  Kokkos::View<const T*> nonConstB = b.view();
+  return Kokkos::Experimental::equal("array_equal",ExecSpace(), a.view(), nonConstB);
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] == b[i]; };
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
+
 }
 
 template <typename T>
 promoted_t<T> get_sum(Read<T> a) {
+  auto const init = promoted_t<T>(0);
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+#if defined(OMEGA_H_USE_KOKKOS)
+  auto sum = init;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
+      update += transform(i);
+    }, sum);
+  return sum;
+#else
   using PT = promoted_t<T>;
   return transform_reduce(a.begin(), a.end(), PT(0), plus<PT>(),
       OMEGA_H_LAMBDA(T val)->PT { return PT(val); });
+#endif
+
 }
 
 template <typename T>
@@ -33,27 +86,46 @@ promoted_t<T> get_sum(CommPtr comm, Read<T> a) {
 
 template <typename T>
 T get_min(Read<T> a) {
+#if defined(OMEGA_H_USE_KOKKOS)
+  auto r = promoted_t<T>(ArithTraits<T>::max());
+  auto const op = minimum<promoted_t<T>>();
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
+      update = op(update, a[i]);
+    }, Kokkos::Min< Omega_h::promoted_t<T> >(r) );
+#else
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::max());
   auto const op = minimum<promoted_t<T>>();
-  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
-    return promoted_t<T>(a[i]);
-  };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
+#endif
   return T(r);  // see StandinTraits
 }
 
 template <typename T>
 T get_max(Read<T> a) {
+  auto const op = maximum<promoted_t<T>>();
+#if defined(OMEGA_H_USE_KOKKOS)
+  auto r = promoted_t<T>(ArithTraits<T>::min());
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::promoted_t<T>& update) {
+      update = op(update,a[i]);
+    }, Kokkos::Max< Omega_h::promoted_t<T> >(r) );
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::min());
-  auto const op = maximum<promoted_t<T>>();
   auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
+#endif
   return static_cast<T>(r);  // see StandinTraits
 }
 
@@ -74,30 +146,50 @@ MinMax<T> get_minmax(CommPtr comm, Read<T> a) {
 
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
   OMEGA_H_CHECK(a.size() == b.size());
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
+    return are_close(a[i], b[i], tol, floor);
+  };
+#if defined(OMEGA_H_USE_KOKKOS)
+  LO sum = 0;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update += (LO)transform(i);
+    }, Kokkos::Sum< Omega_h::LO >(sum) );
+  return (sum==a.size());
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
-    return are_close(a[i], b[i], tol, floor);
-  };
   auto const res =
       transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
+#endif
 }
 
 bool are_close_abs(Reals a, Reals b, Real tol) {
   OMEGA_H_CHECK(a.size() == b.size());
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
+    return (std::abs(a[i] - b[i]) <= tol);
+  };
+#if defined(OMEGA_H_USE_KOKKOS)
+  LO sum = 0;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update += (LO)transform(i);
+    }, Kokkos::Sum< Omega_h::LO >(sum) );
+  return (sum==a.size());
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
-    return (std::abs(a[i] - b[i]) <= tol);
-  };
   auto const res =
       transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
+#endif
 }
 
 template <typename T>
@@ -417,28 +509,43 @@ void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
 
 template <typename T>
 LO find_last(Read<T> array, T value) {
+  auto const op = maximum<LO>();
+  auto transform = OMEGA_H_LAMBDA(LO i)->LO {
+    if (array[i] == value) {
+      return i;
+    } else {
+      return -1;
+    }
+  };
+#if defined(OMEGA_H_USE_KOKKOS)
+  LO res = -1;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, array.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::LO& update) {
+      update = op(update,transform(i));
+    }, Kokkos::Max< Omega_h::LO >(res) );
+  return res;
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(array.size());
   auto const init = -1;
-  auto const op = maximum<LO>();
-  auto transform = OMEGA_H_LAMBDA(LO i)->LO {
-    if (array[i] == value)
-      return i;
-    else
-      return -1;
-  };
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
+#if defined(OMEGA_H_USE_KOKKOS)
+  return Kokkos::Experimental::is_sorted("kokkos_array_is_sorted",ExecSpace(), a.view());
+#else
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size() - 1);
   auto const init = true;
   auto const op = logical_and<bool>();
   auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 template <typename T>
@@ -509,20 +616,26 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
 
 int max_exponent(Reals a) {
   auto const init = ArithTraits<int>::min();
-  if (a.size() == 0) {
-    return init;
-  }
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(a.size());
-  auto const op = maximum<int>();
   auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
     if (a[i] == 0.0) return init;
     std::frexp(a[i], &expo);
     return expo;
   };
-  auto expo = transform_reduce(first, last, init, op, std::move(transform));
-  return expo;
+  auto const op = maximum<int>();
+#if defined(OMEGA_H_USE_KOKKOS)
+  Int res;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::Int& update) {
+      update = op(update,transform(i));
+    }, Kokkos::Max< Omega_h::Int >(res) );
+  return res;
+#else
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 struct Int128Plus {
@@ -533,14 +646,24 @@ Int128 int128_sum(Reals const a, double const unit) {
   if (a.size() == 0) {
     return Int128(0);
   }
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(a.size());
-  auto const init = Int128(0);
-  auto const op = Int128Plus();
   auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
+  auto const op = Int128Plus();
+#if defined(OMEGA_H_USE_KOKKOS)
+  Omega_h::Int128Wrap res;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<>(0, a.size() ),
+    KOKKOS_LAMBDA(int i, Omega_h::Int128Wrap& update) {
+      update.i128 = op(update.i128,transform(i));
+    }, Kokkos::Sum< Omega_h::Int128Wrap >(res) );
+  return res.i128;
+#else
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = Int128(0);
   return transform_reduce(first, last, init, op, std::move(transform));
+#endif
 }
 
 Real repro_sum(Reals a) {

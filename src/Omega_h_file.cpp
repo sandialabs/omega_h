@@ -118,6 +118,7 @@ void read_value(std::istream& stream, T& val, bool needs_swapping) {
 template <typename T>
 void write_array(std::ostream& stream, Read<T> array, bool is_compressed,
     bool needs_swapping) {
+  if( !array.exists() ) return;
   LO size = array.size();
   write_value(stream, size, needs_swapping);
   Read<T> swapped = swap_bytes(array, needs_swapping);

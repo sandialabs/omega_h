@@ -29,6 +29,9 @@ static LOs ent_order_from_vert_order(
   OMEGA_H_CHECK(new_verts2old_verts.size() == mesh->nverts());
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
   OMEGA_H_CHECK(old_verts2old_ents.a2ab.size() == mesh->nverts() + 1);
+  if(old_verts2old_ents.a2ab.last() != mesh->nents(ent_dim)) {
+    fprintf(stderr, "last %d nents(%d) %d\n", old_verts2old_ents.a2ab.last(), ent_dim, mesh->nents(ent_dim));
+  }
   OMEGA_H_CHECK(old_verts2old_ents.a2ab.last() == mesh->nents(ent_dim));
   OMEGA_H_CHECK(old_verts2old_ents.ab2b.size() == mesh->nents(ent_dim));
   auto new_verts2old_ents =

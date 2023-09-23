@@ -35,6 +35,7 @@ bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 bob_option(Omega_h_ENABLE_DEMANGLED_STACKTRACE "Add linker options to enable human-readable stacktraces on gnu-c platforms." OFF)
 bob_option(Omega_h_DBG "Enable debug prints, stacktraces, etc." OFF)
+bob_option(Omega_h_GPU_CHECK "Run GPU check after each test" OFF) #the check command is hardcoded!
 
 if (Omega_h_ENABLE_DEMANGLED_STACKTRACE)
   message(STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}")
@@ -48,7 +49,7 @@ endif()
 if (Omega_h_USE_MPI)
   enable_language(C)
   set(MPI_REQUIRED_VERSION 3)
-  bob_add_dependency(PUBLIC NAME MPI TARGETS MPI::MPI_CXX)
+  bob_add_dependency(PUBLIC NAME MPI COMPONENTS CXX TARGETS MPI::MPI_CXX)
 endif()
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
@@ -93,6 +94,12 @@ if(Omega_h_USE_Kokkos)
   if ("OPENMP" IN_LIST Kokkos_DEVICES)
       bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "ON")
   endif()
+  if ("SYCL" IN_LIST Kokkos_DEVICES)
+      bob_option(Omega_h_USE_SYCL "Whether to use SYCL" "ON")
+  endif()
+  if ("HIP" IN_LIST Kokkos_DEVICES)
+    bob_option(Omega_h_USE_HIP "Whether to use HIP" "ON")
+  endif()
   if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
     message(FATAL_ERROR
             "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
@@ -133,6 +140,8 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_Kokkos
     Omega_h_USE_OpenMP
     Omega_h_USE_CUDA
+    Omega_h_USE_SYCL
+    Omega_h_USE_HIP
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
@@ -172,7 +181,6 @@ if(Omega_h_EXAMPLES)
   add_subdirectory(example/laplacian)
   if(Omega_h_USE_DOLFIN)
     set(SAVED_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    string(REPLACE " -Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     add_subdirectory(example/fenics/cpp)
     set(CMAKE_CXX_FLAGS "${SAVED_CXX_FLAGS}")
   endif()

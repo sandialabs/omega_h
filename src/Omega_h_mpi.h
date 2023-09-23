@@ -40,4 +40,13 @@ OMEGA_H_SYSTEM_HEADER
 
 #endif  // ifdef OMEGA_H_USE_MPI
 
+#if (defined(OMEGA_H_USE_CUDA) || \
+                                     defined(OMEGA_H_USE_HIP) || \
+                                     defined(OMEGA_H_USE_SYCL)) \
+                                  && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+#define OMEGA_H_MPI_NEEDS_HOST_COPY 1
+#else
+#define OMEGA_H_MPI_NEEDS_HOST_COPY 0
+#endif
+
 #endif  // ifndef OMEGA_H_MPI_H

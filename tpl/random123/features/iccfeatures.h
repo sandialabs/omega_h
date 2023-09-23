@@ -63,7 +63,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) __builtin_expect(expr,likely)
+#define R123_BUILTIN_EXPECT(expr,likely) assert(false)
 #endif
 
 // The basic idiom is:

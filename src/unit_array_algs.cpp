@@ -9,6 +9,9 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_atomics.hpp"
+#include "Omega_h_file.hpp"
+#include <fstream>
 
 using namespace Omega_h;
 
@@ -25,6 +28,18 @@ static void test_int128() {
   b = b + b;
   b = b >> 3;
   OMEGA_H_CHECK(b == a);
+}
+
+static void test_atomic() {
+  const auto a2b = LOs({0,1,1,3,2});
+  const auto na = a2b.size();
+  Write<LO> degrees(4, 0);
+  auto count = OMEGA_H_LAMBDA(LO a) {
+    auto const b = a2b[a];
+    atomic_increment(&degrees[b]);
+  };
+  parallel_for(na, std::move(count));
+  OMEGA_H_CHECK(read(degrees) == LOs({1,2,1,1}));
 }
 
 static void test_repro_sum() {
@@ -56,6 +71,17 @@ static void test_sort() {
   }
 }
 
+static void test_equal() {
+  OMEGA_H_CHECK(LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}) == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
+  OMEGA_H_CHECK(LOs({0, 3, 6, 9}) == LOs({0, 3, 6, 9}));
+  OMEGA_H_CHECK(Read<I32>({10, 100, 1000}) == Read<I32>({10, 100, 1000}));
+  OMEGA_H_CHECK(LOs({}) == LOs({}));
+  OMEGA_H_CHECK(LOs({0}) == LOs({0}));
+  OMEGA_H_CHECK(Read<I32>({}) == Read<I32>({}));
+}
+
+
+
 static void test_sort_small_range() {
   Read<I32> in({10, 100, 1000, 10, 100, 1000, 10, 100, 1000});
   LOs perm;
@@ -77,9 +103,21 @@ static void test_scan() {
     LOs scanned = offset_scan(LOs(3, 1));
     OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
   }
+  { //test for overflow
+    //see https://github.com/kokkos/kokkos/issues/5513#issuecomment-1338092552
+    const int size = 128;
+    Write<I8> marks_w(size);
+    fill<I8>(marks_w,1);
+    auto offsets = offset_scan(Read<I8>(marks_w));
+    parallel_for(offsets.size(), OMEGA_H_LAMBDA(LO i) {
+      assert(offsets[i] == i);
+    },"checkOffsets");
+  }
   {
-    LOs scanned = offset_scan(Read<I8>(3, 1));
-    OMEGA_H_CHECK(scanned == Read<LO>(4, 0, 1));
+    LOs scannedByte = offset_scan(Read<I8>(3, 1));
+    LOs scannedLo = offset_scan(LOs(3, 1));
+    auto gold = Read<LO>(4,0,1);
+    OMEGA_H_CHECK(scannedByte == gold);
   }
 }
 
@@ -115,6 +153,15 @@ static void test_invert_map() {
     auto l2hl = invert_map_by_atomics(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0, 1));
     OMEGA_H_CHECK(l2hl.ab2b == LOs(4, 0, 1));
+  }
+  {
+    auto l2hl = invert_map_by_atomics(LOs({0,1,2,2,3,0}),4);
+    OMEGA_H_CHECK(l2hl.a2ab == LOs({0, 2, 3, 5, 6}));
+    //the inversion uses atomics and is non-deterministic
+    OMEGA_H_CHECK(l2hl.ab2b == LOs({0, 5, 1, 2, 3, 4}) ||
+                  l2hl.ab2b == LOs({0, 5, 1, 3, 2, 4}) ||
+                  l2hl.ab2b == LOs({5, 0, 1, 2, 3, 4}) ||
+                  l2hl.ab2b == LOs({5, 0, 1, 3, 2, 4})   );
   }
   {
     LOs hl2l({}, "hl2l");
@@ -260,6 +307,14 @@ static Omega_h::any test_expr2(
   return op->eval(env);
 }
 
+static void test_get_component() {
+  LOs in({0,1,0,1,0,1});
+  auto const ones = get_component(in, 2, 1);
+  OMEGA_H_CHECK(ones == LOs({1,1,1}));
+  auto const zeros = get_component(in, 2, 0);
+  OMEGA_H_CHECK(zeros == LOs({0,0,0}));
+}
+
 static void test_expr2() {
   using Omega_h::any;
   using Omega_h::any_cast;
@@ -312,12 +367,15 @@ static void test_array_from_kokkos() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
+  test_get_component();
+  test_equal();
+  test_scan();
+  test_sort_small_range();
   test_write();
+  test_atomic();
   test_int128();
   test_repro_sum();
   test_sort();
-  test_sort_small_range();
-  test_scan();
   test_fan_and_funnel();
   test_permute();
   test_invert_map();
@@ -332,4 +390,6 @@ int main(int argc, char** argv) {
   test_expr();
   test_expr2();
   test_array_from_kokkos();
+  fprintf(stderr, "done\n");
+  return 0;
 }

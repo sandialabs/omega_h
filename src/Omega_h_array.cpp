@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "Omega_h_for.hpp"
+#include "Omega_h_malloc.hpp"
 
 namespace Omega_h {
 
@@ -27,15 +28,23 @@ T* nonnull(T* p) {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
+Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) { }
 #endif
 
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name_in) {
   begin_code("Write allocation");
+  OMEGA_H_CHECK(size_in >= 0);
 #ifdef OMEGA_H_USE_KOKKOS
-  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
-      static_cast<std::size_t>(size_in));
+  if (is_pooling_enabled()) {
+#if defined(OMEGA_H_COMPILING_FOR_HOST)
+    manager_ = SharedRef<KokkosViewWrapper<T>>(size_in, name_in);
+    view_ = manager_->getView();
+#endif
+  } else {
+    view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
+        static_cast<std::size_t>(size_in));
+  }
 #else
   shared_alloc_ = decltype(shared_alloc_)(
       sizeof(T) * static_cast<std::size_t>(size_in), name_in);
@@ -79,7 +88,7 @@ Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 std::string Write<T>::name() const {
-  return view_.label();
+  return manager_ ? manager_->label() : view_.label();
 }
 #else
 template <typename T>
@@ -95,7 +104,9 @@ void Write<T>::set(LO i, T value) const {
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
 #endif
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_KOKKOS)
+  Kokkos::deep_copy(Kokkos::subview(view_,i),value);
+#elif defined(OMEGA_H_USE_CUDA)
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
   operator[](i) = value;
@@ -109,7 +120,11 @@ T Write<T>::get(LO i) const {
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
 #endif
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_KOKKOS)
+  T value;
+  Kokkos::deep_copy(value, Kokkos::subview(view_,i));
+  return value;
+#elif defined(OMEGA_H_USE_CUDA)
   T value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
   return value;
