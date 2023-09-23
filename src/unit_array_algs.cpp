@@ -110,7 +110,7 @@ static void test_scan() {
     fill<I8>(marks_w,1);
     auto offsets = offset_scan(Read<I8>(marks_w));
     parallel_for(offsets.size(), OMEGA_H_LAMBDA(LO i) {
-        assert(offsets[i] == i);
+      assert(offsets[i] == i);
     },"checkOffsets");
   }
   {
