@@ -24,21 +24,17 @@ OMEGA_H_DEVICE T& Write<T>::operator[](LO i) const OMEGA_H_NOEXCEPT {
   OMEGA_H_CHECK_OP(0, <=, i);
   OMEGA_H_CHECK_OP(i, <, size());
 #endif
-    return view_(i);
+  return view_(i);
 }
 
 template <typename T>
 OMEGA_H_INLINE T* Write<T>::data() const noexcept {
-    return view_.data();
+  return view_.data();
 }
 
 template <typename T>
 OMEGA_H_INLINE long Write<T>::use_count() const {
-// #if defined(OMEGA_H_COMPILING_FOR_HOST)
-    return manager_ ? manager_.use_count() : view_.use_count();
-// #else
-//    return  view_.use_count();
-// #endif
+  return manager_ ? manager_.use_count() : view_.use_count();
 }
 
 template <typename T>
@@ -55,19 +51,19 @@ OMEGA_H_INLINE bool Write<T>::exists() const noexcept {
 template <typename T>
 inline T const& HostRead<T>::operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK_OP(0, <=, i);
-    OMEGA_H_CHECK_OP(i, <, size());
+  OMEGA_H_CHECK_OP(0, <=, i);
+  OMEGA_H_CHECK_OP(i, <, size());
 #endif
-    return mirror_(i);
+  return mirror_(i);
 }
 
 template <typename T>
 inline T& HostWrite<T>::operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
-    OMEGA_H_CHECK_OP(0, <=, i);
-    OMEGA_H_CHECK_OP(i, <, size());
+  OMEGA_H_CHECK_OP(0, <=, i);
+  OMEGA_H_CHECK_OP(i, <, size());
 #endif
-    return mirror_(i);
+  return mirror_(i);
 }
 
 }  // namespace Omega_h
