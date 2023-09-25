@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 10.7.0 LANGUAGES CXX)
+project(Omega_h VERSION 10.8.0 LANGUAGES CXX)
 set(Omega_h_USE_STK_DEFAULT OFF)
 option(Omega_h_USE_STK "Whether to build the STK interface" ${Omega_h_USE_STK_DEFAULT})
 
