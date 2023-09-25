@@ -44,7 +44,7 @@ template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
 #if defined(OMEGA_H_USE_KOKKOS)
-  Kokkos::View<const T*> nonConstB = b.view();
+  View<const T*> nonConstB = b.view();
   return Kokkos::Experimental::equal("array_equal",ExecSpace(), a.view(), nonConstB);
 #else
   auto const first = IntIterator(0);

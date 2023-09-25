@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "Kokkos_Core.hpp"
+#include "Omega_h_kokkos.hpp"
 
 namespace Omega_h {
 
@@ -89,13 +90,13 @@ class KokkosPool {
   void deallocate(void* data);
 
   template <typename DataType>
-  auto allocateView(size_t n) -> Kokkos::View<DataType*> {
-    return Kokkos::View<DataType*>(
+  auto allocateView(size_t n) -> View<DataType*> {
+    return View<DataType*>(
         reinterpret_cast<DataType*>(allocate(n * sizeof(DataType))), n);
   }
 
   template <typename DataType>
-  void deallocateView(Kokkos::View<DataType*> view) {
+  void deallocateView(View<DataType*> view) {
     deallocate(reinterpret_cast<void*>(view.data()));
   }
 

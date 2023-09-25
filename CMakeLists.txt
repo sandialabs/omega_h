@@ -106,6 +106,20 @@ if(Omega_h_USE_Kokkos)
   endif()
 endif()
 
+bob_option(Omega_h_MEM_SPACE_SHARED "Whether to use shared memory space" OFF)
+bob_option(Omega_h_MEM_SPACE_HOSTPINNED "Whether to use host pinned memory space" OFF)
+if ((Omega_h_USE_CUDA OR Omega_h_USE_HIP OR Omega_h_USE_SYCL) AND NOT (Omega_h_MEM_SPACE_SHARED OR Omega_h_MEM_SPACE_HOSTPINNED))
+  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" ON)
+else()
+  bob_option(Omega_h_MEM_SPACE_DEVICE "Whether to use GPU memory space" OFF)
+endif()
+
+if ((Omega_h_MEM_SPACE_DEVICE AND Omega_h_MEM_SPACE_HOSTPINNED) OR 
+    (Omega_h_MEM_SPACE_DEVICE AND Omega_h_MEM_SPACE_SHARED) OR 
+    (Omega_h_MEM_SPACE_SHARED AND Omega_h_MEM_SPACE_HOSTPINNED))
+  message(FATAL_ERROR "Only one memory space allowed from these options: [ Omega_h_MEM_SPACE_SHARED, Omega_h_MEM_SPACE_HOSTPINNED, Omega_h_MEM_SPACE_DEVICE ]")
+endif()
+
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
   message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
@@ -142,6 +156,9 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_CUDA
     Omega_h_USE_SYCL
     Omega_h_USE_HIP
+    Omega_h_MEM_SPACE_DEVICE
+    Omega_h_MEM_SPACE_SHARED
+    Omega_h_MEM_SPACE_HOSTPINNED
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS

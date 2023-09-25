@@ -29,9 +29,46 @@ OMEGA_H_SYSTEM_HEADER
 #endif
 
 namespace Omega_h {
-using ExecSpace = Kokkos::DefaultExecutionSpace;
+
+#if defined(OMEGA_H_USE_CUDA)
+  using ExecSpace = Kokkos::Cuda;
+#elif defined(OMEGA_H_USE_HIP)
+  using ExecSpace = Kokkos::HIP;
+#elif defined(OMEGA_H_USE_SYCL)
+  using ExecSpace = Kokkos::Experimental::SYCL;
+#elif defined(OMEGA_H_USE_OpenMP)
+  using ExecSpace = Kokkos::OpenMP;
+#else
+  using ExecSpace = Kokkos::DefaultExecutionSpace;
+#endif
+
+#if defined(OMEGA_H_MEM_SPACE_DEVICE)
+  #if defined(OMEGA_H_USE_CUDA)
+    using Space = Kokkos::CudaSpace;
+  #elif defined(OMEGA_H_USE_HIP)
+    using Space = Kokkos::HIPSpace;
+  #elif defined(OMEGA_H_USE_SYCL)
+    using Space = Kokkos::Experimental::SYCLDeviceUSMSpace;
+  #endif
+#elif defined(OMEGA_H_MEM_SPACE_SHARED)
+  #if !defined(KOKKOS_HAS_SHARED_SPACE)
+    #error Shared memory space in unavailable
+  #endif
+  using Space = Kokkos::SharedSpace;
+#elif defined(OMEGA_H_MEM_SPACE_HOSTPINNED)
+  #if !defined(KOKKOS_HAS_SHARED_HOST_PINNED_SPACE)
+    #error Host Pinned memory space in unavailable
+  #endif
+  using Space = Kokkos::SharedHostPinnedSpace;
+#else
+  using Space = ExecSpace::memory_space;
+#endif
+
+using Device = Kokkos::Device<ExecSpace, Space>;
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
 using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
+
+template <class T> using View = Kokkos::View<T, Device>;
 
 inline Policy policy(LO n) { return Policy(0, n); }
 }  // namespace Omega_h
