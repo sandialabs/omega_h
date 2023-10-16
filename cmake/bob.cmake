@@ -74,12 +74,19 @@ macro(bob_begin_package)
   bob_cmake_arg(BUILD_SHARED_LIBS BOOL ON)
   bob_cmake_arg(CMAKE_INSTALL_PREFIX PATH "")
   option(${PROJECT_NAME}_NORMAL_CXX_FLAGS "Allow CMAKE_CXX_FLAGS to follow \"normal\" CMake behavior" ${USE_XSDK_DEFAULTS})
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(BOB_LIB_DESTINATION "bin")
-	set(BOB_BIN_DESTINATION "bin")
+  option(${PROJECT_NAME}_ENABLE_GNUINSTALLDIRS "Use the GNUInstallDirs install dir paths" TRUE)
+  include(GNUInstallDirs)
+  if(${PROJECT_NAME}_ENABLE_GNUINSTALLDIRS)
+    set(BOB_LIB_DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    set(BOB_BIN_DESTINATION ${CMAKE_INSTALL_BINDIR})
   else()
-    set(BOB_LIB_DESTINATION "lib")
-	set(BOB_BIN_DESTINATION "bin")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      set(BOB_LIB_DESTINATION "bin")
+      set(BOB_BIN_DESTINATION "bin")
+    else()
+      set(BOB_LIB_DESTINATION "lib")
+      set(BOB_BIN_DESTINATION "bin")
+    endif()
   endif()
 endmacro(bob_begin_package)
 
@@ -367,7 +374,7 @@ macro(bob_add_dependency)
           ARCHIVE DESTINATION "${BOB_LIB_DESTINATION}"
           RUNTIME DESTINATION "${BOB_LIB_DESTINATION}")
       install(EXPORT ${tgt}-target
-              DESTINATION lib/cmake/${PROJECT_NAME})
+          DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
       set(${PROJECT_NAME}_EXPORTED_TARGETS
           ${${PROJECT_NAME}_EXPORTED_TARGETS}
           ${tgt})
@@ -417,7 +424,7 @@ function(bob_export_target tgt_name)
     else()
       install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target DESTINATION "${BOB_LIB_DESTINATION}")
       install(EXPORT ${tgt_name}-target NAMESPACE ${PROJECT_NAME}::
-              DESTINATION lib/cmake/${PROJECT_NAME})
+              DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
       set(${PROJECT_NAME}_EXPORTED_TARGETS
           ${${PROJECT_NAME}_EXPORTED_TARGETS} ${tgt_name} PARENT_SCOPE)
     endif()
@@ -528,7 +535,7 @@ function(bob_install_provenance)
        "${${PROJECT_NAME}_CMAKE_ARGS}")
   install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_cmake_args.txt
-      DESTINATION lib/cmake/${PROJECT_NAME})
+      DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
   get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_upper)
   foreach(lang IN LISTS languages)
@@ -536,7 +543,7 @@ function(bob_install_provenance)
          "${CMAKE_${lang}_COMPILER} ${CMAKE_${lang}_FLAGS} ${CMAKE_${lang}_FLAGS_${build_type_upper}}")
     install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${lang}_compile_line.txt
-        DESTINATION lib/cmake/${PROJECT_NAME})
+        DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
   endforeach()
   foreach(tgt IN LISTS ${PROJECT_NAME}_EXPORTED_TARGETS)
     get_target_property(tgt_type "${tgt}" TYPE)
@@ -546,15 +553,15 @@ function(bob_install_provenance)
            "${link_libs}")
       install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${tgt}_libs.txt
-          DESTINATION lib/cmake/${PROJECT_NAME})
+          DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
     endif()
   endforeach()
 endfunction(bob_install_provenance)
 
 function(bob_end_package)
   include(CMakePackageConfigHelpers)
-  set(INCLUDE_INSTALL_DIR include)
-  set(LIB_INSTALL_DIR lib)
+  set(INCLUDE_INSTALL_DIR include) #HERE
+  set(LIB_INSTALL_DIR ${BOB_LIB_DESTINATION}) #HERE
   set(LATEST_FIND_DEPENDENCY
 "#The definition of this macro is really inconvenient prior to CMake
 #commit ab358d6a859d8b7e257ed1e06ca000e097a32ef6
@@ -630,7 +637,7 @@ set(${KEY_${TYPE}} \"${val}\")")
 ")
   install(FILES
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    DESTINATION lib/cmake/${PROJECT_NAME})
+    DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
   if(PROJECT_VERSION)
     file(WRITE
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
@@ -641,7 +648,7 @@ set(${KEY_${TYPE}} \"${val}\")")
         COMPATIBILITY SameMajorVersion)
     install(FILES
       "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-      DESTINATION lib/cmake/${PROJECT_NAME})
+      DESTINATION ${BOB_LIB_DESTINATION}/cmake/${PROJECT_NAME})
   endif()
   bob_install_provenance()
 endfunction(bob_end_package)
