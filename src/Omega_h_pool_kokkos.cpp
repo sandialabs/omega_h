@@ -11,6 +11,7 @@
 #include <iterator>
 #include <optional>
 #include <vector>
+#include <iostream>
 
 namespace Omega_h {
 
