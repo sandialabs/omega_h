@@ -189,6 +189,7 @@ if (Omega_h_USE_CUDA AND NOT Omega_h_USE_Kokkos)
 endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
+add_library(Omega_h::omega_h ALIAS omega_h)
 
 set_property(TARGET omega_h PROPERTY CXX_STANDARD "17")
 set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
