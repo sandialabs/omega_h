@@ -301,7 +301,6 @@ void write_tag_impl<Real>(
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
     Int ent_dim, Mesh* mesh, bool compress) {
   OMEGA_H_TIME_FUNCTION;
-  const auto ncomps = tag->ncomps();
   const auto name = tag->name();
   const auto class_ids = tag->class_ids();
   // TODO: write class id info for rc tag to file
