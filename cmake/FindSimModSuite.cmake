@@ -19,10 +19,23 @@
 #         include/*.h
 #         lib/ARCHOS/*.a
 
-set(SIM_MPI "" CACHE STRING "MPI implementation used for SimPartitionWrapper")
-if(SIM_MPI MATCHES "^$")
-  message(FATAL_ERROR "SIM_MPI is not defined... libSimPartitionWrapper-$SIM_MPI.a should exist in the SimModSuite lib directory")
+if (Omega_h_USE_MPI)
+  set(SIM_MPI "" CACHE STRING "MPI implementation used for SimPartitionWrapper")
+  if(SIM_MPI MATCHES "^$")
+    message(FATAL_ERROR "SIM_MPI is not defined... libSimPartitionWrapper-$SIM_MPI.a should exist in the SimModSuite lib directory")
+  endif()
 endif()
+
+macro(simLibCheckBootstrap libs)
+  simLibCheck(${libs} TRUE)
+  string(FIND "${SIMMODSUITE_LIBS}" "/lib/" archStart)
+  string(FIND "${SIMMODSUITE_LIBS}" "/libSim" archEnd)
+  math(EXPR archStart "${archStart}+5")
+  math(EXPR len "${archEnd}-${archStart}")
+  string(SUBSTRING "${SIMMODSUITE_LIBS}" "${archStart}" "${len}" SIM_ARCHOS)
+  message(STATUS "SIM_ARCHOS ${SIM_ARCHOS}")
+  set(SIMMODSUITE_LIBS "")
+endmacro(simLibCheckBootstrap)
 
 macro(simLibCheck libs isRequired)
   foreach(lib ${libs})
@@ -98,17 +111,14 @@ message(STATUS "Building with SimModSuite ${SIM_DOT_VERSION}")
 
 set(SIMMODSUITE_LIBS "")
 
-set(SIM_BOOTSTRAP_LIB_NAME
-  SimPartitionedMesh-mpi)
+if (Omega_h_USE_MPI)
+  set(SIM_BOOTSTRAP_LIB_NAME SimPartitionedMesh-mpi)
+else()
+  set(SIM_BOOTSTRAP_LIB_NAME SimPartitionedMesh)
+endif()
 
-simLibCheck("${SIM_BOOTSTRAP_LIB_NAME}" TRUE)
+simLibCheckBootstrap("${SIM_BOOTSTRAP_LIB_NAME}")
 
-string(FIND "${SIMMODSUITE_LIBS}" "/lib/" archStart)
-string(FIND "${SIMMODSUITE_LIBS}" "/libSim" archEnd)
-math(EXPR archStart "${archStart}+5")
-math(EXPR len "${archEnd}-${archStart}")
-string(SUBSTRING "${SIMMODSUITE_LIBS}" "${archStart}" "${len}" SIM_ARCHOS)
-message(STATUS "SIM_ARCHOS ${SIM_ARCHOS}")
 
 option(SIM_PARASOLID "Use Parasolid through Simmetrix" OFF)
 if (SIM_PARASOLID)
@@ -157,12 +167,21 @@ set(SIM_OPT_LIB_NAMES
 
 simLibCheck("${SIM_OPT_LIB_NAMES}" FALSE)
 
-set(SIM_CORE_LIB_NAMES
-  SimPartitionedMesh-mpi
-  SimMeshing
-  SimMeshTools
-  SimModel
-  SimPartitionWrapper-${SIM_MPI})
+if (Omega_h_USE_MPI)
+  message(STATUS "cake mpi is enabled!")
+  set(SIM_CORE_LIB_NAMES
+    SimPartitionedMesh-mpi
+    SimMeshing
+    SimMeshTools
+    SimModel
+    SimPartitionWrapper-${SIM_MPI})
+else()
+  message(STATUS "cake mpi is disabled!")
+  set(SIM_CORE_LIB_NAMES
+    SimMeshing
+    SimMeshTools
+    SimModel)
+endif()
 
 simLibCheck("${SIM_CORE_LIB_NAMES}" TRUE)
 
