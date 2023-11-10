@@ -1,17 +1,25 @@
 #include "MeshSim.h"
 #include "SimDiscrete.h"
 #include "SimMessages.h"
-#include "SimError.h"
-#include "SimErrorCodes.h"
-#include "SimMeshingErrorCodes.h"
-#include "SimDiscreteErrorCodes.h"
 #include <iostream>
 using namespace std;
 
 #include "Omega_h_comm.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_file.hpp"
+#include "Omega_h_simConfig.h"
 using namespace Omega_h;
+
+#if SIMMODSUITE_MAJOR_VERSION >= 18 && SIMMODSUITE_MINOR_VERSION >= 220930
+  #include "SimInfo.h"
+  #include "SimInfoCodes.h"
+  #define SIM_ERROR(suffix,err) SimInfo_##suffix(err)
+  typedef pSimInfo pSimError;
+#else
+  #include "SimError.h"
+  #include "SimErrorCodes.h"
+  #define SIM_ERROR(suffix,err) SimError_##suffix(err)
+#endif
 
 void messageHandler(int type, const char *msg)
 {
@@ -104,9 +112,9 @@ void hex_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
@@ -134,9 +142,9 @@ void wedge_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
@@ -164,9 +172,9 @@ void pyramid_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
@@ -195,9 +203,9 @@ void tetOnWedge_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
@@ -229,9 +237,9 @@ void pymOnHex_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
@@ -266,9 +274,9 @@ void allType_gen(CommPtr comm, std::string const mesh_dir) {
                    vReturn, eReturn, mesh_path.c_str(), model_path.c_str());
   } catch (pSimError err) {
     cerr<<"SimModSuite error caught:"<<endl;
-    cerr<<"  Error code: "<<SimError_code(err)<<endl;
-    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
-    SimError_delete(err);
+    cerr<<"  Error code: "<<SIM_ERROR(code,err)<<endl;
+    cerr<<"  Error string: "<<SIM_ERROR(toString,err)<<endl;
+    SIM_ERROR(delete,err);
   } catch (...) {
     cerr<<"Unhandled exception caught"<<endl;
   }
