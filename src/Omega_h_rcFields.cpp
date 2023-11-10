@@ -265,7 +265,6 @@ Read<T> Mesh::get_rc_mesh_array_from_rc_array(
 
   auto rc_ids = class_ids.exists() ? (ask_revClass(ent_dim, class_ids)).ab2b
                                    : (ask_revClass(ent_dim)).ab2b;
-  auto class_id_size = class_ids.exists() ? class_ids.size() : -1;
   auto n_bEnts = rc_ids.size();
   OMEGA_H_CHECK(rc_field.size() == n_bEnts * ncomps);
   if ((ent_dim == 3) && (n_bEnts != n_ents)) {

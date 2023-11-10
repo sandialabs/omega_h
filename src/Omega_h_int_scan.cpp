@@ -27,7 +27,7 @@ LOs offset_scan(Read<T> a, std::string const& name) {
   out.set(0, 0);
 #if defined(OMEGA_H_USE_KOKKOS)
   auto outSub = Kokkos::subview(out.view(),std::make_pair(1,out.size()));
-  assert(outSub.size()==a.size());
+  assert(static_cast<LO>(outSub.size())==a.size());
   auto kkOp = i32Plus<LO>();
   Kokkos::Experimental::inclusive_scan("omegah_kk_offset_scan", ExecSpace(), a.view(), outSub, kkOp, LO());
   Kokkos::fence();
