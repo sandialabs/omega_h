@@ -168,7 +168,6 @@ set(SIM_OPT_LIB_NAMES
 simLibCheck("${SIM_OPT_LIB_NAMES}" FALSE)
 
 if (Omega_h_USE_MPI)
-  message(STATUS "cake mpi is enabled!")
   set(SIM_CORE_LIB_NAMES
     SimPartitionedMesh-mpi
     SimMeshing
