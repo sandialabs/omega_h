@@ -175,7 +175,6 @@ if (Omega_h_USE_MPI)
     SimModel
     SimPartitionWrapper-${SIM_MPI})
 else()
-  message(STATUS "cake mpi is disabled!")
   set(SIM_CORE_LIB_NAMES
     SimMeshing
     SimMeshTools
