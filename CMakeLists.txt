@@ -122,9 +122,6 @@ if ((Omega_h_MEM_SPACE_DEVICE AND Omega_h_MEM_SPACE_HOSTPINNED) OR
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
-if(Omega_h_USE_SimModSuite AND NOT Omega_h_USE_MPI)
-  message(FATAL_ERROR "Omega_h_USE_MPI must be enabled if Omega_h_USE_SimModSuite is enabled")
-endif()
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 

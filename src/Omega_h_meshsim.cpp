@@ -6,7 +6,6 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_adj.hpp"
 
-#include "SimPartitionedMesh.h"
 #include "SimModel.h"
 #include "SimUtil.h"
 #include "SimDiscrete.h"
@@ -639,7 +638,6 @@ void read_internal(pMesh m, Mesh* mesh, pMeshNex numbering) {
 
 Mesh readImpl(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     filesystem::path const& numbering_fname, CommPtr comm) {
-  SimPartitionedMesh_start(NULL,NULL);
   SimModel_start();
   Sim_readLicenseFile(NULL);
   SimDiscrete_start(0);

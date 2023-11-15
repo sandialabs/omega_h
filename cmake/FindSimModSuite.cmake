@@ -19,10 +19,23 @@
 #         include/*.h
 #         lib/ARCHOS/*.a
 
-set(SIM_MPI "" CACHE STRING "MPI implementation used for SimPartitionWrapper")
-if(SIM_MPI MATCHES "^$")
-  message(FATAL_ERROR "SIM_MPI is not defined... libSimPartitionWrapper-$SIM_MPI.a should exist in the SimModSuite lib directory")
+if (Omega_h_USE_MPI)
+  set(SIM_MPI "" CACHE STRING "MPI implementation used for SimPartitionWrapper")
+  if(SIM_MPI MATCHES "^$")
+    message(FATAL_ERROR "SIM_MPI is not defined... libSimPartitionWrapper-$SIM_MPI.a should exist in the SimModSuite lib directory")
+  endif()
 endif()
+
+macro(simLibCheckBootstrap libs)
+  simLibCheck(${libs} TRUE)
+  string(FIND "${SIMMODSUITE_LIBS}" "/lib/" archStart)
+  string(FIND "${SIMMODSUITE_LIBS}" "/libSim" archEnd)
+  math(EXPR archStart "${archStart}+5")
+  math(EXPR len "${archEnd}-${archStart}")
+  string(SUBSTRING "${SIMMODSUITE_LIBS}" "${archStart}" "${len}" SIM_ARCHOS)
+  message(STATUS "SIM_ARCHOS ${SIM_ARCHOS}")
+  set(SIMMODSUITE_LIBS "")
+endmacro(simLibCheckBootstrap)
 
 macro(simLibCheck libs isRequired)
   foreach(lib ${libs})
@@ -84,7 +97,7 @@ string(REGEX REPLACE
   "${SIM_VERSION}")
 
 set(MIN_VALID_SIM_VERSION 16.0.210606)
-set(MAX_VALID_SIM_VERSION 17.0.220403)
+set(MAX_VALID_SIM_VERSION 2023.1-231028)
 if( ${SKIP_SIMMETRIX_VERSION_CHECK} )
   message(STATUS "Skipping Simmetrix SimModSuite version check."
     " This may result in undefined behavior")
@@ -98,22 +111,19 @@ message(STATUS "Building with SimModSuite ${SIM_DOT_VERSION}")
 
 set(SIMMODSUITE_LIBS "")
 
-set(SIM_BOOTSTRAP_LIB_NAME
-  SimPartitionedMesh-mpi)
+if (Omega_h_USE_MPI)
+  set(SIM_BOOTSTRAP_LIB_NAME SimPartitionedMesh-mpi)
+else()
+  set(SIM_BOOTSTRAP_LIB_NAME SimPartitionedMesh)
+endif()
 
-simLibCheck("${SIM_BOOTSTRAP_LIB_NAME}" TRUE)
+simLibCheckBootstrap("${SIM_BOOTSTRAP_LIB_NAME}")
 
-string(FIND "${SIMMODSUITE_LIBS}" "/lib/" archStart)
-string(FIND "${SIMMODSUITE_LIBS}" "/libSim" archEnd)
-math(EXPR archStart "${archStart}+5")
-math(EXPR len "${archEnd}-${archStart}")
-string(SUBSTRING "${SIMMODSUITE_LIBS}" "${archStart}" "${len}" SIM_ARCHOS)
-message(STATUS "SIM_ARCHOS ${SIM_ARCHOS}")
 
 option(SIM_PARASOLID "Use Parasolid through Simmetrix" OFF)
 if (SIM_PARASOLID)
   set(MIN_SIM_PARASOLID_VERSION 290)
-  set(MAX_SIM_PARASOLID_VERSION 330)
+  set(MAX_SIM_PARASOLID_VERSION 360)
   foreach(version RANGE
       ${MAX_SIM_PARASOLID_VERSION}
       ${MIN_SIM_PARASOLID_VERSION} -10)
@@ -157,12 +167,19 @@ set(SIM_OPT_LIB_NAMES
 
 simLibCheck("${SIM_OPT_LIB_NAMES}" FALSE)
 
-set(SIM_CORE_LIB_NAMES
-  SimPartitionedMesh-mpi
-  SimMeshing
-  SimMeshTools
-  SimModel
-  SimPartitionWrapper-${SIM_MPI})
+if (Omega_h_USE_MPI)
+  set(SIM_CORE_LIB_NAMES
+    SimPartitionedMesh-mpi
+    SimMeshing
+    SimMeshTools
+    SimModel
+    SimPartitionWrapper-${SIM_MPI})
+else()
+  set(SIM_CORE_LIB_NAMES
+    SimMeshing
+    SimMeshTools
+    SimModel)
+endif()
 
 simLibCheck("${SIM_CORE_LIB_NAMES}" TRUE)
 
@@ -171,10 +188,23 @@ if (UNIX AND NOT APPLE)
   set(SIMMODSUITE_LIBS ${SIMMODSUITE_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
+if (SIM_ARCHOS STREQUAL x64_rhel8_gcc83)
+  find_library(XDR_LIB tirpc)
+  if(XDR_LIB)
+    message(STATUS "Found XDR_LIB ${XDR_LIB}")
+    set(SIMMODSUITE_LIBS ${SIMMODSUITE_LIBS} ${XDR_LIB})
+  else()
+    message(FATAL_ERROR "The libtirpc library was not found.  It defines xdr symbols "
+    "(e.g., xdrmem_create) that are need by SimModSuite on systems using "
+    "glibc newer than 2.32.  Note, glibc starting with 2.26 could optionally "
+    "have been built without the xdr symbols.")
+  endif()
+endif()
+
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set SIMMODSUITE_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(SIMMODSUITE  DEFAULT_MSG
+find_package_handle_standard_args(SimModSuite  DEFAULT_MSG
   SIMMODSUITE_LIBS SIMMODSUITE_INCLUDE_DIR
   SIMMODSUITE_MAJOR_VERSION SIMMODSUITE_MINOR_VERSION)
 
