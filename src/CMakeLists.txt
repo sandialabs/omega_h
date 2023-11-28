@@ -273,6 +273,7 @@ macro(osh_add_util EXE_NAME)
   bob_export_target(${EXE_NAME})
 endmacro(osh_add_util)
 
+osh_add_util(Omega_h_describe)
 osh_add_util(msh2osh)
 osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
