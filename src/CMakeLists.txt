@@ -30,6 +30,7 @@ set(Omega_h_SOURCES
   Omega_h_compare.cpp
   Omega_h_confined.cpp
   Omega_h_conserve.cpp
+  Omega_h_describe.cpp
   Omega_h_dist.cpp
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
