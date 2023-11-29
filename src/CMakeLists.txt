@@ -30,7 +30,6 @@ set(Omega_h_SOURCES
   Omega_h_compare.cpp
   Omega_h_confined.cpp
   Omega_h_conserve.cpp
-  Omega_h_describe.cpp
   Omega_h_dist.cpp
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
@@ -273,7 +272,7 @@ macro(osh_add_util EXE_NAME)
   bob_export_target(${EXE_NAME})
 endmacro(osh_add_util)
 
-osh_add_util(Omega_h_describe)
+osh_add_util(describe)
 osh_add_util(msh2osh)
 osh_add_util(osh2vtk)
 osh_add_util(oshdiff)

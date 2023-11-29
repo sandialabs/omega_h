@@ -6,7 +6,7 @@ int main(int argc, char** argv)
     auto lib = Omega_h::Library(&argc, &argv);
     Omega_h::Mesh mesh = Omega_h::read_mesh_file(argv[1], lib.world());
 
-    printf("\nMesh Entity Count by Dimension: (Dim, Num Mesh Entities)\n");
+    printf("\nMesh Entity Count by Dimension: (Dim, Entities Count)\n");
     for(int dim=0; dim < mesh.dim(); dim++)
         printf("(%d, %d)\n", dim, mesh.nents(dim));
 
@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     printf("Num Quads: %d\n", mesh.nquads());
     printf("Num Tris: %d\n", mesh.ntris());
 
-    printf("\nTags: (Dim, Tag, Size)\n");
+    printf("\nTags by Dimension: (Dim, Tag, Size)\n");
     for (int dim=0; dim < mesh.dim(); dim++)
     for (int tag=0; tag < mesh.ntags(dim); tag++) {
         auto tagbase = mesh.get_tag(dim, tag);
