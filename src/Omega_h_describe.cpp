@@ -6,20 +6,13 @@ int main(int argc, char** argv)
     auto lib = Omega_h::Library(&argc, &argv);
     Omega_h::Mesh mesh = Omega_h::read_mesh_file(argv[1], lib.world());
 
-    printf("\nMesh Properties:\n");
+    printf("\nMesh Entity Count by Dimension: (Dim, Num Mesh Entities)\n");
     for(int dim=0; dim < mesh.dim(); dim++)
-        printf("(Dim, Num Mesh Entities): (%d, %d)\n", dim, mesh.nents(dim));
+        printf("(%d, %d)\n", dim, mesh.nents(dim));
 
-    printf("\n");
+    printf("\nImbalance by Dimension: (Dim, Imbalance)\n");
     for(int dim=0; dim < mesh.dim(); dim++)
-        printf("(Dim, Imbalance): (%d, %d)\n", dim, mesh.imbalance(dim));
-
-    printf("\nGeometry:\n");
-    printf("Num Elems: %d\n", mesh.nelems());
-    printf("Num Regions: %d\n", mesh.nregions());
-    printf("Num Faces: %d\n", mesh.nfaces());
-    printf("Num Edges: %d\n", mesh.nedges());
-    printf("Num Verts: %d\n", mesh.nverts());
+        printf("(%d, %d)\n", dim, mesh.imbalance(dim));
 
     printf("\nShapes:\n");
     printf("Num Pyrams: %d\n", mesh.npyrams());
@@ -29,10 +22,19 @@ int main(int argc, char** argv)
     printf("Num Quads: %d\n", mesh.nquads());
     printf("Num Tris: %d\n", mesh.ntris());
 
-    printf("\nTags:\n");
+    printf("\nTags: (Dim, Tag, Size)\n");
     for (int dim=0; dim < mesh.dim(); dim++)
     for (int tag=0; tag < mesh.ntags(dim); tag++) {
         auto tagbase = mesh.get_tag(dim, tag);
-        printf("(Dim, Tag): (%d, %s)\n", dim, tagbase->name().c_str());
+        printf("(%d, %s, ", dim, tagbase->name().c_str());
+
+        if (tagbase->type() == OMEGA_H_I8)
+            printf("%d)\n", mesh.get_tag<Omega_h::I8>(dim, tagbase->name())->array().size());
+        if (tagbase->type() == OMEGA_H_I32)
+            printf("%d)\n", mesh.get_tag<Omega_h::I32>(dim, tagbase->name())->array().size());
+        if (tagbase->type() == OMEGA_H_I64)
+            printf("%d)\n", mesh.get_tag<Omega_h::I64>(dim, tagbase->name())->array().size());
+        if (tagbase->type() == OMEGA_H_F64)
+            printf("%d)\n", mesh.get_tag<Omega_h::Real>(dim, tagbase->name())->array().size());
     }
 }
