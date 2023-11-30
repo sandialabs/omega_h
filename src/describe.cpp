@@ -5,24 +5,31 @@ int main(int argc, char** argv)
 {
     auto lib = Omega_h::Library(&argc, &argv);
     Omega_h::Mesh mesh = Omega_h::read_mesh_file(argv[1], lib.world());
+    std::ostringstream oss;
 
-    printf("\nMesh Entity Count by Dimension: (Dim, Entities Count)\n");
+    #ifdef OMEGA_H_USE_MPI
+        int comm_rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+        oss << "\nComm Rank: " << comm_rank << "\n";
+    #endif
+
+    oss << "\nMesh Entity Count by Dimension: (Dim, Entities Count)\n";
     for(int dim=0; dim < mesh.dim(); dim++)
-        printf("(%d, %d)\n", dim, mesh.nents(dim));
+        oss << "(" << dim << ", " << mesh.nents(dim) << ")\n";
 
-    printf("\nImbalance by Dimension: (Dim, Imbalance)\n");
+    oss << "\nImbalance by Dimension: (Dim, Imbalance)\n";
     for(int dim=0; dim < mesh.dim(); dim++)
-        printf("(%d, %d)\n", dim, mesh.imbalance(dim));
+        oss << "(" << dim << ", " << mesh.imbalance(dim) << ")\n";
 
-    printf("\nShapes:\n");
-    printf("Num Pyrams: %d\n", mesh.npyrams());
-    printf("Num Wedges: %d\n", mesh.nwedges());
-    printf("Num Hexs: %d\n", mesh.nhexs());
-    printf("Num Tets: %d\n", mesh.ntets());
-    printf("Num Quads: %d\n", mesh.nquads());
-    printf("Num Tris: %d\n", mesh.ntris());
+    oss << "\nShapes:\n";
+    oss << "Num Pyrams: " << mesh.npyrams() << "\n";
+    oss << "Num Wedges: " << mesh.nwedges() << "\n";
+    oss << "Num Hexs: " << mesh.nhexs() << "\n";
+    oss << "Num Tets: " << mesh.ntets() << "\n";
+    oss << "Num Quads: " << mesh.nquads() << "\n";
+    oss << "Num Tris: " << mesh.ntris() << "\n";
 
-    printf("\nTags by Dimension: (Dim, Tag, Size per Entity)\n");
+    oss << "\nTags by Dimension: (Dim, Tag, Size per Entity)\n";
     for (int dim=0; dim < mesh.dim(); dim++)
     for (int tag=0; tag < mesh.ntags(dim); tag++) {
         auto tagbase = mesh.get_tag(dim, tag);
@@ -37,6 +44,9 @@ int main(int argc, char** argv)
             size = mesh.get_tag<Omega_h::Real>(dim, tagbase->name())->array().size();
 
         size /= mesh.nents(dim);
-        printf("(%d, %s, %d)\n", dim, tagbase->name().c_str(), size);
+        oss << "(" << dim << ", " << tagbase->name().c_str() << ", " << size << ")\n";
     }
+
+    oss << "\n--------------------------------------------------------\n";
+    std::cout << oss.str();
 }
