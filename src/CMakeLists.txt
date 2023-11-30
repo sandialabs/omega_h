@@ -573,9 +573,10 @@ function(test_func_impl TEST_NAME NUM_PROCS)
   osh_add_exe(shape_test)
   test_basefunc(run_shape_test 1 ./shape_test)
 
-  test_func(describe_one 1 ./describe ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh)
   if(Omega_h_USE_MPI)
-    test_func(describe_two 2 ./describe ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh)
+    test_func(describe_partitioned 2 ./describe ${CMAKE_SOURCE_DIR}/meshes/box_3d_2p.osh)
+  else()
+    test_func(describe_serial 1 ./describe ${CMAKE_SOURCE_DIR}/meshes/box_3d.osh)
   endif()
 endif()
 
