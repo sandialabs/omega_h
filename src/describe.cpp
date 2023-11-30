@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     printf("Num Quads: %d\n", mesh.nquads());
     printf("Num Tris: %d\n", mesh.ntris());
 
-    printf("\nTags by Dimension: (Dim, Tag, Size)\n");
+    printf("\nTags by Dimension: (Dim, Tag, Size per Entity)\n");
     for (int dim=0; dim < mesh.dim(); dim++)
     for (int tag=0; tag < mesh.ntags(dim); tag++) {
         auto tagbase = mesh.get_tag(dim, tag);
@@ -35,6 +35,8 @@ int main(int argc, char** argv)
             size = mesh.get_tag<Omega_h::I64>(dim, tagbase->name())->array().size();
         if (tagbase->type() == OMEGA_H_F64)
             size = mesh.get_tag<Omega_h::Real>(dim, tagbase->name())->array().size();
+
+        size /= mesh.nents(dim);
         printf("(%d, %s, %d)\n", dim, tagbase->name().c_str(), size);
     }
 }
