@@ -21,13 +21,13 @@ int main(int argc, char** argv)
     for(int dim=0; dim < mesh.dim(); dim++)
         oss << "(" << dim << ", " << mesh.imbalance(dim) << ")\n";
 
-    oss << "\nShapes:\n";
-    oss << "Num Pyrams: " << mesh.npyrams() << "\n";
-    oss << "Num Wedges: " << mesh.nwedges() << "\n";
-    oss << "Num Hexs: " << mesh.nhexs() << "\n";
-    oss << "Num Tets: " << mesh.ntets() << "\n";
-    oss << "Num Quads: " << mesh.nquads() << "\n";
-    oss << "Num Tris: " << mesh.ntris() << "\n";
+    // oss << "\nShapes:\n";
+    // oss << "Num Pyrams: " << mesh.npyrams() << "\n";
+    // oss << "Num Wedges: " << mesh.nwedges() << "\n";
+    // oss << "Num Hexs: " << mesh.nhexs() << "\n";
+    // oss << "Num Tets: " << mesh.ntets() << "\n";
+    // oss << "Num Quads: " << mesh.nquads() << "\n";
+    // oss << "Num Tris: " << mesh.ntris() << "\n";
 
     oss << "\nTags by Dimension: (Dim, Tag, Size per Entity)\n";
     for (int dim=0; dim < mesh.dim(); dim++)
