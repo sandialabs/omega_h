@@ -22,9 +22,7 @@ int main(int argc, char** argv)
     for(int dim=0; dim < mesh.dim(); dim++)
         oss << "(" << dim << ", " << mesh.imbalance(dim) << ")\n";
 
-    oss << "\nMesh Family: (Dim, Family)\n";
-    for(int dim=0; dim < mesh.dim(); dim++)
-        oss << "(" << dim << ", " << Omega_h::topological_singular_name(mesh.family(), dim) << ")\n";
+    oss << "\nMesh Family: " << Omega_h::topological_singular_name(mesh.family(), mesh.dim()-1) << "\n";
 
     oss << "\nTags by Dimension: (Dim, Tag, Size per Entity)\n";
     for (int dim=0; dim < mesh.dim(); dim++)
