@@ -1,3 +1,4 @@
+#include <Omega_h_element.hpp>
 #include <Omega_h_file.hpp>
 
 
@@ -21,15 +22,9 @@ int main(int argc, char** argv)
     for(int dim=0; dim < mesh.dim(); dim++)
         oss << "(" << dim << ", " << mesh.imbalance(dim) << ")\n";
 
-    #if defined(OMEGA_H_USE_KOKKOS)
-        oss << "\nShapes:\n";
-        oss << "Num Pyrams: " << mesh.npyrams() << "\n";
-        oss << "Num Wedges: " << mesh.nwedges() << "\n";
-        oss << "Num Hexs: " << mesh.nhexs() << "\n";
-        oss << "Num Tets: " << mesh.ntets() << "\n";
-        oss << "Num Quads: " << mesh.nquads() << "\n";
-        oss << "Num Tris: " << mesh.ntris() << "\n";
-    #endif
+    oss << "\nMesh Family: (Dim, Family)\n";
+    for(int dim=0; dim < mesh.dim(); dim++)
+        oss << "(" << dim << ", " << Omega_h::topological_singular_name(mesh.family(), dim) << ")\n";
 
     oss << "\nTags by Dimension: (Dim, Tag, Size per Entity)\n";
     for (int dim=0; dim < mesh.dim(); dim++)
