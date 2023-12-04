@@ -37,3 +37,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: ctest
+
+    - name: Print
+      if: always()
+      run: cat ${{runner.workspace}}/build/Testing/Temporary/LastTest.log
